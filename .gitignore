@@ -1,0 +1,28 @@
+# Local inputs and generated benchmark output (keep small examples in docs/).
+/models/
+/datasets/
+/results/
+*.gguf
+*.litertlm
+*.safetensors
+*.tflite
+
+# Python tooling.
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Native builds and JavaScript tooling.
+/build/
+/dist/
+/bazel-*
+CMakeFiles/
+node_modules/
+
+# Local editor and operating-system files.
+.DS_Store
+.idea/
+.vscode/
