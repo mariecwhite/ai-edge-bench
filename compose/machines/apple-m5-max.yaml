@@ -1,0 +1,51 @@
+# Apple M5 Max - arm64, run under Docker Desktop / Colima / Apple Virtualization.
+#
+#   docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml \
+#     --profile cpu run --rm llama-cpp
+#
+# Important limitations, which must be reported with any result from this host:
+#
+#  * Containers run inside a linux/arm64 VM. There is no GPU passthrough, so
+#    Metal and the Apple Neural Engine are unreachable. Only CPU numbers are
+#    available here, and they are not comparable to a native macOS llama.cpp
+#    build using Metal.
+#  * The VM's vCPU count and memory are set by the VM manager, not by compose,
+#    and the VM scheduler - not this file - decides P-core vs E-core placement.
+#    Size the VM to the number of performance cores and record it.
+#  * Rosetta/x86-64 emulation must not be used; every image below is arm64.
+#
+# See docs/containers.md for the native-macOS baseline procedure.
+
+x-machine: &machine
+  AEB_MACHINE: apple-m5-max
+  AEB_MACHINE_NOTES: "Apple M5 Max under a linux/arm64 VM; CPU only, no Metal/ANE"
+  # Left to the harness, which reads the VM's cgroup CPU quota.
+  AEB_THREADS: ${AEB_THREADS:-}
+
+services:
+  base:
+    platform: linux/arm64
+    environment: *machine
+
+  fetch-models:
+    platform: linux/arm64
+    environment: *machine
+
+  llama-cpp:
+    platform: linux/arm64
+    environment:
+      <<: *machine
+      AEB_VARIANT: cpu
+      AEB_GPU_LAYERS: "0"
+
+  litert-lm-xnnpack: &m5-litert
+    platform: linux/arm64
+    build:
+      args:
+        BAZEL_CONFIG: linux_arm64
+    environment:
+      <<: *machine
+      AEB_BACKEND: cpu
+
+  litert-lm-ynnpack:
+    <<: *m5-litert

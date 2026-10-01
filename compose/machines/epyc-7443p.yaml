@@ -1,0 +1,43 @@
+# AMD EPYC 7443P - Zen 3, x86-64, 24C/48T, no benchmark-relevant GPU.
+#
+#   docker compose -f compose.yaml -f compose/machines/epyc-7443p.yaml \
+#     --profile cpu run --rm llama-cpp
+#
+# Zen 3 supports AVX2, which LiteRT-LM's linux_x86_64 Bazel config requires.
+
+# Applied to every service, including base and fetch-models, so captured
+# metadata identifies the machine no matter which service produced it.
+x-machine: &machine
+  AEB_MACHINE: epyc-7443p-zen3
+  AEB_MACHINE_NOTES: "AMD EPYC 7443P, Zen 3, 24C/48T, CPU-only, SMT off recommended"
+  # One thread per physical core. SMT siblings add contention and variance in
+  # the memory-bound decode phase.
+  AEB_THREADS: ${AEB_THREADS:-24}
+
+services:
+  base:
+    platform: linux/amd64
+    environment: *machine
+
+  fetch-models:
+    platform: linux/amd64
+    environment: *machine
+
+  llama-cpp:
+    platform: linux/amd64
+    environment:
+      <<: *machine
+      AEB_VARIANT: cpu
+      AEB_GPU_LAYERS: "0"
+
+  litert-lm-xnnpack: &epyc-litert
+    platform: linux/amd64
+    build:
+      args:
+        BAZEL_CONFIG: linux_x86_64
+    environment:
+      <<: *machine
+      AEB_BACKEND: cpu
+
+  litert-lm-ynnpack:
+    <<: *epyc-litert

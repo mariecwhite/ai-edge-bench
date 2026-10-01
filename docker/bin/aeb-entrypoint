@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Entrypoint for every AI Edge Bench container.
+#
+# Runs the requested harness command (or an arbitrary command) with the harness
+# on PATH. Keeping a single entrypoint means every image in the stack behaves
+# identically regardless of which framework it carries.
+
+set -euo pipefail
+
+export PATH="/opt/aeb/bin:${PATH}"
+
+if [[ $# -eq 0 ]]; then
+  exec aeb-sysinfo
+fi
+
+exec "$@"

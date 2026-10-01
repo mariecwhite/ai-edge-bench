@@ -26,3 +26,6 @@ node_modules/
 .DS_Store
 .idea/
 .vscode/
+
+# Local compose configuration (copy .env.example).
+.env

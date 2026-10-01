@@ -1,0 +1,84 @@
+# AMD Ryzen AI Max+ "Strix Halo" - Zen 5, x86-64, 16C/32T + Radeon 8060S iGPU.
+#
+#   # CPU comparison across both frameworks
+#   docker compose -f compose.yaml -f compose/machines/strix-halo.yaml \
+#     --profile cpu run --rm llama-cpp
+#   # llama.cpp on the integrated GPU (Vulkan)
+#   docker compose -f compose.yaml -f compose/machines/strix-halo.yaml \
+#     --profile gpu run --rm llama-cpp-vulkan
+#
+# Vulkan is used rather than ROCm: it is the path that works out of the box for
+# the 8060S iGPU and needs only /dev/dri passed into the container.
+
+x-machine: &machine
+  AEB_MACHINE: strix-halo-zen5
+  AEB_MACHINE_NOTES: "AMD Ryzen AI Max+ (Strix Halo), Zen 5, 16C/32T, unified LPDDR5X"
+  AEB_THREADS: ${AEB_THREADS:-16}
+
+services:
+  base:
+    platform: linux/amd64
+    environment: *machine
+
+  fetch-models:
+    platform: linux/amd64
+    environment: *machine
+
+  llama-cpp:
+    platform: linux/amd64
+    environment:
+      <<: *machine
+      AEB_VARIANT: cpu
+      AEB_GPU_LAYERS: "0"
+
+  # A separate service rather than a variant of llama-cpp, so the CPU and iGPU
+  # images can coexist on the same host without rebuilding.
+  llama-cpp-vulkan:
+    profiles: ["gpu", "llama.cpp", "all"]
+    platform: linux/amd64
+    init: true
+    image: ${AEB_IMAGE_PREFIX:-aeb}/llama-cpp:vulkan
+    build:
+      context: ./docker
+      dockerfile: llama-cpp/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        EXTRA_BUILD_PACKAGES: "libvulkan-dev glslang-tools glslc"
+        EXTRA_RUNTIME_PACKAGES: "libvulkan1 mesa-vulkan-drivers vulkan-tools libgl1"
+        CMAKE_EXTRA_FLAGS: "-DGGML_VULKAN=ON"
+        CMAKE_BUILD_JOBS: ${AEB_BUILD_JOBS:-0}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b11259}
+        AEB_VARIANT: vulkan
+    volumes:
+      - ./models:/models
+      - ./results:/results
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    environment:
+      <<: *machine
+      AEB_MACHINE_NOTES: "AMD Ryzen AI Max+ (Strix Halo), Radeon 8060S iGPU via Vulkan"
+      AEB_VARIANT: vulkan
+      AEB_GPU_LAYERS: ${AEB_LLAMA_CPP_GPU_LAYERS:-99}
+      AEB_PROMPT_TOKENS: ${AEB_PROMPT_TOKENS:-1024}
+      AEB_GEN_TOKENS: ${AEB_GEN_TOKENS:-256}
+      AEB_REPETITIONS: ${AEB_REPETITIONS:-5}
+      AEB_FLASH_ATTN: ${AEB_FLASH_ATTN:-auto}
+      AEB_GGUF_REPO: ${AEB_GGUF_REPO:-ggml-org/gemma-4-E2B-it-GGUF}
+      AEB_GGUF_FILE: ${AEB_GGUF_FILE:-gemma-4-E2B-it-Q4_0.gguf}
+      AEB_EXTRA_ARGS: ${AEB_LLAMA_CPP_EXTRA_ARGS:-}
+    command: ["aeb-bench-llama-cpp"]
+
+  litert-lm-xnnpack: &strix-litert
+    platform: linux/amd64
+    build:
+      args:
+        BAZEL_CONFIG: linux_x86_64
+    environment:
+      <<: *machine
+      AEB_BACKEND: cpu
+
+  litert-lm-ynnpack:
+    <<: *strix-litert

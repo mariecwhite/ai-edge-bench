@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Run the llama.cpp benchmark (llama-bench) and record a reproducible result
+# directory under /results.
+#
+# Configuration is entirely environmental so that compose files, not this
+# script, define a machine's workload:
+#   AEB_MODEL            path to the .gguf (default: derived from AEB_GGUF_*)
+#   AEB_VARIANT          result label for the build variant (default: cpu)
+#   AEB_PROMPT_TOKENS    -p, prompt-processing tokens (default 1024)
+#   AEB_GEN_TOKENS       -n, generated tokens (default 256)
+#   AEB_REPETITIONS      -r, measured repetitions (default 5)
+#   AEB_THREADS          -t, threads (default: cgroup-aware core count)
+#   AEB_GPU_LAYERS       -ngl, layers offloaded (default 0; CPU-only)
+#   AEB_FLASH_ATTN       -fa on|off|auto (default auto)
+#   AEB_EXTRA_ARGS       appended verbatim to the llama-bench command line
+
+set -euo pipefail
+# shellcheck source=aeb-common.sh
+source /opt/aeb/bin/aeb-common.sh
+
+aeb::require_cmd llama-bench
+aeb::require_cmd jq
+
+model="${AEB_MODEL:-}"
+if [[ -z "${model}" && -n "${AEB_GGUF_REPO:-}" && -n "${AEB_GGUF_FILE:-}" ]]; then
+  model="${AEB_MODELS_DIR}/${AEB_GGUF_REPO}/${AEB_GGUF_FILE}"
+fi
+[[ -n "${model}" ]] || aeb::die "set AEB_MODEL or AEB_GGUF_REPO/AEB_GGUF_FILE"
+[[ -s "${model}" ]] || aeb::die "model not found: ${model} (run the 'fetch-models' service first)"
+
+variant="${AEB_VARIANT:-cpu}"
+prompt_tokens="${AEB_PROMPT_TOKENS:-1024}"
+gen_tokens="${AEB_GEN_TOKENS:-256}"
+repetitions="${AEB_REPETITIONS:-5}"
+threads="${AEB_THREADS:-$(aeb::default_threads)}"
+gpu_layers="${AEB_GPU_LAYERS:-0}"
+flash_attn="${AEB_FLASH_ATTN:-auto}"
+
+run_id="$(aeb::run_id)"
+run_dir="$(aeb::new_run_dir llama.cpp "${variant}" "${run_id}")"
+
+cmd=(llama-bench
+     -m "${model}"
+     -p "${prompt_tokens}"
+     -n "${gen_tokens}"
+     -t "${threads}"
+     -ngl "${gpu_layers}"
+     -fa "${flash_attn}"
+     -r "${repetitions}"
+     -o json)
+# shellcheck disable=SC2206  # intentional word splitting of user-supplied args
+[[ -n "${AEB_EXTRA_ARGS:-}" ]] && cmd+=(${AEB_EXTRA_ARGS})
+
+aeb::log "run ${run_id} -> ${run_dir}"
+printf '%q ' "${cmd[@]}" > "${run_dir}/command.txt"
+printf '\n' >> "${run_dir}/command.txt"
+
+aeb-sysinfo "${run_dir}/sysinfo.json"
+
+# llama-bench performs its own warm-up pass before the measured repetitions and
+# excludes tokenization and sampling from its timings.
+set +e
+"${cmd[@]}" > "${run_dir}/llama-bench.json" 2> "${run_dir}/raw.log"
+status=$?
+set -e
+
+model_sha="unknown"
+[[ -s "${model}.sha256" ]] && model_sha="$(cat "${model}.sha256")"
+
+jq -n \
+  --arg schema "aeb.run/1" \
+  --arg run_id "${run_id}" \
+  --arg framework "llama.cpp" \
+  --arg variant "${variant}" \
+  --arg machine "${AEB_MACHINE:-unknown-machine}" \
+  --arg started_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --arg model_path "${model}" \
+  --arg model_sha256 "${model_sha}" \
+  --argjson exit_code "${status}" \
+  --argjson params "$(jq -n \
+       --argjson prompt_tokens "${prompt_tokens}" \
+       --argjson gen_tokens "${gen_tokens}" \
+       --argjson repetitions "${repetitions}" \
+       --argjson threads "${threads}" \
+       --argjson gpu_layers "${gpu_layers}" \
+       --arg flash_attn "${flash_attn}" \
+       --arg extra_args "${AEB_EXTRA_ARGS:-}" \
+       '$ARGS.named')" \
+  --argjson build "$(aeb::build_info)" \
+  --rawfile command "${run_dir}/command.txt" \
+  '$ARGS.named | .command |= rtrimstr("\n")' \
+  > "${run_dir}/metadata.json"
+
+if (( status != 0 )); then
+  aeb::log "llama-bench exited ${status}; see ${run_dir}/raw.log"
+  exit "${status}"
+fi
+
+aeb::log "results: ${run_dir}"
+jq -r '.[] | "\(.n_prompt > 0 | if . then "pp" else "tg" end)\t\(.avg_ts) t/s ± \(.stddev_ts)"' \
+   "${run_dir}/llama-bench.json" 2>/dev/null || true

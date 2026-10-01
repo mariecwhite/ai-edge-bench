@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Capture the environment metadata that a benchmark result must be published
+# with (see docs/benchmark_methodology.md).
+#
+# usage: aeb-sysinfo [output.json]
+#        with no argument the JSON is written to stdout.
+
+set -euo pipefail
+# shellcheck source=aeb-common.sh
+source /opt/aeb/bin/aeb-common.sh
+
+out="${1:-/dev/stdout}"
+
+cpu_model="$(awk -F': ' '/^model name/{print $2; exit}' /proc/cpuinfo 2>/dev/null || true)"
+if [[ -z "${cpu_model}" ]]; then
+  # aarch64 has no "model name"; fall back to the implementer/part identifiers.
+  cpu_impl="$(awk -F': ' '/^CPU implementer/{print $2; exit}' /proc/cpuinfo 2>/dev/null || true)"
+  cpu_part="$(awk -F': ' '/^CPU part/{print $2; exit}' /proc/cpuinfo 2>/dev/null || true)"
+  cpu_model="aarch64 implementer=${cpu_impl:-unknown} part=${cpu_part:-unknown}"
+fi
+
+cpu_flags="$(awk -F': ' '/^flags|^Features/{print $2; exit}' /proc/cpuinfo 2>/dev/null || true)"
+mem_total_kb="$(awk '/^MemTotal:/{print $2; exit}' /proc/meminfo 2>/dev/null || echo 0)"
+
+cgroup_cpu_max="$(cat /sys/fs/cgroup/cpu.max 2>/dev/null || echo 'n/a')"
+cgroup_mem_max="$(cat /sys/fs/cgroup/memory.max 2>/dev/null || echo 'n/a')"
+
+nvidia_smi='null'
+if command -v nvidia-smi >/dev/null 2>&1; then
+  nvidia_smi="$(nvidia-smi --query-gpu=name,driver_version,memory.total,compute_cap \
+                --format=csv,noheader 2>/dev/null | jq -R -s 'split("\n") | map(select(length > 0))' || echo 'null')"
+fi
+
+vulkan='null'
+if command -v vulkaninfo >/dev/null 2>&1; then
+  vulkan="$(vulkaninfo --summary 2>/dev/null | awk -F'= ' '/deviceName/{print $2}' \
+            | jq -R -s 'split("\n") | map(select(length > 0))' || echo 'null')"
+fi
+
+jq -n \
+  --arg schema "aeb.sysinfo/1" \
+  --arg collected_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --arg machine "${AEB_MACHINE:-unknown-machine}" \
+  --arg machine_notes "${AEB_MACHINE_NOTES:-}" \
+  --arg hostname "$(hostname)" \
+  --arg kernel "$(uname -sr)" \
+  --arg arch "$(uname -m)" \
+  --arg os "$( (. /etc/os-release 2>/dev/null && echo "${PRETTY_NAME:-}") || echo unknown)" \
+  --arg cpu_model "${cpu_model}" \
+  --arg cpu_flags "${cpu_flags}" \
+  --argjson nproc "$(nproc 2>/dev/null || echo 1)" \
+  --argjson threads_default "$(aeb::default_threads)" \
+  --argjson mem_total_kb "${mem_total_kb:-0}" \
+  --arg cgroup_cpu_max "${cgroup_cpu_max}" \
+  --arg cgroup_mem_max "${cgroup_mem_max}" \
+  --argjson nvidia "${nvidia_smi}" \
+  --argjson vulkan "${vulkan}" \
+  --argjson build "$(aeb::build_info)" \
+  '{
+     schema: $schema,
+     collected_at: $collected_at,
+     machine: { label: $machine, notes: $machine_notes },
+     container: { hostname: $hostname, os: $os, kernel: $kernel, arch: $arch },
+     cpu: { model: $cpu_model, flags: $cpu_flags, nproc: $nproc, harness_default_threads: $threads_default },
+     memory: { total_kb: $mem_total_kb },
+     cgroup: { cpu_max: $cgroup_cpu_max, memory_max: $cgroup_mem_max },
+     accelerators: { nvidia: $nvidia, vulkan: $vulkan },
+     build: $build
+   }' > "${out}"
