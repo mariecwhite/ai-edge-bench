@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+# Run the LiteRT-LM benchmark and record a reproducible result directory
+# under /results.
+#
+# Configuration (compose owns these, not this script):
+#   AEB_MODEL            path to the .litertlm (default: derived from AEB_LITERTLM_*)
+#   AEB_BACKEND          cpu | gpu (default cpu)
+#   AEB_YNNPACK          true|false -> --enable_ynnpack (default false)
+#   AEB_VARIANT          result label (default: <backend>-ynnpack|<backend>-xnnpack)
+#   AEB_PROMPT_TOKENS    --benchmark_prefill_tokens (default 1024)
+#   AEB_GEN_TOKENS       --benchmark_decode_tokens (default 256)
+#   AEB_REPETITIONS      --num_iterations (default 5)
+#   AEB_THREADS          --num_cpu_threads (default: cgroup-aware core count)
+#   AEB_WARMUP           true|false, discarded warm-up run first (default true)
+#   AEB_EXTRA_ARGS       appended verbatim
+#
+# Note: XNNPACK is always the CPU delegate in LiteRT-LM and cannot be turned
+# off. --enable_ynnpack only gives YNNPACK first pick of the ops, leaving the
+# remainder to XNNPACK. See docs/containers.md.
+
+set -euo pipefail
+# shellcheck source=aeb-common.sh
+source /opt/aeb/bin/aeb-common.sh
+
+aeb::require_cmd jq
+
+bin="${AEB_LITERT_BIN:-}"
+if [[ -z "${bin}" ]]; then
+  # Default to litert_lm_main for robustness across model variants; it accepts
+  # the benchmark flags used by this harness and is the upstream stable entry
+  # point. opt into the advanced binary explicitly with AEB_LITERT_BIN.
+  bin=litert_lm_main
+fi
+aeb::require_cmd "${bin}"
+
+model="${AEB_MODEL:-}"
+if [[ -z "${model}" && -n "${AEB_LITERTLM_REPO:-}" && -n "${AEB_LITERTLM_FILE:-}" ]]; then
+  model="${AEB_MODELS_DIR}/${AEB_LITERTLM_REPO}/${AEB_LITERTLM_FILE}"
+fi
+[[ -n "${model}" ]] || aeb::die "set AEB_MODEL or AEB_LITERTLM_REPO/AEB_LITERTLM_FILE"
+[[ -s "${model}" ]] || aeb::die "model not found: ${model} (run the 'fetch-models' service first)"
+
+backend="${AEB_BACKEND:-cpu}"
+ynnpack="$(aeb::bool "${AEB_YNNPACK:-false}")"
+if [[ "${ynnpack}" == "true" ]]; then
+  variant="${AEB_VARIANT:-${backend}-ynnpack}"
+else
+  variant="${AEB_VARIANT:-${backend}-xnnpack}"
+fi
+prompt_tokens="${AEB_PROMPT_TOKENS:-1024}"
+gen_tokens="${AEB_GEN_TOKENS:-256}"
+repetitions="${AEB_REPETITIONS:-5}"
+threads="${AEB_THREADS:-$(aeb::default_threads)}"
+warmup="$(aeb::bool "${AEB_WARMUP:-true}")"
+
+run_id="$(aeb::run_id)"
+run_dir="$(aeb::new_run_dir litert-lm "${variant}" "${run_id}")"
+
+# Keep the XNNPACK weight cache inside the run directory so repeat runs on the
+# same machine start from the same cache state.
+cache_dir="${run_dir}/cache"
+mkdir -p "${cache_dir}"
+
+build_cmd() {
+  local iterations="$1"
+  printf '%s\0' \
+    "${bin}" \
+    "--backend=${backend}" \
+    "--model_path=${model}" \
+    "--benchmark" \
+    "--benchmark_prefill_tokens=${prompt_tokens}" \
+    "--benchmark_decode_tokens=${gen_tokens}" \
+    "--async=false" \
+    "--num_cpu_threads=${threads}" \
+    "--enable_ynnpack=${ynnpack}" \
+    "--num_iterations=${iterations}" \
+    "--report_peak_memory_footprint" \
+    "--cache_dir=${cache_dir}"
+}
+
+mapfile -d '' cmd < <(build_cmd "${repetitions}")
+# shellcheck disable=SC2206  # intentional word splitting of user-supplied args
+[[ -n "${AEB_EXTRA_ARGS:-}" ]] && cmd+=(${AEB_EXTRA_ARGS})
+
+aeb::log "run ${run_id} -> ${run_dir}"
+printf '%q ' "${cmd[@]}" > "${run_dir}/command.txt"
+printf '\n' >> "${run_dir}/command.txt"
+
+aeb-sysinfo "${run_dir}/sysinfo.json"
+
+if [[ "${warmup}" == "true" ]]; then
+  aeb::log "warm-up run (discarded)"
+  mapfile -d '' warm < <(build_cmd 1)
+  "${warm[@]}" > "${run_dir}/warmup.log" 2>&1 || aeb::log "warm-up run failed; continuing"
+fi
+
+set +e
+"${cmd[@]}" > "${run_dir}/raw.log" 2>&1
+status=$?
+set -e
+
+model_sha="unknown"
+[[ -s "${model}.sha256" ]] && model_sha="$(cat "${model}.sha256")"
+
+jq -n \
+  --arg schema "aeb.run/1" \
+  --arg run_id "${run_id}" \
+  --arg framework "litert-lm" \
+  --arg variant "${variant}" \
+  --arg binary "${bin}" \
+  --arg machine "${AEB_MACHINE:-unknown-machine}" \
+  --arg started_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --arg model_path "${model}" \
+  --arg model_sha256 "${model_sha}" \
+  --argjson exit_code "${status}" \
+  --argjson params "$(jq -n \
+       --arg backend "${backend}" \
+       --arg enable_ynnpack "${ynnpack}" \
+       --argjson prompt_tokens "${prompt_tokens}" \
+       --argjson gen_tokens "${gen_tokens}" \
+       --argjson repetitions "${repetitions}" \
+       --argjson threads "${threads}" \
+       --arg warmup "${warmup}" \
+       --arg extra_args "${AEB_EXTRA_ARGS:-}" \
+       '$ARGS.named')" \
+  --argjson build "$(aeb::build_info)" \
+  --rawfile command "${run_dir}/command.txt" \
+  '$ARGS.named
+   | .command |= rtrimstr("\n")
+   | .results_note = "LiteRT-LM prints its benchmark table to raw.log; no machine-readable export exists upstream, so raw.log is the authoritative record."' \
+  > "${run_dir}/metadata.json"
+
+if (( status != 0 )); then
+  aeb::log "${bin} exited ${status}; see ${run_dir}/raw.log"
+  exit "${status}"
+fi
+
+aeb::log "results: ${run_dir}"
+tail -n 30 "${run_dir}/raw.log" >&2 || true

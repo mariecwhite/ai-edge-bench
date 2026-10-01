@@ -1,0 +1,137 @@
+# AI Edge Bench - composable benchmark containers.
+#
+# This file defines *what* is benchmarked (frameworks, variants, workload).
+# A machine overlay in compose/machines/ defines *where* it runs (base images,
+# ISA/backend build flags, thread counts, device access). Always compose the
+# two:
+#
+#   docker compose -f compose.yaml -f compose/machines/epyc-7443p.yaml \
+#     --profile models up fetch-models
+#   docker compose -f compose.yaml -f compose/machines/epyc-7443p.yaml \
+#     --profile cpu run --rm llama-cpp
+#
+# Or set COMPOSE_FILE in .env (see .env.example) and drop the -f flags.
+
+name: aeb
+
+x-aeb-volumes: &aeb-volumes
+  - ./models:/models
+  - ./results:/results
+
+# Workload definition. Identical for every framework and machine so that runs
+# stay comparable; see docs/benchmark_methodology.md.
+x-aeb-workload: &aeb-workload
+  AEB_MACHINE: ${AEB_MACHINE:-unknown-machine}
+  AEB_MACHINE_NOTES: ${AEB_MACHINE_NOTES:-}
+  AEB_PROMPT_TOKENS: ${AEB_PROMPT_TOKENS:-1024}
+  AEB_GEN_TOKENS: ${AEB_GEN_TOKENS:-256}
+  AEB_REPETITIONS: ${AEB_REPETITIONS:-5}
+  AEB_THREADS: ${AEB_THREADS:-}
+  AEB_GGUF_REPO: ${AEB_GGUF_REPO:-ggml-org/gemma-4-E2B-it-GGUF}
+  AEB_GGUF_FILE: ${AEB_GGUF_FILE:-gemma-4-E2B-it-Q4_0.gguf}
+  AEB_LITERTLM_REPO: ${AEB_LITERTLM_REPO:-litert-community/gemma-4-E2B-it-litert-lm}
+  AEB_LITERTLM_FILE: ${AEB_LITERTLM_FILE:-gemma-4-E2B-it.litertlm}
+
+x-aeb-service: &aeb-service
+  init: true
+  volumes: *aeb-volumes
+
+services:
+  # ------------------------------------------------------------------ base
+  # Harness-only image. Build it first: the framework images copy /opt/aeb
+  # from it, which is what keeps them composable across different runtime
+  # bases (plain Ubuntu, nvidia/cuda, ...).
+  base:
+    profiles: ["build", "base"]
+    image: ${AEB_BASE_IMAGE:-aeb/base:latest}
+    build:
+      context: ./docker
+      dockerfile: base/Dockerfile
+      args:
+        BASE_IMAGE: ${AEB_BASE_OS_IMAGE:-ubuntu:24.04}
+    <<: *aeb-service
+    environment: *aeb-workload
+    command: ["aeb-sysinfo"]
+
+  # ---------------------------------------------------------- model staging
+  # Populates the shared ./models volume once per host. Every framework
+  # service reads from it, so the same bytes are benchmarked everywhere.
+  fetch-models:
+    profiles: ["models"]
+    image: ${AEB_BASE_IMAGE:-aeb/base:latest}
+    build:
+      context: ./docker
+      dockerfile: base/Dockerfile
+      args:
+        BASE_IMAGE: ${AEB_BASE_OS_IMAGE:-ubuntu:24.04}
+    <<: *aeb-service
+    environment:
+      <<: *aeb-workload
+      HF_TOKEN: ${HF_TOKEN:-}
+    command: ["aeb-fetch-model"]
+
+  # --------------------------------------------------------------- llama.cpp
+  llama-cpp:
+    profiles: ["cpu", "llama.cpp", "all"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/llama-cpp:${AEB_LLAMA_CPP_VARIANT:-cpu}
+    build:
+      context: ./docker
+      dockerfile: llama-cpp/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        BUILDER_BASE: ${AEB_LLAMA_CPP_BUILDER_BASE:-ubuntu:24.04}
+        RUNTIME_BASE: ${AEB_LLAMA_CPP_RUNTIME_BASE:-ubuntu:24.04}
+        EXTRA_BUILD_PACKAGES: ${AEB_LLAMA_CPP_BUILD_PACKAGES:-}
+        EXTRA_RUNTIME_PACKAGES: ${AEB_LLAMA_CPP_RUNTIME_PACKAGES:-}
+        CMAKE_EXTRA_FLAGS: ${AEB_LLAMA_CPP_CMAKE_FLAGS:-}
+        CMAKE_BUILD_JOBS: ${AEB_BUILD_JOBS:-0}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b11259}
+        AEB_VARIANT: ${AEB_LLAMA_CPP_VARIANT:-cpu}
+    <<: *aeb-service
+    environment:
+      <<: *aeb-workload
+      AEB_VARIANT: ${AEB_LLAMA_CPP_VARIANT:-cpu}
+      AEB_GPU_LAYERS: ${AEB_LLAMA_CPP_GPU_LAYERS:-0}
+      AEB_FLASH_ATTN: ${AEB_FLASH_ATTN:-auto}
+      AEB_EXTRA_ARGS: ${AEB_LLAMA_CPP_EXTRA_ARGS:-}
+    command: ["aeb-bench-llama-cpp"]
+
+  # --------------------------------------------------------------- LiteRT-LM
+  # Two services share one image and differ only by --enable_ynnpack, which is
+  # the comparison being made. XNNPACK is always present as the CPU delegate;
+  # "xnnpack" here means "XNNPACK only", "ynnpack" means "YNNPACK first,
+  # XNNPACK for the remaining ops".
+  litert-lm-xnnpack:
+    profiles: ["cpu", "litert-lm", "all"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/litert-lm:${AEB_LITERTLM_VARIANT:-cpu}
+    build: &litert-lm-build
+      context: ./docker
+      dockerfile: litert-lm/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        BUILDER_BASE: ${AEB_LITERTLM_BUILDER_BASE:-ubuntu:24.04}
+        RUNTIME_BASE: ${AEB_LITERTLM_RUNTIME_BASE:-ubuntu:24.04}
+        EXTRA_RUNTIME_PACKAGES: ${AEB_LITERTLM_RUNTIME_PACKAGES:-}
+        BAZEL_CONFIG: ${AEB_LITERTLM_BAZEL_CONFIG:-linux_x86_64}
+        BAZEL_EXTRA_FLAGS: ${AEB_LITERTLM_BAZEL_FLAGS:---define=litert_enable_ynnpack=true}
+        BAZEL_JOBS: ${AEB_BUILD_JOBS:-0}
+        LITERT_LM_REF: ${AEB_LITERTLM_REF:-v0.17.1}
+    <<: *aeb-service
+    environment: &litert-lm-env
+      <<: *aeb-workload
+      AEB_BACKEND: ${AEB_LITERTLM_BACKEND:-cpu}
+      AEB_WARMUP: ${AEB_WARMUP:-true}
+      AEB_YNNPACK: "false"
+      AEB_VARIANT: ""
+      AEB_EXTRA_ARGS: ${AEB_LITERTLM_EXTRA_ARGS:-}
+    command: ["aeb-bench-litert-lm"]
+
+  litert-lm-ynnpack:
+    profiles: ["cpu", "litert-lm", "all"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/litert-lm:${AEB_LITERTLM_VARIANT:-cpu}
+    build: *litert-lm-build
+    <<: *aeb-service
+    environment:
+      <<: *litert-lm-env
+      AEB_YNNPACK: "true"
+    command: ["aeb-bench-litert-lm"]

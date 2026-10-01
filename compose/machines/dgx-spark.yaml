@@ -1,0 +1,96 @@
+# NVIDIA DGX Spark (GB10) - 20-core Arm (10x Cortex-X925 + 10x A725), Blackwell
+# GPU, unified LPDDR5X. linux/arm64.
+#
+#   # CPU comparison across both frameworks
+#   docker compose -f compose.yaml -f compose/machines/dgx-spark.yaml \
+#     --profile cpu run --rm llama-cpp
+#   # llama.cpp on the Blackwell GPU
+#   docker compose -f compose.yaml -f compose/machines/dgx-spark.yaml \
+#     --profile gpu run --rm llama-cpp-cuda
+#
+# Requires the NVIDIA Container Toolkit on the host.
+
+x-machine: &machine
+  AEB_MACHINE: dgx-spark-gb10
+  AEB_MACHINE_NOTES: "NVIDIA DGX Spark GB10, Cortex-X925 + Cortex-A725"
+  # Pinned to the 10 Cortex-X925 performance cores (see cpuset below). Mixing
+  # in the A725 cores makes decode throughput depend on the scheduler rather
+  # than on the framework.
+  AEB_THREADS: ${AEB_THREADS:-10}
+
+services:
+  base:
+    platform: linux/arm64
+    environment: *machine
+
+  fetch-models:
+    platform: linux/arm64
+    environment: *machine
+
+  llama-cpp:
+    platform: linux/arm64
+    cpuset: ${AEB_CPUSET:-0-9}
+    environment:
+      <<: *machine
+      AEB_MACHINE_NOTES: "NVIDIA DGX Spark GB10, Cortex-X925 performance cores, CPU-only run"
+      AEB_VARIANT: cpu
+      AEB_GPU_LAYERS: "0"
+
+  llama-cpp-cuda:
+    profiles: ["gpu", "llama.cpp", "all"]
+    platform: linux/arm64
+    init: true
+    image: ${AEB_IMAGE_PREFIX:-aeb}/llama-cpp:cuda
+    build:
+      context: ./docker
+      dockerfile: llama-cpp/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        # GB10 Blackwell needs CUDA 13.x; compute capability is 12.1 (sm_121).
+        BUILDER_BASE: ${AEB_CUDA_DEVEL_IMAGE:-nvidia/cuda:13.0.1-devel-ubuntu24.04}
+        RUNTIME_BASE: ${AEB_CUDA_RUNTIME_IMAGE:-nvidia/cuda:13.0.1-runtime-ubuntu24.04}
+        CMAKE_EXTRA_FLAGS: "-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=${AEB_CUDA_ARCH:-121} -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined"
+        CMAKE_BUILD_JOBS: ${AEB_BUILD_JOBS:-0}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b11259}
+        AEB_VARIANT: cuda
+    volumes:
+      - ./models:/models
+      - ./results:/results
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      <<: *machine
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      AEB_MACHINE_NOTES: "NVIDIA DGX Spark GB10, Blackwell GPU via CUDA"
+      AEB_VARIANT: cuda
+      AEB_GPU_LAYERS: ${AEB_LLAMA_CPP_GPU_LAYERS:-99}
+      AEB_PROMPT_TOKENS: ${AEB_PROMPT_TOKENS:-1024}
+      AEB_GEN_TOKENS: ${AEB_GEN_TOKENS:-256}
+      AEB_REPETITIONS: ${AEB_REPETITIONS:-5}
+      AEB_FLASH_ATTN: ${AEB_FLASH_ATTN:-auto}
+      AEB_GGUF_REPO: ${AEB_GGUF_REPO:-ggml-org/gemma-4-E2B-it-GGUF}
+      AEB_GGUF_FILE: ${AEB_GGUF_FILE:-gemma-4-E2B-it-Q4_0.gguf}
+      AEB_EXTRA_ARGS: ${AEB_LLAMA_CPP_EXTRA_ARGS:-}
+    command: ["aeb-bench-llama-cpp"]
+
+  # linux_arm64 already implies --define=litert_enable_ynnpack=true upstream;
+  # passing it explicitly keeps the build manifest self-describing.
+  litert-lm-xnnpack: &spark-litert
+    platform: linux/arm64
+    cpuset: ${AEB_CPUSET:-0-9}
+    build:
+      args:
+        BAZEL_CONFIG: linux_arm64
+    environment:
+      <<: *machine
+      AEB_MACHINE_NOTES: "NVIDIA DGX Spark GB10, Cortex-X925 performance cores"
+      AEB_BACKEND: cpu
+
+  litert-lm-ynnpack:
+    <<: *spark-litert

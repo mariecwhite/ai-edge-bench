@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Download benchmark model artifacts from Hugging Face into the shared
+# /models volume, record a checksum, and skip work that is already done.
+#
+# usage:
+#   aeb-fetch-model                       # fetch the configured default set
+#   aeb-fetch-model <hf_repo> <filename>  # fetch one specific artifact
+#
+# Defaults come from the environment so compose (and .env) owns the model
+# choice rather than this script:
+#   AEB_GGUF_REPO / AEB_GGUF_FILE         model for llama.cpp
+#   AEB_LITERTLM_REPO / AEB_LITERTLM_FILE model for LiteRT-LM
+#
+# Set HF_TOKEN for gated repositories. The defaults are ungated.
+
+set -euo pipefail
+# shellcheck source=aeb-common.sh
+source /opt/aeb/bin/aeb-common.sh
+
+aeb::require_cmd curl
+aeb::require_cmd jq
+
+fetch_one() {
+  local repo="$1" file="$2"
+  local dest_dir="${AEB_MODELS_DIR}/${repo}"
+  local dest="${dest_dir}/${file}"
+  local url="https://huggingface.co/${repo}/resolve/main/${file}?download=true"
+
+  mkdir -p "${dest_dir}" || aeb::die "cannot write to ${AEB_MODELS_DIR}; mount it read-write"
+
+  if [[ -s "${dest}" && -s "${dest}.sha256" ]]; then
+    aeb::log "already present: ${repo}/${file}"
+  else
+    aeb::log "downloading ${repo}/${file}"
+    local auth=()
+    [[ -n "${HF_TOKEN:-}" ]] && auth=(--oauth2-bearer "${HF_TOKEN}")
+    # Download to a temporary name so an interrupted transfer is never mistaken
+    # for a complete model on the next run.
+    curl --fail --location --retry 3 --retry-delay 5 --continue-at - \
+         "${auth[@]}" --output "${dest}.part" "${url}" \
+      || aeb::die "download failed: ${url}"
+    mv "${dest}.part" "${dest}"
+    aeb::sha256 "${dest}" > "${dest}.sha256"
+  fi
+
+  jq -n \
+    --arg repo "${repo}" \
+    --arg file "${file}" \
+    --arg path "${dest}" \
+    --arg sha256 "$(cat "${dest}.sha256")" \
+    --argjson bytes "$(stat -c %s "${dest}")" \
+    '{repo: $repo, file: $file, path: $path, sha256: $sha256, bytes: $bytes}' \
+    > "${dest}.manifest.json"
+
+  aeb::log "ready: ${dest} (sha256 $(cut -c1-16 < "${dest}.sha256")…)"
+  printf '%s\n' "${dest}"
+}
+
+if [[ $# -eq 2 ]]; then
+  fetch_one "$1" "$2"
+  exit 0
+elif [[ $# -ne 0 ]]; then
+  aeb::die "usage: aeb-fetch-model [<hf_repo> <filename>]"
+fi
+
+fetched=0
+if [[ -n "${AEB_GGUF_REPO:-}" && -n "${AEB_GGUF_FILE:-}" ]]; then
+  fetch_one "${AEB_GGUF_REPO}" "${AEB_GGUF_FILE}"
+  fetched=1
+fi
+if [[ -n "${AEB_LITERTLM_REPO:-}" && -n "${AEB_LITERTLM_FILE:-}" ]]; then
+  fetch_one "${AEB_LITERTLM_REPO}" "${AEB_LITERTLM_FILE}"
+  fetched=1
+fi
+(( fetched )) || aeb::die "no model configured; set AEB_GGUF_REPO/FILE and/or AEB_LITERTLM_REPO/FILE"
