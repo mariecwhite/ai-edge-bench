@@ -36,6 +36,17 @@ x-aeb-service: &aeb-service
   init: true
   volumes: *aeb-volumes
 
+# Harness services run the framework-neutral runners (python3 -m aeb.perf,
+# aeb.accuracy) inside the framework images. They additionally see the staged
+# datasets. scripts/suite.py drives them one container at a time.
+x-aeb-harness-service: &aeb-harness-service
+  init: true
+  volumes:
+    - ./models:/models
+    - ./results:/results
+    - ./datasets:/datasets:ro
+  entrypoint: ["python3", "-m"]
+
 services:
   # ------------------------------------------------------------------ base
   # Harness-only image. Build it first: the framework images copy /opt/aeb
@@ -93,6 +104,7 @@ services:
       AEB_VARIANT: ${AEB_LLAMA_CPP_VARIANT:-cpu}
       AEB_GPU_LAYERS: ${AEB_LLAMA_CPP_GPU_LAYERS:-0}
       AEB_FLASH_ATTN: ${AEB_FLASH_ATTN:-auto}
+      AEB_DEPTH: ${AEB_DEPTH:-0}
       AEB_EXTRA_ARGS: ${AEB_LLAMA_CPP_EXTRA_ARGS:-}
     command: ["aeb-bench-llama-cpp"]
 
@@ -121,6 +133,7 @@ services:
       <<: *aeb-workload
       AEB_BACKEND: ${AEB_LITERTLM_BACKEND:-cpu}
       AEB_WARMUP: ${AEB_WARMUP:-true}
+      AEB_CTX: ${AEB_CTX:-4096}
       AEB_YNNPACK: "false"
       AEB_VARIANT: ""
       AEB_EXTRA_ARGS: ${AEB_LITERTLM_EXTRA_ARGS:-}
@@ -135,3 +148,39 @@ services:
       <<: *litert-lm-env
       AEB_YNNPACK: "true"
     command: ["aeb-bench-litert-lm"]
+
+  # ---------------------------------------------------- framework-neutral harness
+  # Same images as above; only the entrypoint differs. See docs/harness.md.
+  harness-llama-cpp:
+    profiles: ["harness"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/llama-cpp:${AEB_LLAMA_CPP_VARIANT:-cpu}
+    <<: *aeb-harness-service
+    environment: *aeb-workload
+    command: ["aeb.perf", "--help"]
+
+  harness-litert-lm:
+    profiles: ["harness"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/litert-lm:${AEB_LITERTLM_VARIANT:-cpu}
+    <<: *aeb-harness-service
+    environment: *aeb-workload
+    command: ["aeb.perf", "--help"]
+
+  # Offline tooling: model re-encoding, dataset staging, reports. Never timed.
+  tools:
+    profiles: ["tools"]
+    image: ${AEB_TOOLS_IMAGE:-aeb/tools:latest}
+    build:
+      context: ./docker
+      dockerfile: tools/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b11259}
+    init: true
+    volumes:
+      - ./models:/models
+      - ./results:/results
+      - ./datasets:/datasets
+      - ./reports:/reports
+    environment: *aeb-workload
+    entrypoint: ["python3", "-m"]
+    command: ["aeb.report", "--help"]

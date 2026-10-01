@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Build the matched-weights GGUFs for llama.cpp from Google's mobile QAT
+# checkpoint (the source of the LiteRT-LM .litertlm) and prove the chain
+#   .litertlm == checkpoint == GGUF
+# Runs in the aeb/tools image (needs numpy, gguf, tflite, litert-lm).
+#
+# Outputs under /models/aeb/:
+#   gemma-4-E2B-it-qat-mobile-matched.gguf      INT2 as Q2_K (storage-matched)
+#   gemma-4-E2B-it-qat-mobile-matched-q4.gguf   INT2 as Q4_0 (same values,
+#                                               llama.cpp's faster kernels)
+#   *.report.json, litert-parity.json           verification evidence
+set -euo pipefail
+# shellcheck source=aeb-common.sh
+source /opt/aeb/bin/aeb-common.sh
+
+qat_repo="${AEB_QAT_REPO:-google/gemma-4-E2B-it-qat-mobile-transformers}"
+qat_dir="${AEB_MODELS_DIR}/${qat_repo}"
+litertlm="${AEB_MODELS_DIR}/${AEB_LITERTLM_REPO}/${AEB_LITERTLM_FILE}"
+template="${AEB_MODELS_DIR}/${AEB_GGUF_REPO}/${AEB_GGUF_FILE}"
+out_dir="${AEB_MODELS_DIR}/aeb"
+
+[[ -s "${litertlm}" ]] || aeb::die "missing ${litertlm}; run 'make models' first"
+[[ -s "${template}" ]] || aeb::die "missing ${template}; run 'make models' first"
+aeb-fetch-model "${qat_repo}" config.json >/dev/null
+aeb-fetch-model "${qat_repo}" model.safetensors >/dev/null
+
+unpacked="$(mktemp -d /tmp/litertlm-XXXX)"
+trap 'rm -rf "${unpacked}"' EXIT
+aeb::log "unpacking ${litertlm}"
+litert-lm unpack "${litertlm}" --output-dir "${unpacked}" --allow-overwrite >/dev/null
+
+mkdir -p "${out_dir}"
+aeb::log "checking .litertlm vs checkpoint (every quantized decoder tensor)"
+python3 -m aeb.prep.verify_litert_parity --qat-dir "${qat_dir}" --litert-dir "${unpacked}" \
+  --report "${out_dir}/litert-parity.json"
+
+decoder_tflite="$(ls "${unpacked}"/*prefill_decode.tflite)"
+for variant in q2_k q4_0; do
+  suffix=""; [[ "${variant}" == q4_0 ]] && suffix="-q4"
+  out="${out_dir}/gemma-4-E2B-it-qat-mobile-matched${suffix}.gguf"
+  aeb::log "writing ${out} (INT2 as ${variant})"
+  python3 -m aeb.prep.convert_qat_mobile_gguf --qat-dir "${qat_dir}" --template "${template}" \
+    --out "${out}.part" --litert-tflite "${decoder_tflite}" --int2-as "${variant}" --verify \
+    --report "${out%.gguf}.report.json" | grep -v '^blk\.' | grep -v 'verify blk\.'
+  mv "${out}.part" "${out}"
+  aeb::sha256 "${out}" > "${out}.sha256"
+done
+aeb::log "done: ${out_dir}"

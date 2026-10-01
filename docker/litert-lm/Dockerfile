@@ -98,6 +98,30 @@ RUN bazelisk build \
       && cp -L bazel-bin/runtime/engine/litert_lm_advanced_main /opt/litert-lm/bin/ \
       || echo "litert_lm_advanced_main unavailable for ${BAZEL_CONFIG}; using litert_lm_main"
 
+# The C API shared library backs the in-process harness driver
+# (harness/aeb/drivers/litert_lm_driver.py). It is built from the same pinned
+# source and Bazel flags as the CLI binaries above, rather than taken from the
+# litert-lm-api wheel, so both measurement paths run identical kernels. The
+# Python bindings are pure ctypes and are copied from the same checkout.
+RUN set -eu; \
+    for attempt in 1 2 3; do \
+      if bazelisk build \
+           --config="${BAZEL_CONFIG}" \
+           --deleted_packages=swift \
+           --java_runtime_version=remotejdk_17 \
+           $( [ "${BAZEL_JOBS}" -gt 0 ] && echo "--jobs=${BAZEL_JOBS}" ) \
+           ${BAZEL_EXTRA_FLAGS} \
+           //c:litert-lm; then \
+        break; \
+      fi; \
+      [ "${attempt}" = 3 ] && { echo "bazel build //c:litert-lm failed" >&2; exit 1; }; \
+      sleep 30; \
+    done \
+ && mkdir -p /opt/litert-lm/python/litert_lm \
+ && cp python/litert_lm/*.py /opt/litert-lm/python/litert_lm/ \
+ && rm -f /opt/litert-lm/python/litert_lm/*_test.py \
+ && cp -L bazel-bin/c/liblitert-lm.so /opt/litert-lm/python/litert_lm/liblitert-lm.so
+
 # Runtime accelerators and helper providers are shipped as prebuilt shared
 # objects in the source tree and loaded dynamically by litert_lm_* binaries.
 # Copy only the matching architecture; mixing both overwrites same-named .so
@@ -117,7 +141,7 @@ ARG EXTRA_RUNTIME_PACKAGES=""
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates curl jq file procps util-linux hostname tzdata \
-      libgomp1 libcurl4 libssl3 zlib1g \
+      libgomp1 libcurl4 libssl3 zlib1g python3 \
       ${EXTRA_RUNTIME_PACKAGES} \
  && rm -rf /var/lib/apt/lists/*
 
@@ -136,6 +160,7 @@ RUN printf '{"framework":"litert-lm","ref":"%s","commit":"%s","bazel_config":"%s
 
 ENV PATH="/opt/aeb/bin:/opt/litert-lm/bin:${PATH}" \
     LD_LIBRARY_PATH="/opt/litert-lm/bin" \
+    PYTHONPATH="/opt/aeb/harness:/opt/litert-lm/python" \
     AEB_MODELS_DIR=/models \
     AEB_RESULTS_DIR=/results \
     TZ=UTC

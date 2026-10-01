@@ -41,3 +41,16 @@ services:
 
   litert-lm-ynnpack:
     <<: *epyc-litert
+
+  # Framework-neutral harness and offline tools (see docs/harness.md).
+  harness-llama-cpp:
+    platform: linux/amd64
+    environment: *machine
+
+  harness-litert-lm:
+    platform: linux/amd64
+    environment: *machine
+
+  tools:
+    platform: linux/amd64
+    environment: *machine

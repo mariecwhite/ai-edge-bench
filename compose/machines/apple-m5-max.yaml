@@ -49,3 +49,16 @@ services:
 
   litert-lm-ynnpack:
     <<: *m5-litert
+
+  # Framework-neutral harness and offline tools (see docs/harness.md).
+  harness-llama-cpp:
+    platform: linux/arm64
+    environment: *machine
+
+  harness-litert-lm:
+    platform: linux/arm64
+    environment: *machine
+
+  tools:
+    platform: linux/arm64
+    environment: *machine

@@ -3,11 +3,13 @@
 AI Edge Bench is a starting point for reproducible, on-device LLM benchmarks
 across inference frameworks.
 
-**Status:** This repository provides reproducible benchmark *containers* — see
-[container setup](docs/containers.md) — for llama.cpp and LiteRT-LM on Gemma 4.
-It does not yet contain published results or a cross-framework results parser.
-The documentation establishes how to build and compare these frameworks; it is
-not a claim that any framework has been benchmarked.
+**Status:** Reproducible benchmark containers for llama.cpp and LiteRT-LM
+([container setup](docs/containers.md)), a framework-neutral harness that times
+both frameworks the same way and checks their accuracy ([harness](docs/harness.md)),
+and the first published comparison:
+
+- [Gemma 4 E2B on CPU, Apple M5 Max (Linux VM), 2026-10-01](reports/2026-10-01-gemma4-e2b-cpu-apple-m5-max/README.md)
+- Performance history: [reports/history/](reports/history)
 
 ## Benchmark containers
 
@@ -27,6 +29,23 @@ Run `make machines` for the available targets. Read
 [docs/containers.md](docs/containers.md) for the reproducibility contract, the
 accelerator caveats, and what the YNNPACK comparison does and does not measure.
 
+## Cross-framework comparison
+
+```bash
+make tools                               # offline tools image
+make MACHINE=apple-m5-max matched-models # GGUF with the .litertlm's exact weights
+make datasets                            # pinned MMLU + GSM8K
+make MACHINE=apple-m5-max suite-perf     # interleaved timing rounds
+make MACHINE=apple-m5-max suite-accuracy # accuracy gate
+make MACHINE=apple-m5-max report         # report, charts, history
+```
+
+The suite definition ([suites/gemma4-e2b-cpu.json](suites/gemma4-e2b-cpu.json))
+holds three tracks: **matched** (bit-identical weights, same prompt tokens,
+decoding, context and threads), **fastest** (each framework's best tuned,
+accuracy-gated configuration) and **reference** (stock llama.cpp model and
+defaults). See [docs/harness.md](docs/harness.md).
+
 ## Benchmark goals
 
 - Compare the same model, quantization, input, generation settings, and hardware
@@ -36,8 +55,8 @@ accelerator caveats, and what the YNNPACK comparison does and does not measure.
   and call out settings that cannot be made equivalent.
 - Keep raw run data separate from summaries so comparisons can be checked.
 
-See [benchmark methodology](docs/benchmark_methodology.md) for proposed
-measurement and reporting rules.
+See [benchmark methodology](docs/benchmark_methodology.md) for the
+measurement, accuracy-gate, reporting and history-tracking rules.
 
 ## Contributing
 

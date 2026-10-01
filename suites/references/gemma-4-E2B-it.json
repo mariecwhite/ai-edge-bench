@@ -1,0 +1,26 @@
+{
+  "model": "google/gemma-4-E2B-it",
+  "retrieved": "2026-10-01",
+  "summary": "Google publishes no original-MMLU or GSM8K score for Gemma 4 E2B (model card, QAT cards and tech report checked); its static benchmarks are reported in thinking mode on bf16 weights, and the QAT cards only claim quality similar to bf16. The MMLU and GSM8K references below are third-party bf16 evaluations with their own prompts. None of these setups matches this harness (zero-shot, non-thinking, greedy, quantized weights, answer-prefilled MMLU), so use them as an order-of-magnitude sanity check, not as a pass/fail threshold; the frameworks are judged against each other on identical items.",
+  "results": [
+    {"benchmark": "MMLU", "task_key": "mmlu", "value": 59.3, "variant": "E2B, bf16", "setup": "few-shot (paper's config), non-thinking, MCQ with max_tokens=1, temperature 0", "source_name": "DFM Mimir v1, arXiv 2608.13517, Table 7", "source": "https://arxiv.org/abs/2608.13517"},
+    {"benchmark": "MMLU", "task_key": null, "value": 72.0, "variant": "E2B, bf16", "setup": "same, thinking on", "source_name": "arXiv 2608.13517, Table 7", "source": "https://arxiv.org/abs/2608.13517"},
+    {"benchmark": "GSM8K", "task_key": "gsm8k", "value": 88.3, "variant": "E2B, bf16", "setup": "0-shot, non-thinking, max_tokens=2048, temperature 0, full test set", "source_name": "arXiv 2608.13517, Table 8", "source": "https://arxiv.org/abs/2608.13517"},
+    {"benchmark": "GSM8K", "task_key": null, "value": 90.3, "variant": "E2B, bf16", "setup": "same, thinking on", "source_name": "arXiv 2608.13517, Table 8", "source": "https://arxiv.org/abs/2608.13517"},
+    {"benchmark": "GSM8K", "task_key": null, "value": 67.4, "variant": "gemma-4-E2B-it, bf16", "setup": "zero-shot, chat template, greedy, 256-token cap, 500-item subset (95% CI 63.2-71.4)", "source_name": "Unified Deployment-Aware Evaluation, arXiv 2604.07035", "source": "https://arxiv.org/abs/2604.07035"},
+    {"benchmark": "GSM8K", "task_key": null, "value": 71.8, "variant": "gemma-4-E2B-it, bf16", "setup": "few-shot CoT, same protocol, 500 items (95% CI 67.7-75.6)", "source_name": "arXiv 2604.07035", "source": "https://arxiv.org/abs/2604.07035"},
+    {"benchmark": "MMLU-Pro", "task_key": null, "value": 60.0, "variant": "gemma-4-E2B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-E2B-it"},
+    {"benchmark": "MMMLU", "task_key": null, "value": 67.4, "variant": "gemma-4-E2B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-E2B-it"},
+    {"benchmark": "IFEval", "task_key": null, "value": 94.6, "variant": "gemma-4-E2B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 tech report, arXiv 2607.02770, Table 5", "source": "https://arxiv.org/abs/2607.02770"},
+    {"benchmark": "GPQA Diamond", "task_key": null, "value": 43.4, "variant": "gemma-4-E2B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card", "source": "https://huggingface.co/google/gemma-4-E2B-it"},
+    {"benchmark": "BigBench Extra Hard", "task_key": null, "value": 21.9, "variant": "gemma-4-E2B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card", "source": "https://huggingface.co/google/gemma-4-E2B-it"},
+    {"benchmark": "AIME 2026 (no tools)", "task_key": null, "value": 37.5, "variant": "gemma-4-E2B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card", "source": "https://huggingface.co/google/gemma-4-E2B-it"},
+    {"benchmark": "LiveCodeBench v6", "task_key": null, "value": 44.0, "variant": "gemma-4-E2B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card", "source": "https://huggingface.co/google/gemma-4-E2B-it"},
+    {"benchmark": "MMLU (predecessor Gemma 3n E2B-it)", "task_key": null, "value": 60.1, "variant": "gemma-3n-E2B-it", "setup": "0-shot (Google)", "source_name": "Gemma 3n E2B model card", "source": "https://huggingface.co/google/gemma-3n-E2B-it"}
+  ],
+  "notes": [
+    "Published Gemma 4 scores use bf16 weights; no source reports accuracy for the mobile-QAT (.litertlm) or Q4_0 checkpoints themselves.",
+    "The two third-party GSM8K numbers differ by ~20 points (88.3 vs 67.4) because of the token cap (2048 vs 256) and prompt; this harness uses a 512-token cap, so it should land between them if the quantized model is healthy.",
+    "Google's Table 5 states all models are in thinking mode unless noted; this harness runs with thinking disabled, which costs several points on reasoning-heavy sets (e.g. MMLU 59.3 -> 72.0 with thinking in arXiv 2608.13517)."
+  ]
+}

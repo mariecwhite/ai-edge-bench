@@ -72,6 +72,15 @@ RUN mkdir -p /opt/llama.cpp/bin \
  && cp -a build/bin/llama-bench /opt/llama.cpp/bin/ \
  && cp -a build/bin/*.so* /opt/llama.cpp/bin/
 
+# In-process driver for the AI Edge Bench harness (JSON lines over stdio). It
+# links the same libllama/libggml built above, so it runs identical kernels to
+# llama-bench.
+COPY llama-cpp/aeb-llama-driver.cpp /src/aeb-llama-driver.cpp
+RUN ${CXX} -O2 -std=c++17 /src/aeb-llama-driver.cpp \
+      -Iinclude -Iggml/include -Ivendor \
+      -Lbuild/bin -lllama -lggml -lggml-base -Wl,-rpath,'$ORIGIN' \
+      -o /opt/llama.cpp/bin/aeb-llama-driver
+
 # -------------------------------------------------------------- runtime stage
 FROM ${RUNTIME_BASE} AS runtime
 
@@ -82,7 +91,7 @@ ARG EXTRA_RUNTIME_PACKAGES=""
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates curl jq file procps util-linux hostname tzdata \
-      libgomp1 libcurl4 libssl3 \
+      libgomp1 libcurl4 libssl3 python3 \
       ${EXTRA_RUNTIME_PACKAGES} \
  && rm -rf /var/lib/apt/lists/*
 
@@ -100,6 +109,7 @@ RUN printf '{"framework":"llama.cpp","ref":"%s","commit":"%s","variant":"%s","cm
 
 ENV PATH="/opt/aeb/bin:/opt/llama.cpp/bin:${PATH}" \
     LD_LIBRARY_PATH="/opt/llama.cpp/bin" \
+    PYTHONPATH="/opt/aeb/harness" \
     AEB_MODELS_DIR=/models \
     AEB_RESULTS_DIR=/results \
     AEB_VARIANT=${AEB_VARIANT} \

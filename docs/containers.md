@@ -3,8 +3,11 @@
 This directory tree provides reproducible containers for benchmarking Gemma 4
 with [llama.cpp](https://github.com/ggml-org/llama.cpp) and
 [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM) on four target
-machines. Nothing here publishes results; it produces the run directories that
-[benchmark_methodology.md](benchmark_methodology.md) requires.
+machines. The native-tool targets (`make bench`) produce the run directories
+described below; comparable cross-framework numbers come from the
+framework-neutral harness that runs inside the same images (see
+[harness.md](harness.md)), which implements
+[benchmark_methodology.md](benchmark_methodology.md).
 
 ## Layout
 
@@ -13,7 +16,9 @@ machines. Nothing here publishes results; it produces the run directories that
 | [docker/base/Dockerfile](../docker/base/Dockerfile) | Harness-only image: run scripts, `/models` + `/results` contract, metadata capture. Carries no framework. |
 | [docker/llama-cpp/Dockerfile](../docker/llama-cpp/Dockerfile) | Builds `llama-bench`. CPU, CUDA and Vulkan variants come from build arguments. |
 | [docker/litert-lm/Dockerfile](../docker/litert-lm/Dockerfile) | Builds `litert_lm_main` (and `litert_lm_advanced_main` when available) with Bazel. |
-| [docker/bin/](../docker/bin) | The harness: `aeb-fetch-model`, `aeb-sysinfo`, `aeb-bench-llama-cpp`, `aeb-bench-litert-lm`. |
+| [docker/bin/](../docker/bin) | Shell entry points: `aeb-fetch-model`, `aeb-sysinfo`, `aeb-bench-llama-cpp`, `aeb-bench-litert-lm` (native tools), `aeb-prep-matched-gguf`. |
+| [docker/harness/](../docker/harness) | Framework-neutral Python harness (drivers, runners, monitor, report); see [harness.md](harness.md). |
+| [docker/tools/Dockerfile](../docker/tools/Dockerfile) | Offline tools image: model re-encoding, dataset staging, reports. Never timed. |
 | [compose.yaml](../compose.yaml) | *What* is benchmarked: frameworks, variants, workload. |
 | [compose/machines/](../compose/machines) | *Where* it runs: base images, ISA/backend flags, thread counts, device access. |
 
@@ -98,11 +103,17 @@ directories.
 
 ### llama.cpp
 
-`llama-bench` is the measurement tool. It performs its own warm-up pass before
-the measured repetitions and excludes tokenization and sampling from its
-timings, which is narrower than the end-to-end boundary described in the
+`llama-bench` is the native measurement tool. It performs its own warm-up pass
+before the measured repetitions and excludes tokenization and sampling from
+its timings, which is narrower than the end-to-end boundary described in the
 methodology — report it as prompt-processing (`pp`) and token-generation (`tg`)
-throughput, not as end-to-end latency or TTFT.
+throughput, not as end-to-end latency or TTFT. Its prompt is random token ids
+and `tg` decodes from an empty context by default; set `AEB_DEPTH` (`-d`) to
+the prompt length to measure decode after a prompt (on the M5 Max VM, Gemma 4
+E2B decodes ~19% slower at depth 1024 than at depth 0).
+
+The image also builds `aeb-llama-driver`, the harness's in-process driver,
+against the same `libllama`.
 
 ### LiteRT-LM and YNNPACK
 
@@ -127,14 +138,20 @@ get wrong:
 
 LiteRT-LM prints its benchmark table as text and has no machine-readable
 export, so `raw.log` is the authoritative record for those runs; `metadata.json`
-says so explicitly. A parser that lifts those numbers into the same schema as
-`llama-bench.json` is not implemented yet.
+says so explicitly.
 
-The harness defaults to `litert_lm_main` rather than `litert_lm_advanced_main`.
-On the tested arm64 image (`v0.17.1`), `litert_lm_main` is stable for Gemma 4
-benchmark runs while `litert_lm_advanced_main` can fail for some token-shape
-combinations. You can still force the advanced binary with
-`AEB_LITERT_BIN=litert_lm_advanced_main`.
+`aeb-bench-litert-lm` uses `litert_lm_advanced_main`. At `v0.17.1`
+`litert_lm_main` accepts but **ignores** `--benchmark_prefill_tokens` and
+`--benchmark_decode_tokens`: it runs a built-in ~18-token prompt and decodes
+until EOS, so its numbers do not describe the configured workload. The
+advanced binary honours the flags but needs `--max_num_tokens` (set from
+`AEB_CTX`, default 4096) for a 1024-token prefill; without it the KV cache is
+sized too small and `DYNAMIC_UPDATE_SLICE` fails. Its benchmark prefill is
+the tokenized default prompt zero-padded to the requested length.
+
+The image also builds the C API library (`//c:litert-lm` →
+`liblitert-lm.so`) from the same source and flags, plus the upstream ctypes
+bindings, for the harness's in-process driver.
 
 The GPU backend is not enabled in these images. On Linux, LiteRT-LM's GPU path
 is WebGPU/Dawn via prebuilt shared objects and requires

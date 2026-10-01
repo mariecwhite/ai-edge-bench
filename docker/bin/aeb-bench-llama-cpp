@@ -12,6 +12,10 @@
 #   AEB_THREADS          -t, threads (default: cgroup-aware core count)
 #   AEB_GPU_LAYERS       -ngl, layers offloaded (default 0; CPU-only)
 #   AEB_FLASH_ATTN       -fa on|off|auto (default auto)
+#   AEB_DEPTH            -d, tokens already in the KV cache before each test
+#                        (default 0). tg at depth 0 overstates decode speed
+#                        after a long prompt; set it to AEB_PROMPT_TOKENS to
+#                        compare with the harness or LiteRT-LM.
 #   AEB_EXTRA_ARGS       appended verbatim to the llama-bench command line
 
 set -euo pipefail
@@ -35,6 +39,7 @@ repetitions="${AEB_REPETITIONS:-5}"
 threads="${AEB_THREADS:-$(aeb::default_threads)}"
 gpu_layers="${AEB_GPU_LAYERS:-0}"
 flash_attn="${AEB_FLASH_ATTN:-auto}"
+depth="${AEB_DEPTH:-0}"
 
 run_id="$(aeb::run_id)"
 run_dir="$(aeb::new_run_dir llama.cpp "${variant}" "${run_id}")"
@@ -46,6 +51,7 @@ cmd=(llama-bench
      -t "${threads}"
      -ngl "${gpu_layers}"
      -fa "${flash_attn}"
+     -d "${depth}"
      -r "${repetitions}"
      -o json)
 # shellcheck disable=SC2206  # intentional word splitting of user-supplied args
@@ -84,6 +90,7 @@ jq -n \
        --argjson threads "${threads}" \
        --argjson gpu_layers "${gpu_layers}" \
        --arg flash_attn "${flash_attn}" \
+       --argjson depth "${depth}" \
        --arg extra_args "${AEB_EXTRA_ARGS:-}" \
        '$ARGS.named')" \
   --argjson build "$(aeb::build_info)" \
