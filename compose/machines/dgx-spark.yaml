@@ -94,3 +94,18 @@ services:
 
   litert-lm-ynnpack:
     <<: *spark-litert
+
+  # Framework-neutral harness and offline tools (see docs/harness.md).
+  harness-llama-cpp:
+    platform: linux/arm64
+    cpuset: ${AEB_CPUSET:-0-9}
+    environment: *machine
+
+  harness-litert-lm:
+    platform: linux/arm64
+    cpuset: ${AEB_CPUSET:-0-9}
+    environment: *machine
+
+  tools:
+    platform: linux/arm64
+    environment: *machine

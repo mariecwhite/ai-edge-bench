@@ -1,0 +1,135 @@
+{
+  "name": "gemma4-e2b-cpu",
+  "description": "Gemma 4 E2B on CPU: llama.cpp vs LiteRT-LM. 'matched' = same weights (bit-identical integers), prompt, greedy decode, context, threads and closest KV-cache precision; 'fastest' = each framework's best configuration found by the documented sweep, accuracy-gated; 'reference' = llama.cpp out-of-the-box with the stock ggml-org Q4_0 GGUF.",
+  "references": "references/gemma-4-E2B-it.json",
+  "models": {
+    "litertlm": "/models/litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm",
+    "gguf_matched": "/models/aeb/gemma-4-E2B-it-qat-mobile-matched.gguf",
+    "gguf_matched_q4": "/models/aeb/gemma-4-E2B-it-qat-mobile-matched-q4.gguf",
+    "gguf_stock_q4_0": "/models/ggml-org/gemma-4-E2B-it-GGUF/gemma-4-E2B-it-Q4_0.gguf"
+  },
+  "workload": {
+    "prompt_tokens": 1024,
+    "gen_tokens": 256,
+    "warmup": 2,
+    "repetitions": 5,
+    "cooldown_s": 2,
+    "ctx": 4096
+  },
+  "rounds": 3,
+  "configs": [
+    {
+      "id": "llama.cpp/matched",
+      "framework": "llama.cpp",
+      "track": "matched",
+      "args": [
+        "--model",
+        "{gguf_matched}",
+        "--threads",
+        "{threads}",
+        "--ctx",
+        "{ctx}",
+        "--flash-attn",
+        "on",
+        "--cache-type-k",
+        "q8_0",
+        "--cache-type-v",
+        "q8_0"
+      ],
+      "accuracy": {
+        "mmlu_limit": 0,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "litert-lm/matched",
+      "framework": "litert-lm",
+      "track": "matched",
+      "args": [
+        "--model",
+        "{litertlm}",
+        "--threads",
+        "{threads}",
+        "--ctx",
+        "{ctx}",
+        "--cache-dir",
+        "/results/_cache/litert-lm-xnnpack"
+      ],
+      "accuracy": {
+        "mmlu_limit": 0,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "llama.cpp/fastest",
+      "framework": "llama.cpp",
+      "track": "fastest",
+      "args": [
+        "--model",
+        "{gguf_matched_q4}",
+        "--threads",
+        "{fastest.llama.cpp.threads}",
+        "--ctx",
+        "{ctx}",
+        "--flash-attn",
+        "on",
+        "--ubatch",
+        "{fastest.llama.cpp.ubatch}"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "litert-lm/fastest",
+      "framework": "litert-lm",
+      "track": "fastest",
+      "args": [
+        "--model",
+        "{litertlm}",
+        "--threads",
+        "{fastest.litert-lm.threads}",
+        "--ctx",
+        "{ctx}",
+        "--ynnpack",
+        "--cache-dir",
+        "/results/_cache/litert-lm-ynnpack"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "llama.cpp/stock-q4_0",
+      "framework": "llama.cpp",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{gguf_stock_q4_0}",
+        "--threads",
+        "{threads}",
+        "--ctx",
+        "{ctx}"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    }
+  ],
+  "machines": {
+    "apple-m5-max": {
+      "threads": 12,
+      "fastest": {
+        "llama.cpp": {
+          "threads": 12,
+          "ubatch": 1024,
+          "selected_by": "llama-bench screen (3 GGUFs x t{8,12} x fa{0,1} x kv{f16,q8_0} x ub{512,1024}) then harness confirmation of the top 4 on the full workload; lowest median end-to-end latency"
+        },
+        "litert-lm": {
+          "threads": 8,
+          "selected_by": "harness sweep t{1,2,4,6,8,10,12} x {XNNPACK, YNNPACK} then harness confirmation of t{6,8} YNNPACK on the full workload; lowest median end-to-end latency"
+        }
+      }
+    }
+  }
+}

@@ -22,12 +22,17 @@ RUN apt-get update \
       coreutils \
       hostname \
       tzdata \
+      python3 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY bin/ /opt/aeb/bin/
+# Framework-neutral orchestration (stdlib-only Python): runners, resource
+# monitor, accuracy evals and the litert-lm driver. See harness/README.md.
+COPY harness/ /opt/aeb/harness/
 RUN chmod -R 0755 /opt/aeb/bin
 
 ENV PATH="/opt/aeb/bin:${PATH}" \
+    PYTHONPATH="/opt/aeb/harness" \
     AEB_MODELS_DIR=/models \
     AEB_RESULTS_DIR=/results \
     TZ=UTC

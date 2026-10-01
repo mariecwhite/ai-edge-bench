@@ -1,0 +1,14 @@
+[
+  {"id": "fact-short", "kind": "factual", "text": "What is the capital of Australia? Answer in one sentence."},
+  {"id": "mcq", "kind": "multiple-choice", "text": "Which gas makes up most of Earth's atmosphere?\nA. Oxygen\nB. Nitrogen\nC. Argon\nD. Carbon dioxide\nReply with the letter only."},
+  {"id": "math-word", "kind": "math", "text": "A shop sells pencils at 3 for $0.75. How much do 14 pencils cost? Show your steps, then give the final answer."},
+  {"id": "math-arith", "kind": "math", "text": "Compute 347 * 29 step by step."},
+  {"id": "code", "kind": "code", "text": "Write a Python function that returns the n-th Fibonacci number iteratively, with a docstring."},
+  {"id": "summarize", "kind": "summarization", "text": "Summarize in three bullet points: The town council voted to convert the old railway yard into a public park. Construction starts in spring and will take two years. The park will include a playground, a community garden and a cycling path linking the station to the river."},
+  {"id": "story", "kind": "creative", "text": "Write the opening paragraph of a short story about a lighthouse keeper who finds a message in a bottle."},
+  {"id": "list", "kind": "instruction", "text": "List five tips for keeping houseplants healthy."},
+  {"id": "translate", "kind": "translation", "text": "Translate into French: 'The weather is nice today, so we are going to walk to the market.'"},
+  {"id": "json", "kind": "structured", "text": "Return a JSON object with keys name, age and city for a fictional person. Output only the JSON."},
+  {"id": "reasoning", "kind": "reasoning", "text": "If all bloops are razzies and all razzies are lazzies, are all bloops definitely lazzies? Explain briefly."},
+  {"id": "open-long", "kind": "open-ended", "text": "Explain how a refrigerator keeps food cold, for a ten-year-old."}
+]

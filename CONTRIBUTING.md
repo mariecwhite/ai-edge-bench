@@ -1,7 +1,7 @@
 # Contributing to AI Edge Bench
 
-Contributions and suggestions are welcome. This repository currently contains
-documentation only; it has no benchmark runner, test command, or CI checks yet.
+Contributions and suggestions are welcome. The harness has unit tests that need
+no models or accelerators (`make test`); there are no CI checks yet.
 Open an [issue](https://github.com/mariecwhite/ai-edge-bench/issues) to discuss
 new frameworks, metrics, or changes to the comparison methodology before
 implementing them.
@@ -17,11 +17,11 @@ implementing them.
   instead of presenting non-equivalent runs as directly comparable.
 - Include instructions for setup and execution, plus a small, automated test
   that does not require model downloads or accelerator hardware when code is
-  introduced. Until tooling exists, describe how the change was checked in the
-  pull request.
-- Keep generated results out of version control by default. For a proposed
-  published comparison, include the configuration, environment, per-run raw
-  measurements, summary calculation, and any limitations alongside the result.
+  introduced (add it to `docker/harness/tests/`).
+- Keep raw run directories (`results/`) out of version control. A published
+  comparison is a generated report under `reports/` (README, charts and
+  `data.json` with per-request measurements) plus its line in
+  `reports/history/`; add caveats for the machine in `reports/notes/`.
 
 Keep pull requests focused, update the relevant documentation, and explain
 whether your change affects existing measurements or their interpretation.

@@ -12,6 +12,7 @@
 #   AEB_REPETITIONS      --num_iterations (default 5)
 #   AEB_THREADS          --num_cpu_threads (default: cgroup-aware core count)
 #   AEB_WARMUP           true|false, discarded warm-up run first (default true)
+#   AEB_CTX              --max_num_tokens, KV-cache length (default 4096)
 #   AEB_EXTRA_ARGS       appended verbatim
 #
 # Note: XNNPACK is always the CPU delegate in LiteRT-LM and cannot be turned
@@ -26,10 +27,11 @@ aeb::require_cmd jq
 
 bin="${AEB_LITERT_BIN:-}"
 if [[ -z "${bin}" ]]; then
-  # Default to litert_lm_main for robustness across model variants; it accepts
-  # the benchmark flags used by this harness and is the upstream stable entry
-  # point. opt into the advanced binary explicitly with AEB_LITERT_BIN.
-  bin=litert_lm_main
+  # litert_lm_advanced_main is the binary that implements the --benchmark_*
+  # flags. litert_lm_main (v0.17.1) parses but ignores them: it runs its
+  # built-in ~18-token default prompt and decodes until EOS, whatever
+  # --benchmark_prefill_tokens / --benchmark_decode_tokens say.
+  bin=litert_lm_advanced_main
 fi
 aeb::require_cmd "${bin}"
 
@@ -52,6 +54,9 @@ gen_tokens="${AEB_GEN_TOKENS:-256}"
 repetitions="${AEB_REPETITIONS:-5}"
 threads="${AEB_THREADS:-$(aeb::default_threads)}"
 warmup="$(aeb::bool "${AEB_WARMUP:-true}")"
+# Without an explicit KV-cache length the advanced binary sizes the cache
+# below a 1024-token prefill and fails in DYNAMIC_UPDATE_SLICE.
+ctx="${AEB_CTX:-4096}"
 
 run_id="$(aeb::run_id)"
 run_dir="$(aeb::new_run_dir litert-lm "${variant}" "${run_id}")"
@@ -74,6 +79,7 @@ build_cmd() {
     "--num_cpu_threads=${threads}" \
     "--enable_ynnpack=${ynnpack}" \
     "--num_iterations=${iterations}" \
+    "--max_num_tokens=${ctx}" \
     "--report_peak_memory_footprint" \
     "--cache_dir=${cache_dir}"
 }
@@ -120,6 +126,7 @@ jq -n \
        --argjson gen_tokens "${gen_tokens}" \
        --argjson repetitions "${repetitions}" \
        --argjson threads "${threads}" \
+       --argjson ctx "${ctx}" \
        --arg warmup "${warmup}" \
        --arg extra_args "${AEB_EXTRA_ARGS:-}" \
        '$ARGS.named')" \
