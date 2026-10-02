@@ -43,7 +43,7 @@ import time
 from pathlib import Path
 
 from . import common, workload
-from .driver import Driver, driver_command
+from .driver import FRAMEWORKS, Driver, driver_command
 
 INSTRUCTION = ("The following is a multiple choice question about {subject}. "
                "Reply with only the letter (A, B, C, or D) of the correct answer.\n\n")
@@ -156,7 +156,7 @@ def main(argv=None) -> int:
     argv, driver_args = argv[:i], argv[i + 1:]
   ap = argparse.ArgumentParser(description=__doc__,
                                formatter_class=argparse.RawDescriptionHelpFormatter)
-  ap.add_argument("--framework", required=True, choices=["llama.cpp", "litert-lm"])
+  ap.add_argument("--framework", required=True, choices=FRAMEWORKS)
   ap.add_argument("--label", required=True)
   ap.add_argument("--task", choices=["mmlu", "gsm8k"], default="mmlu")
   ap.add_argument("--dataset", type=Path, help="default: /datasets/<task>/test.jsonl")

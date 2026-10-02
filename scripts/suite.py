@@ -26,7 +26,8 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVICE = {"llama.cpp": "harness-llama-cpp", "litert-lm": "harness-litert-lm"}
+SERVICE = {"llama.cpp": "harness-llama-cpp", "litert-lm": "harness-litert-lm",
+           "onnxruntime": "harness-onnxruntime"}
 
 
 def resolve(value: str, ctx: dict) -> str:
@@ -90,6 +91,9 @@ def selected(suite: dict, only: str | None) -> list[dict]:
   cfgs = suite["configs"]
   if only:
     want = set(only.split(","))
+    missing = want - {c["id"] for c in cfgs}
+    if missing:
+      raise ValueError(f"unknown suite config(s): {', '.join(sorted(missing))}")
     cfgs = [c for c in cfgs if c["id"] in want]
   return cfgs
 
@@ -137,10 +141,8 @@ def accuracy_commands(suite, ctx, machine, only, dev, tasks, threads=None, shard
     fw, label = c["framework"], c["id"].split("/", 1)[1]
     acc = c.get("accuracy", {})
     driver = [resolve(a, ctx) for a in c["args"]]
-    if threads:
-      # Thread count does not change results for either framework's CPU
-      # kernels (work is split by output rows), so accuracy runs may use fewer
-      # threads and run side by side.
+    if threads and fw in ("llama.cpp", "litert-lm"):
+      # Thread invariance was validated for these two drivers only.
       driver[driver.index("--threads") + 1] = str(threads)
     for task in tasks:
       limit = acc.get(f"{task}_limit")

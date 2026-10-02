@@ -1,0 +1,51 @@
+{
+  "name": "gemma4-e2b-cpu-arm-runtimes",
+  "description": "Exploratory Gemma 4 E2B CPU comparison on the Apple M5 Max Linux/ARM VM. All configurations use independently published artifacts and are open/reference comparisons, NOT matched weights or quantization. Validate each model with the accuracy gate before interpreting speed; consult docs/harness.md for staging and limitations.",
+  "models": {
+    "litertlm": "/models/litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm",
+    "gguf_stock_q4_0": "/models/ggml-org/gemma-4-E2B-it-GGUF/gemma-4-E2B-it-Q4_0.gguf",
+    "onnxruntime": "/models/aeb/gemma-4-e2b-onnx/Q4_K_M/default"
+  },
+  "workload": {
+    "prompt_tokens": 1024,
+    "gen_tokens": 256,
+    "warmup": 2,
+    "repetitions": 5,
+    "cooldown_s": 2,
+    "ctx": 4096
+  },
+  "rounds": 3,
+  "configs": [
+    {
+      "id": "litert-lm/ynnpack",
+      "framework": "litert-lm",
+      "track": "reference",
+      "args": [
+        "--model", "{litertlm}", "--threads", "8", "--ctx", "{ctx}",
+        "--ynnpack", "--cache-dir", "/results/_cache/litert-lm-ynnpack"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "llama.cpp/stock-q4_0",
+      "framework": "llama.cpp",
+      "track": "reference",
+      "args": [
+        "--model", "{gguf_stock_q4_0}", "--threads", "{threads}", "--ctx", "{ctx}"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "onnxruntime/q4_k_m",
+      "framework": "onnxruntime",
+      "track": "reference",
+      "args": [
+        "--model", "{onnxruntime}", "--threads", "{threads}", "--ctx", "{ctx}"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    }
+  ],
+  "machines": {
+    "apple-m5-max": {"threads": 12}
+  }
+}

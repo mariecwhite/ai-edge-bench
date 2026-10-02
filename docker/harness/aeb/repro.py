@@ -39,7 +39,7 @@ import sys
 from importlib import resources
 
 from . import common, workload
-from .driver import Driver, driver_command
+from .driver import FRAMEWORKS, Driver, driver_command
 
 SAMPLING = {"temperature": 1.0, "top_k": 64, "top_p": 0.95}
 
@@ -64,7 +64,7 @@ def main(argv=None) -> int:
     argv, driver_args = argv[:i], argv[i + 1:]
   ap = argparse.ArgumentParser(description=__doc__,
                                formatter_class=argparse.RawDescriptionHelpFormatter)
-  ap.add_argument("--framework", required=True, choices=["llama.cpp", "litert-lm"])
+  ap.add_argument("--framework", required=True, choices=FRAMEWORKS)
   ap.add_argument("--label", required=True)
   ap.add_argument("--process", type=int, default=0, help="process index within the config")
   ap.add_argument("--repeats", type=int, default=3)

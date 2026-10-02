@@ -30,7 +30,7 @@ import sys
 import time
 
 from . import common, monitor, stats, workload
-from .driver import Driver, driver_command
+from .driver import FRAMEWORKS, Driver, driver_command
 
 
 def request_metrics(r: dict, samples: list[tuple]) -> dict:
@@ -109,7 +109,7 @@ def main(argv=None) -> int:
     argv, driver_args = argv[:i], argv[i + 1:]
   ap = argparse.ArgumentParser(description=__doc__,
                                formatter_class=argparse.RawDescriptionHelpFormatter)
-  ap.add_argument("--framework", required=True, choices=["llama.cpp", "litert-lm"])
+  ap.add_argument("--framework", required=True, choices=FRAMEWORKS)
   ap.add_argument("--label", required=True, help="configuration label, e.g. matched")
   ap.add_argument("--track", default="", help="report track: matched | fastest | sweep | ...")
   ap.add_argument("--prompt-tokens", type=int, default=1024)
