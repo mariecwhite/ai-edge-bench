@@ -17,13 +17,16 @@ SINCE ?=
 .DEFAULT_GOAL := help
 .PHONY: help base images models bench bench-llama-cpp bench-litert-lm \
         bench-gpu sysinfo config machines clean-results tools matched-models \
-        datasets suite-perf suite-accuracy suite-repro report test diagnose-activations
+        datasets suite-perf suite-accuracy suite-repro report test diagnose-activations \
+        arm-images arm-models
 
 help:
 	@echo "AI Edge Bench - MACHINE=$(MACHINE)"
 	@echo
 	@echo "  make base                       build the shared aeb/base image"
 	@echo "  make MACHINE=<m> images         build llama.cpp + LiteRT-LM images"
+	@echo "  make MACHINE=apple-m5-max arm-images build optional ONNX Runtime image"
+	@echo "  make MACHINE=apple-m5-max arm-models stage pinned ONNX E2B package"
 	@echo "  make MACHINE=<m> models         download model weights into ./models"
 	@echo "  make MACHINE=<m> bench          run every CPU benchmark"
 	@echo "  make MACHINE=<m> bench-gpu      run the machine's accelerator benchmark"
@@ -51,6 +54,12 @@ base:
 
 images: base
 	$(COMPOSE) --profile cpu build
+
+arm-images: base
+	$(COMPOSE) --profile onnxruntime build onnxruntime
+
+arm-models: tools
+	$(COMPOSE) --profile tools run --rm tools aeb.prep.fetch_arm_models
 
 models: base
 	$(COMPOSE) --profile models run --rm fetch-models
@@ -93,9 +102,8 @@ datasets: tools
 suite-perf:
 	python3 scripts/suite.py perf --machine $(MACHINE) --suite $(SUITE)
 
-# Accuracy does not need an idle machine: two balanced queues run side by side
-# with half the threads each. Outputs were verified bit-identical across thread
-# counts for both frameworks, so this does not change results.
+# Accuracy for the original two frameworks was verified invariant across
+# thread counts. The suite runner keeps the configured count for new engines.
 suite-accuracy:
 	python3 scripts/suite.py accuracy --machine $(MACHINE) --suite $(SUITE) \
 	  --parallel 2 --shards 2 --threads half
@@ -112,7 +120,7 @@ report:
 test:
 	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/scripts:/opt/scripts:ro \
 	  -v $(CURDIR)/suites:/opt/suites:ro --entrypoint python3 tools \
-	  /opt/aeb/harness/tests/test_harness.py
+	  -m unittest discover -s /opt/aeb/harness/tests -p 'test*.py'
 
 # Optional: explains accuracy gaps between frameworks that share the mobile QAT
 # weights by rerunning the PyTorch reference with and without its static int8

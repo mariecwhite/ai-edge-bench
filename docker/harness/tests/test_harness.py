@@ -6,6 +6,7 @@
 import json
 import random
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -13,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT.parents[1] / "scripts"))
 
-from aeb import accuracy, stats, workload  # noqa: E402
+from aeb import accuracy, common, stats, workload  # noqa: E402
 
 
 class EncodingTest(unittest.TestCase):
@@ -142,16 +143,54 @@ class ReproTest(unittest.TestCase):
 
 class SuiteTest(unittest.TestCase):
 
+  def test_driver_command_for_onnxruntime(self):
+    from aeb.driver import driver_command
+    self.assertEqual(driver_command("onnxruntime", ["--threads", "4"]),
+                     ["python3", "-m", "aeb.drivers.onnxruntime_driver", "--threads", "4"])
+
   def test_suite_resolves_for_every_machine(self):
     import suite as suite_mod
-    path = ROOT.parents[1] / "suites" / "gemma4-e2b-cpu.json"
+    suites = ROOT.parents[1] / "suites"
+    if not suites.is_dir():
+      raise unittest.SkipTest("suites/ not mounted")
+    for path in (suites / "gemma4-e2b-cpu.json",
+                 suites / "gemma4-e2b-cpu-arm-runtimes.json"):
+      data = json.loads(path.read_text())
+      for machine in data["machines"]:
+        s, ctx = suite_mod.load(path, machine)
+        for _, cmd in suite_mod.perf_commands(s, ctx, machine, 2, None, False):
+          self.assertFalse(any("{" in a for a in cmd), cmd)
+
+  def test_unknown_suite_selection_fails(self):
+    import suite as suite_mod
+    with self.assertRaisesRegex(ValueError, "unknown suite config"):
+      suite_mod.selected({"configs": [{"id": "llama.cpp/matched"}]}, "unknown/matched")
+
+  def test_arm_repro_requests_greedy_and_seeded_sampling(self):
+    import suite as suite_mod
+    path = ROOT.parents[1] / "suites" / "gemma4-e2b-cpu-arm-runtimes.json"
     if not path.is_file():
       raise unittest.SkipTest("suites/ not mounted")
-    data = json.loads(path.read_text())
-    for machine in data["machines"]:
-      s, ctx = suite_mod.load(path, machine)
-      for _, cmd in suite_mod.perf_commands(s, ctx, machine, 2, None, False):
-        self.assertFalse(any("{" in a for a in cmd), cmd)
+    s, ctx = suite_mod.load(path, "apple-m5-max")
+    commands = suite_mod.repro_commands(s, ctx, "apple-m5-max", "onnxruntime/q4_k_m", False)
+    self.assertEqual(len(commands), 7)
+    self.assertEqual(sum(":greedy:" in label for label, _ in commands), 3)
+    self.assertEqual(sum(":seeded:" in label for label, _ in commands), 4)
+
+
+class ModelHashTest(unittest.TestCase):
+
+  def test_directory_digest_includes_every_component(self):
+    with tempfile.TemporaryDirectory() as d:
+      root = Path(d)
+      (root / "config.json").write_text("{}")
+      (root / "weights").mkdir()
+      weights = root / "weights" / "model.bin"
+      weights.write_bytes(b"first")
+      first = common.model_sha256(d)
+      weights.write_bytes(b"second")
+      weights.with_name(weights.name + ".sha256").unlink()
+      self.assertNotEqual(first, common.model_sha256(d))
 
 
 if __name__ == "__main__":

@@ -28,8 +28,8 @@ def new_run_dir(kind: str, framework: str, label: str) -> Path:
   return d
 
 
-def model_sha256(path: str) -> str:
-  side = Path(path + ".sha256")
+def _file_sha256(path: Path) -> str:
+  side = Path(str(path) + ".sha256")
   if side.is_file():
     return side.read_text().split()[0]
   h = hashlib.sha256()
@@ -42,6 +42,23 @@ def model_sha256(path: str) -> str:
   except OSError:
     pass
   return digest
+
+
+def model_sha256(path: str) -> str:
+  if Path(path).is_dir():
+    h = hashlib.sha256()
+    files = sorted(f for f in Path(path).rglob("*")
+                   if f.is_file() and ".cache" not in f.relative_to(path).parts
+                   and not f.name.endswith((".sha256", ".manifest.json")))
+    if not files:
+      raise ValueError(f"model directory contains no files: {path}")
+    for f in files:
+      h.update(str(f.relative_to(path)).encode())
+      h.update(b"\0")
+      h.update(_file_sha256(f).encode())
+      h.update(b"\n")
+    return h.hexdigest()
+  return _file_sha256(Path(path))
 
 
 def build_info() -> dict:

@@ -59,6 +59,14 @@ services:
     platform: linux/arm64
     environment: *machine
 
+  onnxruntime:
+    platform: linux/arm64
+    environment: *machine
+
+  harness-onnxruntime:
+    platform: linux/arm64
+    environment: *machine
+
   tools:
     platform: linux/arm64
     environment: *machine

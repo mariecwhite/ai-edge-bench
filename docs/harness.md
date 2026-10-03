@@ -14,6 +14,7 @@ implements [benchmark_methodology.md](benchmark_methodology.md).
 | --- | --- | --- |
 | [aeb-llama-driver.cpp](../docker/llama-cpp/aeb-llama-driver.cpp) | llama.cpp image | In-process llama.cpp driver (links the image's `libllama`). |
 | [drivers/litert_lm_driver.py](../docker/harness/aeb/drivers/litert_lm_driver.py) | LiteRT-LM image | In-process LiteRT-LM driver over the C API (`liblitert-lm.so`, built from the pinned source with the same Bazel flags as the CLI). |
+| [drivers/onnxruntime_driver.py](../docker/harness/aeb/drivers/onnxruntime_driver.py) | ONNX Runtime image | ONNX Runtime GenAI CPU driver; separate E2B GenAI package. |
 | [perf.py](../docker/harness/aeb/perf.py) | framework images | One timed process: load, warm-up, measured requests, resource sampling. |
 | [monitor.py](../docker/harness/aeb/monitor.py) | framework images | 50 ms `/proc` + cgroup sampler for the driver process. |
 | [accuracy.py](../docker/harness/aeb/accuracy.py) | framework images | MMLU / GSM8K validity gate through the same drivers. |
@@ -25,7 +26,8 @@ implements [benchmark_methodology.md](benchmark_methodology.md).
 | [scripts/suite.py](../scripts/suite.py) | host | Runs a [suite](../suites) one container at a time, interleaved. |
 
 Runtime modules use only the Python standard library, so the framework images
-need nothing beyond `python3`.
+use their own inference libraries; the shared orchestration modules use only
+the Python standard library.
 
 ## Driver protocol
 
@@ -69,6 +71,9 @@ Framework-specific notes:
   at load and writes no cache.
 - **llama.cpp SWA cache.** The driver uses `swa_full = false` (the
   `llama-bench` / `llama-cli` default; the library default is `true`).
+- **ONNX Runtime.** The GenAI E2B model is a directory, not an `.onnx` file.
+  The driver loads a temporary config overlay to set CPU thread counts; it
+  never changes the staged package. Model hashing covers each package file.
 
 ## Run directory
 
@@ -99,6 +104,40 @@ make MACHINE=apple-m5-max suite-accuracy   # validity gate
 make MACHINE=apple-m5-max suite-repro      # output reproducibility
 make MACHINE=apple-m5-max report           # reports/<date>-<suite>-<machine>/
 ```
+
+## Optional ARM CPU runtimes
+
+The [exploratory ARM suite](../suites/gemma4-e2b-cpu-arm-runtimes.json) adds
+ONNX Runtime GenAI to the two original CPU engines. It deliberately
+does not claim a matched-weight comparison: the published GGUF, LiteRT-LM and ONNX
+Q4_K_M conversions come from separate distributions and may have different
+quantization, activation numerics, memory use and accuracy. Do not rank a
+configuration that fails the accuracy gate.
+
+Stage the complete model packages in the shared `models/` directory with
+`make MACHINE=apple-m5-max arm-models` (builds the tools image and downloads
+the pinned snapshots). Alternatively, with the Hugging Face `hf` CLI on the
+host, use the equivalent commands below. Model assets stay outside git.
+Pinned revisions prevent subsequent upstream updates from silently altering
+results:
+
+```bash
+hf download justinchuby/gemma-4-e2b-it-onnx \
+  --revision 9bcf2cb1c2878b1c68a5f94db037272dfb278384 \
+  --include 'Q4_K_M/default/**' \
+  --local-dir models/aeb/gemma-4-e2b-onnx
+make MACHINE=apple-m5-max arm-images
+python3 scripts/suite.py plan --machine apple-m5-max \
+  --suite suites/gemma4-e2b-cpu-arm-runtimes.json
+```
+
+Stage the existing GGUF and `.litertlm` with `make MACHINE=apple-m5-max models`
+and build their images with `make MACHINE=apple-m5-max images` if not already
+done. Run the suite with `--suite suites/gemma4-e2b-cpu-arm-runtimes.json` for
+the `perf`, `accuracy`, and `repro` actions; perform accuracy before publishing
+or interpreting speed. Run `make MACHINE=apple-m5-max SUITE=suites/gemma4-e2b-cpu-arm-runtimes.json report`
+only after the runs and their quality checks complete. Use `--only` to smoke
+test one new configuration without rerunning the original engines.
 
 `suites/<suite>.json` defines the configurations. The `machines.<machine>`
 section holds the per-machine thread count and the tuned "fastest" settings

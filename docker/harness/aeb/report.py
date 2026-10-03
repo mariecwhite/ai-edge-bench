@@ -31,7 +31,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 from . import accuracy as acc_mod  # noqa: E402
 from . import stats  # noqa: E402
 
-COLORS = {"llama.cpp": "#d9822b", "litert-lm": "#2b6cd9"}
+COLORS = {"llama.cpp": "#d9822b", "litert-lm": "#2b6cd9",
+          "onnxruntime": "#9c4d9f"}
 TRACK_ORDER = {"matched": 0, "fastest": 1, "reference": 2}
 HEADLINE = [  # metric, label, unit, higher_is_better, fmt
     ("ttft_ms", "TTFT", "ms", False, "{:.0f}"),
@@ -584,7 +585,10 @@ def main(argv=None) -> int:
   bar_chart(out / "cpu.png", cfg_ids, agg, [HEADLINE[5], HEADLINE[6], HEADLINE[7]], "CPU use")
   bar_chart(out / "memory.png", cfg_ids, agg, [HEADLINE[9], HEADLINE[10], HEADLINE[11]], "Memory")
   timeline_chart(out / "timeline.png", cfg_ids, cfg_runs)
-  has_scaling = scaling_chart(out / "thread_scaling.png", runs, args.machine)
+  has_scaling = scaling_chart(
+      out / "thread_scaling.png",
+      [r for r in runs if r["meta"].get("notes", "").startswith(f"suite={suite['name']}")],
+      args.machine)
   if acc_rows:
     refs_path = args.suite.parent / suite["references"] if suite.get("references") else None
     accuracy_chart(out / "accuracy.png", acc_rows,
@@ -627,7 +631,8 @@ def main(argv=None) -> int:
   (out / "data.json").write_text(json.dumps(data, indent=1, default=str) + "\n")
 
   extra = args.extra_notes.read_text() if args.extra_notes else ""
-  args._quant_md = quant_section(args.models / "aeb")
+  args._quant_md = (quant_section(args.models / "aeb")
+                    if any(c["track"] == "matched" for c in suite["configs"]) else "")
   refs_path = args.suite.parent / suite["references"] if suite.get("references") else None
   args._refs = json.loads(refs_path.read_text()) if refs_path and refs_path.is_file() else None
   (out / "README.md").write_text(render_markdown(
@@ -756,7 +761,8 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
            f"{sysinfo.get('container', {}).get('kernel', '?')}, {cpu.get('nproc', '?')} vCPUs, "
            f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.1f} GiB RAM |")
   for fw, b in sorted(builds.items()):
-    L.append(f"| {fw} | `{b.get('ref')}` (commit `{str(b.get('commit'))[:12]}`), built {b.get('built_at')} |")
+    revision = f", commit `{str(b['commit'])[:12]}`" if b.get("commit") else ""
+    L.append(f"| {fw} | `{b.get('ref')}`{revision}, built {b.get('built_at')} |")
   L.append(f"| Harness | digest `{str(first['build'].get('harness_sha256'))[:12]}`, repo rev "
            f"`{first['build'].get('repo_rev')}` |")
   L.append(f"| Workload | {w['prompt_tokens']}-token real-text chat prompt → {w['gen_tokens']} "
@@ -882,7 +888,8 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
                  f"{g['b_only_correct']} | {g['mcnemar_p']:.3g} |")
       L.append("")
     L.append("![Accuracy](accuracy.png)\n")
-    diag = _read_json(args.results / args.machine / "diagnostics" / "hf-reference-mmlu.json")
+    diag = (_read_json(args.results / args.machine / "diagnostics" / "hf-reference-mmlu.json")
+            if {"llama.cpp/matched", "litert-lm/matched"} <= set(cfg_ids) else None)
     if diag and diag.get("summary"):
       L.append("### Diagnostic: why do identical weights score differently?\n")
       L.append("The upstream PyTorch reference of the same checkpoint (transformers `gemma` "

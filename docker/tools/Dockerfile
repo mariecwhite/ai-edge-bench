@@ -20,6 +20,7 @@ RUN python3 -m venv /opt/aeb/venv \
  && /opt/aeb/venv/bin/pip install --no-cache-dir \
       "numpy==2.3.3" "matplotlib==3.10.6" "pyarrow==21.0.0" "tflite==2.18.0" \
       "litert-lm==0.17.1" \
+      "huggingface_hub==0.36.0" \
       "gguf @ git+https://github.com/ggml-org/llama.cpp@${LLAMA_CPP_REF}#subdirectory=gguf-py"
 
 ENV PATH="/opt/aeb/venv/bin:${PATH}"

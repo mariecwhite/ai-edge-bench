@@ -9,7 +9,14 @@ both frameworks the same way and checks their accuracy ([harness](docs/harness.m
 and the first published comparison:
 
 - [Gemma 4 E2B on CPU, Apple M5 Max (Linux VM), 2026-10-01](reports/2026-10-01-gemma4-e2b-cpu-apple-m5-max/README.md)
+- [Three-framework ARM CPU comparison, 2026-10-02](reports/2026-10-02-gemma4-e2b-cpu-arm-runtimes-apple-m5-max/README.md):
+  LiteRT-LM, llama.cpp and ONNX Runtime.
 - Performance history: [reports/history/](reports/history)
+
+The optional ONNX Runtime GenAI CPU adapter for the Apple ARM VM has a
+separate [exploratory suite](suites/gemma4-e2b-cpu-arm-runtimes.json). Its
+independently converted model files are **not** weight-matched to the first
+report; see [model staging and validation](docs/harness.md#optional-arm-cpu-runtimes).
 
 ## Benchmark containers
 

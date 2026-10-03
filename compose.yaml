@@ -149,6 +149,19 @@ services:
       AEB_YNNPACK: "true"
     command: ["aeb-bench-litert-lm"]
 
+  # -------------------------------------------------------- optional ARM CPU engines
+  onnxruntime:
+    profiles: ["onnxruntime"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/onnxruntime:cpu
+    build:
+      context: ./docker
+      dockerfile: onnxruntime/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+    <<: *aeb-service
+    environment: *aeb-workload
+    command: ["python3", "-m", "aeb.perf", "--help"]
+
   # ---------------------------------------------------- framework-neutral harness
   # Same images as above; only the entrypoint differs. See docs/harness.md.
   harness-llama-cpp:
@@ -161,6 +174,13 @@ services:
   harness-litert-lm:
     profiles: ["harness"]
     image: ${AEB_IMAGE_PREFIX:-aeb}/litert-lm:${AEB_LITERTLM_VARIANT:-cpu}
+    <<: *aeb-harness-service
+    environment: *aeb-workload
+    command: ["aeb.perf", "--help"]
+
+  harness-onnxruntime:
+    profiles: ["harness"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/onnxruntime:cpu
     <<: *aeb-harness-service
     environment: *aeb-workload
     command: ["aeb.perf", "--help"]
@@ -181,6 +201,8 @@ services:
       - ./results:/results
       - ./datasets:/datasets
       - ./reports:/reports
-    environment: *aeb-workload
+    environment:
+      <<: *aeb-workload
+      HF_TOKEN: ${HF_TOKEN:-}
     entrypoint: ["python3", "-m"]
     command: ["aeb.report", "--help"]
