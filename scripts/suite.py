@@ -4,6 +4,7 @@
   python3 scripts/suite.py perf     --machine apple-m5-max [--suite suites/gemma4-e2b-cpu.json]
   python3 scripts/suite.py accuracy --machine apple-m5-max [--only llama.cpp/matched,...]
   python3 scripts/suite.py repro    --machine apple-m5-max   # output reproducibility
+  python3 scripts/suite.py sequence --machine apple-m5-max --suite suites/gemma4-e2b-cpu-arm-runtimes.json
   python3 scripts/suite.py plan     --machine apple-m5-max   # print commands only
 
 perf: first primes every config once (unmeasured; populates framework caches),
@@ -130,6 +131,27 @@ def prime_commands(suite, ctx, machine, only, dev):
   return out
 
 
+def sequence_commands(suite, ctx, machine, rounds, only, dev):
+  sweep = suite.get("sequence_sweep")
+  if not sweep:
+    raise ValueError("suite has no sequence_sweep section")
+  lengths = sweep["prompt_tokens"]
+  gen = sweep["gen_tokens"]
+  if (not lengths or any(type(n) is not int or n < 1 for n in lengths)
+      or len(set(lengths)) != len(lengths) or type(gen) is not int or gen < 2
+      or type(sweep["ctx"]) is not int or sweep["ctx"] < max(lengths) + gen):
+    raise ValueError("invalid sequence_sweep lengths, decode length or context capacity")
+  out = []
+  sweep_ctx = dict(ctx, ctx=sweep["ctx"])
+  for n in lengths:
+    point = dict(suite)
+    point["workload"] = dict(suite["workload"], prompt_tokens=n, gen_tokens=gen)
+    point["configs"] = [dict(c, id=f"{c['id']}-n{n}-d{gen}", track="sweep-sequence")
+                        for c in selected(suite, only)]
+    out += perf_commands(point, sweep_ctx, machine, rounds, None, dev)
+  return out
+
+
 TASK_ITEMS = {"mmlu": 14042, "gsm8k": 1319}
 TASK_COST = {"mmlu": 1.0, "gsm8k": 8.0}  # rough relative seconds per item
 
@@ -228,7 +250,7 @@ def keep_awake() -> None:
 def main(argv=None) -> int:
   ap = argparse.ArgumentParser(description=__doc__,
                                formatter_class=argparse.RawDescriptionHelpFormatter)
-  ap.add_argument("action", choices=["perf", "accuracy", "repro", "plan"])
+  ap.add_argument("action", choices=["perf", "sequence", "accuracy", "repro", "plan"])
   ap.add_argument("--machine", required=True)
   ap.add_argument("--suite", type=Path, default=ROOT / "suites" / "gemma4-e2b-cpu.json")
   ap.add_argument("--rounds", type=int)
@@ -254,6 +276,9 @@ def main(argv=None) -> int:
   if args.action in ("perf", "plan"):
     cmds = prime_commands(suite, ctx, args.machine, args.only, args.dev)
     cmds += perf_commands(suite, ctx, args.machine, rounds, args.only, args.dev)
+  elif args.action == "sequence":
+    cmds = prime_commands(suite, ctx, args.machine, args.only, args.dev)
+    cmds += sequence_commands(suite, ctx, args.machine, rounds, args.only, args.dev)
   else:
     cmds = []
   if args.action in ("accuracy", "plan"):

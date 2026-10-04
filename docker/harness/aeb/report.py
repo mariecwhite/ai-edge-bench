@@ -280,6 +280,69 @@ def pooled(runs: list[dict], metric: str) -> list[float]:
   return vals
 
 
+def sequence_data(runs, suite, since=None) -> dict:
+  sweep = suite.get("sequence_sweep")
+  if not sweep:
+    return {}
+  tag = f"suite={suite['name']}"
+  candidates = [r for r in runs if r["meta"].get("track") == "sweep-sequence"
+                and r["meta"].get("notes") == tag
+                and (since is None or r["meta"].get("started_at", "") >= since)]
+  if not candidates:
+    return {}
+  data = dict(sweep, rounds=suite.get("rounds", 3),
+              warmup=suite["workload"]["warmup"],
+              repetitions=suite["workload"]["repetitions"], points={})
+  for n in sweep["prompt_tokens"]:
+    point = {"configs": {}, "prompt_identity": "unverified"}
+    hashes = set()
+    identity_configs = set()
+    for c in suite["configs"]:
+      label = f"{c['id'].split('/', 1)[1]}-n{n}-d{sweep['gen_tokens']}"
+      latest = {}
+      for r in sorted(candidates, key=lambda r: r["meta"]["started_at"]):
+        m = r["meta"]
+        cmd = m.get("driver_cmd", [])
+        if (m["framework"] == c["framework"] and m["label"] == label
+            and m["params"]["prompt_tokens"] == n
+            and m["params"]["gen_tokens"] == sweep["gen_tokens"]
+            and "--ctx" in cmd and cmd[cmd.index("--ctx") + 1] == str(sweep["ctx"])
+            and m["round"] in range(data["rounds"])):
+          latest[m["round"]] = r
+      selected_runs = list(latest.values())
+      valid, errors = [], []
+      for r in selected_runs:
+        m, s = r["meta"], r["summary"]
+        workload = m.get("workload", {})
+        if workload.get("prompt_tokens") == n and workload.get("prompt_ids_sha256"):
+          hashes.add(workload["prompt_ids_sha256"])
+          identity_configs.add(c["id"])
+        requests = [q for q in s.get("per_request", []) if q.get("measured")]
+        if (s.get("status") == "ok" and len(requests) == data["repetitions"]
+            and m.get("workload", {}).get("prompt_tokens") == n
+            and all(q.get("n_prompt") == n and q.get("n_gen") == sweep["gen_tokens"]
+                    and q.get("prefill_tps", 0) and q.get("decode_tps", 0)
+                    for q in requests)):
+          valid.append(r)
+        else:
+          errors.append(m.get("error") or
+                        f"{r['dir']}: {s.get('status')}; incomplete or wrong-length requests")
+      complete = len(valid) == data["rounds"]
+      point["configs"][c["id"]] = {
+          "status": "complete" if complete else "partial" if valid else "unavailable",
+          "errors": errors,
+          "n_requests": len(pooled(valid, "prefill_tps")),
+          "prefill_tps": stats.describe(pooled(valid, "prefill_tps")),
+          "decode_tps": stats.describe(pooled(valid, "decode_tps")),
+          "runs": [{"run_dir": str(r["dir"]), "meta": _meta_slim(r["meta"]),
+                    "summary": r["summary"]} for r in selected_runs],
+      }
+    if len(identity_configs) == len(suite["configs"]):
+      point["prompt_identity"] = "identical" if len(hashes) == 1 else "DIFFERENT"
+    data["points"][str(n)] = point
+  return data
+
+
 def fmt(v, f="{:.2f}"):
   return "n/a" if v is None else f.format(v)
 
@@ -329,6 +392,82 @@ def bar_chart(path: Path, cfg_ids, agg, metrics, title):
   fig.tight_layout()
   fig.savefig(path, dpi=130)
   plt.close(fig)
+
+
+def sequence_charts(out: Path, data: dict):
+  for metric, phase in (("prefill_tps", "Prefill"), ("decode_tps", "Decode")):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    lengths = data["prompt_tokens"]
+    cfg_ids = data["points"][str(lengths[0])]["configs"]
+    for cid in cfg_ids:
+      points = [data["points"][str(n)]["configs"][cid].get(metric) for n in lengths]
+      meds = [p["median"] if p else float("nan") for p in points]
+      lo = [p["median"] - p["min"] if p else 0 for p in points]
+      hi = [p["max"] - p["median"] if p else 0 for p in points]
+      ax.errorbar(lengths, meds, yerr=[lo, hi], marker="o", capsize=3,
+                  color=COLORS[cid.split("/")[0]], label=cid)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(lengths)
+    ax.set_xticklabels([f"{n:,}" for n in lengths], rotation=30)
+    ax.set_xlabel("Prefill sequence length N (tokens, including BOS)")
+    ax.set_ylabel(f"{phase} throughput (tokens/s)")
+    ax.set_ylim(bottom=0)
+    ax.set_title(f"{phase} vs input length; fixed {data['gen_tokens']}-token decode\n"
+                 "Median; whiskers = min-max; unavailable points are gaps")
+    ax.grid(alpha=0.3)
+    ax.legend(fontsize=9)
+    fig.tight_layout()
+    fig.savefig(out / f"sequence_{phase.lower()}.png", dpi=130)
+    plt.close(fig)
+
+
+def sequence_section(data: dict) -> str:
+  if not data:
+    return ""
+  cfg_ids = list(next(iter(data["points"].values()))["configs"])
+  dates = sorted({r["meta"]["started_at"][:10] for p in data["points"].values()
+                  for c in p["configs"].values() for r in c["runs"]})
+  lines = ["## Input-length throughput sweep\n",
+           "Sweep measurement dates (UTC): " + ", ".join(dates) + ".\n",
+           f"Fixed **{data['gen_tokens']} generated tokens**, greedy with stop tokens ignored; "
+           f"common context capacity **{data['ctx']:,}**. Model artifacts and thread counts "
+           "are unchanged from the configurations above. These are reference configurations, "
+           "not matched weights. The original headline workload remains unchanged.\n",
+           f"Each point uses {data['rounds']} interleaved processes per configuration, "
+           f"{data['warmup']} warm-ups and {data['repetitions']} measured requests per process. "
+           "Long inputs repeat the same public-domain passage deterministically. "
+           "N includes BOS and chat-template tokens. Each request starts with an empty KV cache.\n",
+           "Prefill tokens/s = N / time to first token (includes tokenization and first-token "
+           f"generation). Decode tokens/s = {data['gen_tokens'] - 1} / time from the first to the last generated "
+           "token. Rates are medians; brackets show min-max. Failed, truncated or wrong-length "
+           "processes are excluded, never replaced by estimated rates.\n"]
+  for metric, phase in (("prefill_tps", "Prefill"), ("decode_tps", "Decode")):
+    lines += [f"### {phase} (tokens/s)\n",
+              "| N | " + " | ".join(f"`{cid}`" for cid in cfg_ids) + " |",
+              "| --- " * (len(cfg_ids) + 1) + "|"]
+    for n in data["prompt_tokens"]:
+      cells = []
+      for cid in cfg_ids:
+        point = data["points"][str(n)]["configs"][cid]
+        d = point[metric]
+        value = (f"{d['median']:.2f} [{d['min']:.2f}-{d['max']:.2f}]" if d else "n/a")
+        if point["status"] != "complete":
+          value += f" ({point['status']}, n={point['n_requests']})"
+        cells.append(value)
+      lines.append(f"| {n:,} | " + " | ".join(cells) + " |")
+    lines.append(f"\n![{phase} by input length](sequence_{phase.lower()}.png)\n")
+  lines += ["### Sweep validation\n",
+            "| N | Token-ID identity | Measured requests by configuration |",
+            "| --- | --- | --- |"]
+  for n in data["prompt_tokens"]:
+    point = data["points"][str(n)]
+    counts = "; ".join(f"`{cid}`: {c['n_requests']}" for cid, c in point["configs"].items())
+    lines.append(f"| {n:,} | {point['prompt_identity']} | {counts} |")
+  for n, point in data["points"].items():
+    for cid, c in point["configs"].items():
+      for error in c["errors"]:
+        lines.append(f"\n- N={n}, `{cid}`: {error.replace(chr(10), ' ')}")
+  return "\n".join(lines) + "\n"
 
 
 def timeline_chart(path: Path, cfg_ids, cfg_runs):
@@ -571,6 +710,7 @@ def main(argv=None) -> int:
   cfg_ids = sorted([c["id"] for c in suite["configs"] if cfg_runs.get(c["id"])],
                    key=lambda cid: (TRACK_ORDER.get(_track(suite, cid), 9), cid))
   agg = {cid: describe_cfg(cfg_runs[cid]) for cid in cfg_ids}
+  sequence = sequence_data(runs, suite, args.since)
 
   # ---- accuracy: latest complete set of shards per (config, task, limit)
   acc_rows, acc_preds = merge_accuracy(load_accuracy(args.results, args.machine), agg)
@@ -585,6 +725,8 @@ def main(argv=None) -> int:
   bar_chart(out / "cpu.png", cfg_ids, agg, [HEADLINE[5], HEADLINE[6], HEADLINE[7]], "CPU use")
   bar_chart(out / "memory.png", cfg_ids, agg, [HEADLINE[9], HEADLINE[10], HEADLINE[11]], "Memory")
   timeline_chart(out / "timeline.png", cfg_ids, cfg_runs)
+  if sequence:
+    sequence_charts(out, sequence)
   has_scaling = scaling_chart(
       out / "thread_scaling.png",
       [r for r in runs if r["meta"].get("notes", "").startswith(f"suite={suite['name']}")],
@@ -626,6 +768,7 @@ def main(argv=None) -> int:
           "configs": {cid: {"runs": [{"run_dir": str(r["dir"]), "meta": _meta_slim(r["meta"]),
                                       "summary": r["summary"]} for r in cfg_runs[cid]],
                             "aggregate": agg[cid]} for cid in cfg_ids},
+          "sequence_sweep": sequence,
           "accuracy": acc_rows, "accuracy_agreement": agreement,
           "reproducibility": {"rows": repro_tbl, "cross_framework": repro_cross}}
   (out / "data.json").write_text(json.dumps(data, indent=1, default=str) + "\n")
@@ -637,7 +780,7 @@ def main(argv=None) -> int:
   args._refs = json.loads(refs_path.read_text()) if refs_path and refs_path.is_file() else None
   (out / "README.md").write_text(render_markdown(
       suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, has_scaling, history, changes,
-      hist_path, extra, agreement, (repro_tbl, repro_cross)))
+      hist_path, extra, agreement, (repro_tbl, repro_cross), sequence))
   print(f"wrote {out}")
   return 0
 
@@ -732,14 +875,18 @@ def ratio_line(agg, cfg_runs, a, b, metric, higher_better):
 
 
 def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, has_scaling,
-                    history, changes, hist_path, extra, agreement=(), repro=([], [])):
+                    history, changes, hist_path, extra, agreement=(), repro=([], []), sequence=None):
   L = []
   w = suite["workload"]
   first = cfg_runs[cfg_ids[0]][0]["meta"]
   sysinfo = _read_json(cfg_runs[cfg_ids[0]][0]["dir"] / "sysinfo.json") or {}
   L.append(f"# {suite['name']} on {args.machine} — {args.date}\n")
+  sweep_count = sum(len(c["runs"]) for p in (sequence or {}).get("points", {}).values()
+                    for c in p["configs"].values())
+  process_description = ("benchmark processes" if not sweep_count else
+                         f"headline benchmark processes plus {sweep_count} input-length sweep processes")
   L.append(f"> Generated by `python3 -m aeb.report` from {sum(len(v) for v in cfg_runs.values())} "
-           f"benchmark processes. Raw per-request data: [data.json](data.json). "
+           f"{process_description}. Raw per-request data: [data.json](data.json). "
            f"Methodology: [benchmark_methodology.md](../../docs/benchmark_methodology.md).\n")
   L.append(suite["description"] + "\n")
   # Hand-written notes: anything before "## Caveats" (e.g. "## Key findings")
@@ -843,6 +990,9 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   if has_scaling:
     L.append("### Thread scaling\n")
     L.append("![Thread scaling](thread_scaling.png)\n")
+
+  if sequence:
+    L.append(sequence_section(sequence))
 
   # generated text on the timing prompt
   L.append("### Generated text on the timing prompt\n")

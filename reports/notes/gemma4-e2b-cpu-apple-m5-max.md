@@ -117,6 +117,11 @@
   stop tokens ignored: LiteRT-LM through its engine benchmark parameter,
   llama.cpp by not stopping. LiteRT-LM token counts come from its
   BenchmarkInfo; one streamed chunk per token was observed.
+- **Input-length follow-up.** The separate three-framework ARM report adds
+  an N = 64 through 16,384 input-length sweep with fixed 512-token decode;
+  see [the reference comparison](../2026-10-02-gemma4-e2b-cpu-arm-runtimes-apple-m5-max/README.md#input-length-throughput-sweep).
+  Those independently quantized configurations are not this matched-weight
+  study, and its longer context must not be mixed into the headline metrics.
 - **Greedy in LiteRT-LM** is the TOP_P sampler with `top_k = 1`; its GREEDY
   and TOP_K samplers are unimplemented on CPU at v0.17.1.
 
