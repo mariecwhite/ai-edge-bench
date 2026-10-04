@@ -98,10 +98,16 @@ class WorkloadTest(unittest.TestCase):
   def test_prompt_hits_exact_token_count(self):
     def tok(text):  # 1 token per 4 chars + bos, a stand-in tokenizer
       return [2] + list(range(len(text) // 4))
-    for n in (64, 256, 1024):
+    for n in (64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384):
       text, ids = workload.build_perf_prompt(tok, n)
       self.assertEqual(len(ids), n)
       self.assertTrue(text.endswith(workload.TURN_SUFFIX))
+
+  def test_short_prompt_preserves_original_passage_prefix(self):
+    def tok(text):
+      return [2] + list(range(len(text) // 4))
+    text, _ = workload.build_perf_prompt(tok, 1024)
+    self.assertIn(workload.passage()[:1000], text)
 
 
 class StatsTest(unittest.TestCase):
@@ -142,6 +148,39 @@ class ReproTest(unittest.TestCase):
 
 
 class SuiteTest(unittest.TestCase):
+
+  def test_sequence_sweep_exact_workloads_and_interleaving(self):
+    import suite as suite_mod
+    path = ROOT.parents[1] / "suites" / "gemma4-e2b-cpu-arm-runtimes.json"
+    if not path.is_file():
+      raise unittest.SkipTest("suites/ not mounted")
+    s, ctx = suite_mod.load(path, "apple-m5-max")
+    commands = suite_mod.sequence_commands(s, ctx, "apple-m5-max", 3, None, False)
+    lengths = [64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
+    self.assertEqual(len(commands), 81)
+    for i, n in enumerate(lengths):
+      batch = commands[i * 9:(i + 1) * 9]
+      frameworks = [label.split("/")[0] for label, _ in batch]
+      order = [c["framework"] for c in s["configs"]]
+      self.assertEqual(frameworks, order + list(reversed(order)) + order)
+      for label, cmd in batch:
+        self.assertTrue(label.endswith(f"-n{n}-d512"))
+        self.assertEqual(cmd[cmd.index("--prompt-tokens") + 1], str(n))
+        self.assertEqual(cmd[cmd.index("--gen-tokens") + 1], "512")
+        self.assertEqual(cmd[cmd.index("--ctx") + 1], "16896")
+        self.assertEqual(cmd[cmd.index("--track") + 1], "sweep-sequence")
+        self.assertFalse(any("{" in a for a in cmd))
+    self.assertEqual(s["workload"]["gen_tokens"], 256)
+    self.assertEqual(ctx["ctx"], 4096)
+    filtered = suite_mod.sequence_commands(s, ctx, "apple-m5-max", 1,
+                                           "onnxruntime/q4_k_m", False)
+    self.assertEqual(len(filtered), 9)
+
+  def test_sequence_sweep_rejects_insufficient_context(self):
+    import suite as suite_mod
+    s = {"sequence_sweep": {"prompt_tokens": [16384], "gen_tokens": 512, "ctx": 4096}}
+    with self.assertRaisesRegex(ValueError, "context capacity"):
+      suite_mod.sequence_commands(s, {}, "apple-m5-max", 1, None, False)
 
   def test_driver_command_for_onnxruntime(self):
     from aeb.driver import driver_command
@@ -191,6 +230,63 @@ class ModelHashTest(unittest.TestCase):
       weights.write_bytes(b"second")
       weights.with_name(weights.name + ".sha256").unlink()
       self.assertNotEqual(first, common.model_sha256(d))
+
+
+class SequenceReportTest(unittest.TestCase):
+
+  def setUp(self):
+    from aeb import report
+    self.report = report
+    self.suite = {"name": "test", "rounds": 1,
+                  "workload": {"warmup": 2, "repetitions": 1},
+                  "sequence_sweep": {"prompt_tokens": [64, 128], "gen_tokens": 512, "ctx": 16896},
+                  "configs": [{"id": "llama.cpp/reference", "framework": "llama.cpp"}]}
+
+  def run_data(self, n=64, gen=512, status="ok", started="2026-10-03T00:00:00Z"):
+    return {"dir": Path("/run"), "meta": {
+        "framework": "llama.cpp", "label": f"reference-n{n}-d512", "round": 0,
+        "track": "sweep-sequence", "notes": "suite=test", "started_at": started,
+        "params": {"prompt_tokens": n, "gen_tokens": 512},
+        "driver_cmd": ["driver", "--ctx", "16896"],
+        "workload": {"prompt_tokens": n, "prompt_ids_sha256": f"hash-{n}"}},
+        "summary": {"status": status, "per_request": [
+            {"measured": True, "n_prompt": n, "n_gen": gen,
+             "prefill_tps": 100.0, "decode_tps": 50.0}]}}
+
+  def test_report_preserves_missing_points_and_excludes_truncated_decode(self):
+    data = self.report.sequence_data([self.run_data(), self.run_data(n=128, gen=511)], self.suite)
+    self.assertEqual(data["points"]["64"]["configs"]["llama.cpp/reference"]["prefill_tps"]["median"], 100)
+    invalid = data["points"]["128"]["configs"]["llama.cpp/reference"]
+    self.assertIsNone(invalid["decode_tps"])
+    self.assertEqual(invalid["n_requests"], 0)
+    self.assertTrue(invalid["errors"])
+    self.assertIn("unavailable, n=0", self.report.sequence_section(data))
+    with tempfile.TemporaryDirectory() as d:
+      self.report.sequence_charts(Path(d), data)
+      for phase in ("prefill", "decode"):
+        self.assertGreater((Path(d) / f"sequence_{phase}.png").stat().st_size, 1000)
+
+  def test_latest_round_not_duplicate_and_since_filter(self):
+    old, new = self.run_data(), self.run_data(started="2026-10-04T00:00:00Z")
+    new["summary"]["per_request"][0]["decode_tps"] = 75
+    data = self.report.sequence_data([old, new], self.suite)
+    self.assertEqual(data["points"]["64"]["configs"]["llama.cpp/reference"]["decode_tps"]["median"], 75)
+    self.assertEqual(data["points"]["64"]["configs"]["llama.cpp/reference"]["n_requests"], 1)
+    self.assertEqual(self.report.sequence_data([old], self.suite, "2026-10-04"), {})
+
+  def test_failed_generation_still_proves_tokenized_input_identity(self):
+    run = self.run_data(status="error")
+    run["summary"]["per_request"] = []
+    data = self.report.sequence_data([run], self.suite)
+    self.assertEqual(data["points"]["64"]["prompt_identity"], "identical")
+    self.assertEqual(data["points"]["64"]["configs"]["llama.cpp/reference"]["n_requests"], 0)
+    del run["meta"]["workload"]["prompt_ids_sha256"]
+    data = self.report.sequence_data([run], self.suite)
+    self.assertEqual(data["points"]["64"]["prompt_identity"], "unverified")
+
+  def test_sequence_runs_do_not_change_headline(self):
+    self.assertEqual(self.report.config_runs([self.run_data()], self.suite, None),
+                     {"llama.cpp/reference": []})
 
 
 if __name__ == "__main__":

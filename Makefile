@@ -18,7 +18,7 @@ SINCE ?=
 .PHONY: help base images models bench bench-llama-cpp bench-litert-lm \
         bench-gpu sysinfo config machines clean-results tools matched-models \
         datasets suite-perf suite-accuracy suite-repro report test diagnose-activations \
-        arm-images arm-models
+        arm-images arm-models suite-sequence
 
 help:
 	@echo "AI Edge Bench - MACHINE=$(MACHINE)"
@@ -39,6 +39,7 @@ help:
 	@echo "  make MACHINE=<m> matched-models build matched-weights GGUFs from the QAT checkpoint"
 	@echo "  make datasets                   stage pinned MMLU + GSM8K into ./datasets"
 	@echo "  make MACHINE=<m> suite-perf     prime caches, then interleaved timing rounds"
+	@echo "  make MACHINE=<m> suite-sequence input-length sweep (suite must define sequence_sweep)"
 	@echo "  make MACHINE=<m> suite-accuracy accuracy gate for every suite config"
 	@echo "  make MACHINE=<m> suite-repro    output reproducibility (greedy + seeded)"
 	@echo "  make MACHINE=<m> report         reports/<date>-<suite>-<machine>/ + history"
@@ -101,6 +102,9 @@ datasets: tools
 # One benchmark container at a time; never in parallel (see scripts/suite.py).
 suite-perf:
 	python3 scripts/suite.py perf --machine $(MACHINE) --suite $(SUITE)
+
+suite-sequence:
+	python3 scripts/suite.py sequence --machine $(MACHINE) --suite $(SUITE)
 
 # Accuracy for the original two frameworks was verified invariant across
 # thread counts. The suite runner keeps the configured count for new engines.

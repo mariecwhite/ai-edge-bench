@@ -107,6 +107,37 @@ make MACHINE=apple-m5-max report           # reports/<date>-<suite>-<machine>/
 
 ## Optional ARM CPU runtimes
 
+### Input-length throughput sweep
+
+The exploratory ARM suite defines `sequence_sweep`: N = 64, 128, 256, 512,
+1,024, 2,048, 4,096, 8,192 and 16,384 prompt tokens, with exactly 512 generated
+tokens. Run it separately from the original headline measurements:
+
+```bash
+python3 scripts/suite.py sequence --machine apple-m5-max \
+  --suite suites/gemma4-e2b-cpu-arm-runtimes.json --dev
+make tools
+make MACHINE=apple-m5-max SUITE=suites/gemma4-e2b-cpu-arm-runtimes.json report
+```
+
+`make suite-sequence` is the equivalent runner target for images containing
+the updated harness. Each length uses the suite's warm-up/repetition counts
+and interleaved rounds, with one container at a time. Context capacity stays
+at 16,896 for every point; model artifacts and thread counts stay unchanged.
+The prompt includes BOS and chat-template tokens. Beyond the passage's
+length, the harness repeats it deterministically; shorter existing prompts
+are unchanged.
+
+Reports retain the original 1,024 -> 256 headline and history and add separate
+prefill/decode charts, tables and per-request data for the sweep. Prefill
+throughput is N divided by TTFT (including tokenization and first-token
+generation); decode throughput is 511 divided by first-to-last-token time.
+Token-ID identity is checked separately at each N. Failed or wrong-length
+processes are excluded with explicit diagnostics; unavailable points are
+gaps, not extrapolated values.
+
+### Model staging
+
 The [exploratory ARM suite](../suites/gemma4-e2b-cpu-arm-runtimes.json) adds
 ONNX Runtime GenAI to the two original CPU engines. It deliberately
 does not claim a matched-weight comparison: the published GGUF, LiteRT-LM and ONNX

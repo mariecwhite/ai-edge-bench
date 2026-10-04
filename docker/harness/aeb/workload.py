@@ -50,9 +50,10 @@ def build_perf_prompt(tokenize, prompt_tokens: int) -> tuple[str, list[int]]:
   def render(n_chars: int) -> str:
     return chat(PERF_INSTRUCTION + text[:n_chars].rstrip())
 
+  # Repeat only for lengths beyond the corpus; existing prompts stay unchanged.
+  while len(tokenize(render(len(text)))) < prompt_tokens:
+    text = text + "\n\n" + text
   lo, hi = 0, len(text)
-  if len(tokenize(render(hi))) < prompt_tokens:
-    raise ValueError(f"passage too short for {prompt_tokens} prompt tokens")
   while lo < hi:  # smallest prefix with >= prompt_tokens tokens
     mid = (lo + hi) // 2
     if len(tokenize(render(mid))) >= prompt_tokens:

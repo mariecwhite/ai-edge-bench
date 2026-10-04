@@ -16,12 +16,21 @@
 4. **Resource use differs substantially.** Median peak request RSS is
    2,839 MB for LiteRT-LM, 4,365 MB for llama.cpp and 6,658 MB for ONNX Runtime.
    CPU time per request is 26.5, 64.6 and 217.1 CPU-seconds respectively.
-5. **Completion and reproducibility:** all nine timing processes completed,
+5. **Headline completion and reproducibility:** all nine headline timing processes completed,
    giving 15 measured requests per configuration; all six accuracy jobs
    completed (2,000 MMLU and 250 GSM8K items each). Greedy outputs are
    reproducible across repeats, processes and tested thread counts. ONNX
    Runtime and llama.cpp seeded sampling is reproducible per request;
    LiteRT-LM remains reproducible per process only.
+6. **Input-length sweep (512-token decode):** llama.cpp decodes faster at
+   every tested N; LiteRT-LM prefills faster from N = 128 through 16,384.
+   At N = 16,384, LiteRT-LM versus llama.cpp reaches 389.4 versus 144.1
+   tokens/s prefill and 39.91 versus 51.46 tokens/s decode.
+   The sweep collected 375 measured requests from 75 successful processes.
+   ONNX Runtime completed through N = 4,096, but **ran out of memory at
+   N = 8,192 and 16,384 in all three attempts each**. These points are
+   unavailable, not zero throughput or extrapolations; the configurations
+   were kept unchanged.
 
 ## Caveats
 
@@ -56,7 +65,7 @@
   only their JSON configuration.
 
 **Workload and measurement**
-- The workload is a realistic 1,024-token chat prompt, including BOS, followed
+- The headline workload is a realistic 1,024-token chat prompt, including BOS, followed
   by exactly 256 greedy generated tokens with stop tokens ignored, and a
   4,096-token context limit. Prompt identity is checked using token-ID hashes.
 - The LiteRT-LM artifact has a 1,024-token prefill signature. That prompt
@@ -65,9 +74,23 @@
   measured. Model-load times are reported separately.
 - Peak RSS includes file-backed model pages. The ONNX package contains
   multimodal assets, but this suite sends text only.
-- ONNX Runtime enforces a 4,096-token request limit; its internal cache
+- ONNX Runtime enforces the configured request limit (4,096 for the headline,
+  16,896 for the input-length sweep); its internal cache
   allocation policies need not match llama.cpp or LiteRT-LM. A request limit
   alone is not proof of identical reserved KV-cache memory.
+- The input-length sweep keeps context capacity at 16,896 even for short
+  prompts. This can change memory allocation and throughput relative to
+  the original 4,096-context headline. It decodes 512 tokens at every N;
+  decode throughput is averaged over those tokens at the corresponding
+  context depth, not measured from an empty context. The 1,024-token
+  LiteRT-LM prefill signature and chunking/padding still apply.
+- **ONNX Runtime long-input OOM.** The Linux VM kernel recorded six
+  out-of-memory kills of the ONNX driver, with roughly 31 GiB of anonymous
+  RSS, matching the three attempts at each of N = 8,192 and 16,384. Each
+  failed on its first warm-up, before any measured request completed.
+  Raw metadata records exit code -9 and container memory peaks. The
+  prefill/decode tables therefore show n/a and the charts omit those points.
+  No chunking, memory-saving runtime settings or larger VM were substituted.
 
 **Accuracy and output reproducibility**
 - Accuracy uses the same deterministic 2,000-item MMLU subset and 250-item
