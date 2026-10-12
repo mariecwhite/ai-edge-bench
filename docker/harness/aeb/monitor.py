@@ -66,19 +66,31 @@ def read_pss_kb(pid: int) -> int | None:
 
 
 def read_cgroup_mem() -> int | None:
-  try:
-    with open("/sys/fs/cgroup/memory.current") as f:
-      return int(f.read())
-  except (OSError, ValueError):
-    return None
+  for p in (
+      "/sys/fs/cgroup/memory.current",
+      "/sys/fs/cgroup/memory/memory.usage_in_bytes",
+      "/dev/cgroup/memory/memory.usage_in_bytes",
+  ):
+    try:
+      with open(p) as f:
+        return int(f.read())
+    except (OSError, ValueError):
+      continue
+  return None
 
 
 def read_cgroup_peak() -> int | None:
-  try:
-    with open("/sys/fs/cgroup/memory.peak") as f:
-      return int(f.read())
-  except (OSError, ValueError):
-    return None
+  for p in (
+      "/sys/fs/cgroup/memory.peak",
+      "/sys/fs/cgroup/memory/memory.max_usage_in_bytes",
+      "/dev/cgroup/memory/memory.max_usage_in_bytes",
+  ):
+    try:
+      with open(p) as f:
+        return int(f.read())
+    except (OSError, ValueError):
+      continue
+  return None
 
 
 def read_sys_ticks() -> tuple[int, int]:

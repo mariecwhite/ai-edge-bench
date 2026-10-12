@@ -13,7 +13,7 @@ import subprocess
 import threading
 from pathlib import Path
 
-FRAMEWORKS = ("llama.cpp", "litert-lm", "onnxruntime")
+FRAMEWORKS = ("llama.cpp", "litert-lm", "onnxruntime", "xla", "openvino")
 
 
 def driver_command(framework: str, driver_args: list[str]) -> list[str]:
@@ -23,6 +23,10 @@ def driver_command(framework: str, driver_args: list[str]) -> list[str]:
     return ["python3", "-m", "aeb.drivers.litert_lm_driver", *driver_args]
   if framework == "onnxruntime":
     return ["python3", "-m", "aeb.drivers.onnxruntime_driver", *driver_args]
+  if framework == "xla":
+    return ["python3", "-m", "aeb.drivers.xla_driver", *driver_args]
+  if framework == "openvino":
+    return ["python3", "-m", "aeb.drivers.openvino_driver", *driver_args]
   raise ValueError(f"unknown framework {framework!r}; expected one of {FRAMEWORKS}")
 
 
@@ -55,7 +59,14 @@ class Driver:
       line = self.proc.stdout.readline()
       if not line:
         code = self.proc.wait()
-        raise DriverError(f"driver exited with code {code}; see stderr log")
+        self._stderr.flush()
+        try:
+          tail = Path(self._stderr.name).read_text(errors="replace").strip().splitlines()[-8:]
+          detail = " | ".join(tail) if tail else ""
+        except Exception:
+          detail = ""
+        suffix = f" ({detail})" if detail else ""
+        raise DriverError(f"driver exited with code {code}; see stderr log{suffix}")
       line = line.strip()
       if not line:
         continue

@@ -245,8 +245,10 @@ def main(argv=None) -> int:
   common.dump(run_dir / "meta.json", meta)
   common.dump(run_dir / "summary.json", summary)
   d = summary["metrics"]
+  fallback = {k: stats.describe([m.get(k) for m in per_req]) for k in METRICS} if not measured else d
   def med(k):
-    return d[k]["median"] if d.get(k) else float("nan")
+    src = d if d.get(k) else fallback
+    return src[k]["median"] if src.get(k) else float("nan")
   print(f"[aeb] {args.framework}/{args.label}: ttft {med('ttft_ms'):.0f} ms, "
         f"prefill {med('prefill_tps'):.1f} tok/s, decode {med('decode_tps'):.2f} tok/s, "
         f"cores(decode) {med('cpu_cores_decode'):.2f}, rss max {med('rss_max_mb'):.0f} MB "

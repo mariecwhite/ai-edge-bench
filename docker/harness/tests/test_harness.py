@@ -182,10 +182,38 @@ class SuiteTest(unittest.TestCase):
     with self.assertRaisesRegex(ValueError, "context capacity"):
       suite_mod.sequence_commands(s, {}, "apple-m5-max", 1, None, False)
 
-  def test_driver_command_for_onnxruntime(self):
+  def test_driver_command_for_onnxruntime_xla_openvino(self):
     from aeb.driver import driver_command
     self.assertEqual(driver_command("onnxruntime", ["--threads", "4"]),
                      ["python3", "-m", "aeb.drivers.onnxruntime_driver", "--threads", "4"])
+    self.assertEqual(driver_command("xla", ["--threads", "16", "--onednn"]),
+                     ["python3", "-m", "aeb.drivers.xla_driver", "--threads", "16", "--onednn"])
+    self.assertEqual(driver_command("openvino", ["--threads", "16"]),
+                     ["python3", "-m", "aeb.drivers.openvino_driver", "--threads", "16"])
+
+  def test_xla_driver_flags_for_ynnpack_and_onednn(self):
+    import os
+    from aeb.drivers import xla_driver
+    old = os.environ.get("XLA_FLAGS")
+    try:
+      os.environ.pop("XLA_FLAGS", None)
+      args_ynn = xla_driver._parse_args(["--model", "/tmp/m", "--threads", "16", "--dtype", "int4"])
+      self.assertEqual(args_ynn.dtype, "int4")
+      flags_ynn = xla_driver._configure_xla_env(args_ynn)
+      self.assertTrue(all(tok.startswith("--") for tok in flags_ynn.split()), flags_ynn)
+      self.assertNotIn("--xla_cpu_experimental_onednn_custom_call=true", flags_ynn)
+
+      os.environ.pop("XLA_FLAGS", None)
+      args_odnn = xla_driver._parse_args(["--model", "/tmp/m", "--threads", "16", "--dtype", "bf16", "--onednn"])
+      flags_odnn = xla_driver._configure_xla_env(args_odnn)
+      self.assertTrue(all(tok.startswith("--") for tok in flags_odnn.split()), flags_odnn)
+      self.assertIn("--xla_cpu_experimental_onednn_custom_call=true", flags_odnn)
+      self.assertIn("--xla_cpu_experimental_ynn_fusion_type=invalid", flags_odnn)
+    finally:
+      if old is None:
+        os.environ.pop("XLA_FLAGS", None)
+      else:
+        os.environ["XLA_FLAGS"] = old
 
   def test_suite_resolves_for_every_machine(self):
     import suite as suite_mod
@@ -193,7 +221,8 @@ class SuiteTest(unittest.TestCase):
     if not suites.is_dir():
       raise unittest.SkipTest("suites/ not mounted")
     for path in (suites / "gemma4-e2b-cpu.json",
-                 suites / "gemma4-e2b-cpu-arm-runtimes.json"):
+                 suites / "gemma4-e2b-cpu-arm-runtimes.json",
+                 suites / "gemma4-e2b-cpu-sapphire-rapids.json"):
       data = json.loads(path.read_text())
       for machine in data["machines"]:
         s, ctx = suite_mod.load(path, machine)
@@ -215,6 +244,151 @@ class SuiteTest(unittest.TestCase):
     self.assertEqual(len(commands), 7)
     self.assertEqual(sum(":greedy:" in label for label, _ in commands), 3)
     self.assertEqual(sum(":seeded:" in label for label, _ in commands), 4)
+
+  def test_select_sequence_configs_fastest_accurate_per_framework_dtype(self):
+    import suite as suite_mod
+    test_suite = {
+        "name": "gemma4-e2b-cpu-sapphire-rapids",
+        "rounds": 1,
+        "sequence_sweep": {
+            "prompt_tokens": [64, 128],
+            "gen_tokens": 512,
+            "ctx": 16896,
+            "select_fastest_by_dtype": True,
+            "min_accuracy": {"mmlu": 0.40, "gsm8k": 0.40},
+        },
+        "configs": [
+            {"id": "xla/bf16-ynnpack", "framework": "xla", "dtype": "bf16", "track": "reference",
+             "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}},
+            {"id": "xla/bf16-onednn", "framework": "xla", "dtype": "bf16", "track": "reference",
+             "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}},
+            {"id": "llama.cpp/fastest", "framework": "llama.cpp", "dtype": "int4", "track": "fastest",
+             "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}},
+            {"id": "llama.cpp/matched", "framework": "llama.cpp", "dtype": "int4", "track": "matched",
+             "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}},
+            {"id": "openvino/fp32", "framework": "openvino", "dtype": "fp32", "track": "reference",
+             "accuracy": {"mmlu_limit": 500}},
+        ],
+    }
+    with tempfile.TemporaryDirectory() as d:
+      res = Path(d)
+
+      def write_acc(fw, label, task, acc, n=200):
+        run_d = res / "sapphire-rapids" / f"accuracy-{task}" / fw / label / "r0"
+        run_d.mkdir(parents=True, exist_ok=True)
+        (run_d / "meta.json").write_text(json.dumps({
+            "started_at": "2026-10-05T00:00:00Z", "limit": n, "shard": "0/1"
+        }))
+        (run_d / "summary.json").write_text(json.dumps({
+            "complete": True, "n": n, "correct": int(round(acc * n)), "accuracy": acc
+        }))
+
+      def write_perf(fw, label, e2e_ms):
+        run_d = res / "sapphire-rapids" / "perf" / fw / label / "r0"
+        run_d.mkdir(parents=True, exist_ok=True)
+        (run_d / "meta.json").write_text(json.dumps({
+            "started_at": "2026-10-05T00:00:00Z", "track": "reference",
+            "notes": "suite=gemma4-e2b-cpu-sapphire-rapids"
+        }))
+        (run_d / "summary.json").write_text(json.dumps({
+            "status": "ok",
+            "per_request": [{"measured": True, "e2e_ms": e2e_ms}],
+            "metrics": {"e2e_ms": {"median": e2e_ms}},
+        }))
+
+      # xla/bf16: both pass accuracy, onednn is faster -> xla/bf16-onednn selected
+      write_acc("xla", "bf16-ynnpack", "mmlu", 0.58)
+      write_acc("xla", "bf16-ynnpack", "gsm8k", 0.75)
+      write_perf("xla", "bf16-ynnpack", 5200.0)
+      write_acc("xla", "bf16-onednn", "mmlu", 0.58)
+      write_acc("xla", "bf16-onednn", "gsm8k", 0.75)
+      write_perf("xla", "bf16-onednn", 4100.0)
+
+      # llama.cpp/int4: fastest fails accuracy (0.35 < 0.40), matched passes -> matched selected
+      write_acc("llama.cpp", "fastest", "mmlu", 0.35)
+      write_acc("llama.cpp", "fastest", "gsm8k", 0.75)
+      write_perf("llama.cpp", "fastest", 2500.0)
+      write_acc("llama.cpp", "matched", "mmlu", 0.57)
+      write_acc("llama.cpp", "matched", "gsm8k", 0.74)
+      write_perf("llama.cpp", "matched", 3100.0)
+
+      # openvino/fp32: fails mmlu accuracy -> excluded
+      write_acc("openvino", "fp32", "mmlu", 0.30)
+      write_perf("openvino", "fp32", 9000.0)
+
+      chosen = suite_mod.select_sequence_configs(test_suite, "sapphire-rapids", results_dir=res)
+      self.assertEqual([c["id"] for c in chosen], ["xla/bf16-onednn", "llama.cpp/matched"])
+
+  def test_skip_existing_commands_and_accuracy_resume(self):
+    import suite as suite_mod
+    test_suite = {
+        "name": "gemma4-e2b-cpu-sapphire-rapids",
+        "rounds": 2,
+        "workload": {"prompt_tokens": 1024, "gen_tokens": 256, "warmup": 2, "repetitions": 5,
+                     "cooldown_s": 2, "ctx": 4096},
+        "models": {"m": "/models/m"},
+        "machines": {"sapphire-rapids": {"threads": 16, "fastest": {}}},
+        "configs": [
+            {"id": "llama.cpp/matched", "framework": "llama.cpp", "track": "matched",
+             "args": ["--model", "{m}", "--threads", "{threads}"],
+             "accuracy": {"mmlu_limit": 0, "gsm8k_limit": 0}},
+        ],
+    }
+    ctx = {"m": "/models/m", "threads": 16, "ctx": 4096, "fastest": {}}
+    with tempfile.TemporaryDirectory() as d:
+      res = Path(d)
+      # 1. Prime: write a completed prime run -> prime_commands skips it when skip_existing=True
+      prime_d = res / "sapphire-rapids" / "perf" / "llama.cpp" / "prime-matched" / "r0"
+      prime_d.mkdir(parents=True)
+      (prime_d / "summary.json").write_text(json.dumps({
+          "status": "ok", "per_request": [{"measured": False, "e2e_ms": 100.0}]
+      }))
+      self.assertEqual(len(suite_mod.prime_commands(
+          test_suite, ctx, "sapphire-rapids", None, False, results_dir=res, skip_existing=True)), 0)
+      self.assertEqual(len(suite_mod.prime_commands(
+          test_suite, ctx, "sapphire-rapids", None, False, results_dir=res, skip_existing=False)), 1)
+
+      # 2. Perf: write round 0 complete (n_measured=5) -> only round 1 remains
+      perf_d = res / "sapphire-rapids" / "perf" / "llama.cpp" / "matched" / "r0"
+      perf_d.mkdir(parents=True)
+      (perf_d / "meta.json").write_text(json.dumps({"track": "matched", "round": 0}))
+      (perf_d / "summary.json").write_text(json.dumps({"status": "ok", "n_measured": 5}))
+      perf_cmds = suite_mod.perf_commands(
+          test_suite, ctx, "sapphire-rapids", 2, None, False, results_dir=res, skip_existing=True)
+      self.assertEqual(len(perf_cmds), 1)
+      self.assertIn("1", perf_cmds[0][1][perf_cmds[0][1].index("--round") + 1])
+
+      # 3. Accuracy: shard 0/2 complete, shard 1/2 partial -> shard 0/2 skipped, shard 1/2 gets --resume
+      acc0_d = res / "sapphire-rapids" / "accuracy-mmlu" / "llama.cpp" / "matched" / "s0"
+      acc0_d.mkdir(parents=True)
+      (acc0_d / "meta.json").write_text(json.dumps({"limit": 0, "shard": "0/2"}))
+      (acc0_d / "summary.json").write_text(json.dumps({"complete": True, "n": 7021}))
+      acc1_d = res / "sapphire-rapids" / "accuracy-mmlu" / "llama.cpp" / "matched" / "s1"
+      acc1_d.mkdir(parents=True)
+      (acc1_d / "meta.json").write_text(json.dumps({
+          "started_at": "2026-10-06T00:00:00Z", "limit": 0, "shard": "1/2"
+      }))
+      (acc1_d / "predictions.jsonl").write_text('{"index": 1, "correct": true}\n')
+      acc_cmds = suite_mod.accuracy_commands(
+          test_suite, ctx, "sapphire-rapids", None, False, ["mmlu"], shards=2,
+          results_dir=res, skip_existing=True)
+      self.assertEqual(len(acc_cmds), 1)
+      self.assertEqual(acc_cmds[0][0], "llama.cpp/matched:mmlu:1/2")
+      self.assertIn("--resume", acc_cmds[0][1])
+      self.assertIn("/results/sapphire-rapids/accuracy-mmlu/llama.cpp/matched/s1", acc_cmds[0][1])
+
+      # 4. Repro: greedy process 0 (threads=16) complete -> 6 of 7 slots remain
+      repro_d = res / "sapphire-rapids" / "repro" / "llama.cpp" / "matched" / "p0"
+      repro_d.mkdir(parents=True)
+      (repro_d / "meta.json").write_text(json.dumps({
+          "mode": "greedy", "process": 0, "seed": None, "threads": 16
+      }))
+      (repro_d / "summary.json").write_text(json.dumps({
+          "errors": 0, "within_process": {"compared": 10}
+      }))
+      repro_cmds = suite_mod.repro_commands(
+          test_suite, ctx, "sapphire-rapids", None, False, results_dir=res, skip_existing=True)
+      self.assertEqual(len(repro_cmds), 6)
 
 
 class ModelHashTest(unittest.TestCase):
@@ -287,6 +461,15 @@ class SequenceReportTest(unittest.TestCase):
   def test_sequence_runs_do_not_change_headline(self):
     self.assertEqual(self.report.config_runs([self.run_data()], self.suite, None),
                      {"llama.cpp/reference": []})
+
+  def test_sequence_data_omits_unswept_configs(self):
+    suite = dict(self.suite, configs=[
+        {"id": "llama.cpp/reference", "framework": "llama.cpp"},
+        {"id": "xla/bf16-ynnpack", "framework": "xla"},
+    ])
+    data = self.report.sequence_data([self.run_data(n=64), self.run_data(n=128)], suite)
+    self.assertEqual(list(data["points"]["64"]["configs"]), ["llama.cpp/reference"])
+    self.assertEqual(data["points"]["64"]["prompt_identity"], "identical")
 
 
 if __name__ == "__main__":

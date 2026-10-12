@@ -149,13 +149,37 @@ services:
       AEB_YNNPACK: "true"
     command: ["aeb-bench-litert-lm"]
 
-  # -------------------------------------------------------- optional ARM CPU engines
+  # -------------------------------------------------------- optional CPU engines
   onnxruntime:
-    profiles: ["onnxruntime"]
+    profiles: ["onnxruntime", "x86-sota"]
     image: ${AEB_IMAGE_PREFIX:-aeb}/onnxruntime:cpu
     build:
       context: ./docker
       dockerfile: onnxruntime/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+    <<: *aeb-service
+    environment: *aeb-workload
+    command: ["python3", "-m", "aeb.perf", "--help"]
+
+  xla:
+    profiles: ["cpu", "xla", "x86-sota", "all"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/xla:cpu
+    build:
+      context: ./docker
+      dockerfile: xla/Dockerfile
+      args:
+        AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+    <<: *aeb-service
+    environment: *aeb-workload
+    command: ["python3", "-m", "aeb.perf", "--help"]
+
+  openvino:
+    profiles: ["cpu", "openvino", "x86-sota", "all"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/openvino:cpu
+    build:
+      context: ./docker
+      dockerfile: openvino/Dockerfile
       args:
         AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
     <<: *aeb-service
@@ -181,6 +205,20 @@ services:
   harness-onnxruntime:
     profiles: ["harness"]
     image: ${AEB_IMAGE_PREFIX:-aeb}/onnxruntime:cpu
+    <<: *aeb-harness-service
+    environment: *aeb-workload
+    command: ["aeb.perf", "--help"]
+
+  harness-xla:
+    profiles: ["harness"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/xla:cpu
+    <<: *aeb-harness-service
+    environment: *aeb-workload
+    command: ["aeb.perf", "--help"]
+
+  harness-openvino:
+    profiles: ["harness"]
+    image: ${AEB_IMAGE_PREFIX:-aeb}/openvino:cpu
     <<: *aeb-harness-service
     environment: *aeb-workload
     command: ["aeb.perf", "--help"]

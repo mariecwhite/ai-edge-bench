@@ -62,6 +62,12 @@ arm-images: base
 arm-models: tools
 	$(COMPOSE) --profile tools run --rm tools aeb.prep.fetch_arm_models
 
+x86-images: base
+	$(COMPOSE) --profile x86-sota build xla openvino onnxruntime
+
+x86-models: tools
+	$(COMPOSE) --profile tools run --rm tools aeb.prep.fetch_x86_models
+
 models: base
 	$(COMPOSE) --profile models run --rm fetch-models
 
@@ -119,7 +125,7 @@ report:
 	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/suites:/suites:ro tools aeb.report \
 	  --machine $(MACHINE) --suite /suites/$(notdir $(SUITE)) --date $(DATE) \
 	  $(if $(SINCE),--since $(SINCE),) \
-	  $(if $(wildcard reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md,)
+	  $(if $(wildcard reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md,$(if $(wildcard reports/notes/$(notdir $(basename $(SUITE))).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE))).md,))
 
 test:
 	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/scripts:/opt/scripts:ro \

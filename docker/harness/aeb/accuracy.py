@@ -206,35 +206,38 @@ def main(argv=None) -> int:
       "model_sha256": common.model_sha256(model) if model else None,
       "build": common.build_info(),
   }
+  meta["limit"] = args.limit
+  meta["shard"] = args.shard
   common.dump(meta_path, meta)
   todo = [it for it in items if it["id"] not in done]
   print(f"[aeb] accuracy {args.framework}/{args.label}: {len(todo)} of {len(items)} items "
         f"to run -> {run_dir}", file=sys.stderr, flush=True)
 
   t0 = time.monotonic()
-  with Driver(cmd, run_dir / "driver.log") as drv:
-    drv.wait_ready()
-    with open(pred_path, "a") as out:
-      for i, it in enumerate(todo):
-        r = drv.request("generate", prompt=render_fn(it), max_tokens=args.max_tokens,
-                        ignore_eos=False, return_text=True, stop_ids=workload.STOP_IDS)
-        if not r.get("ok"):
-          rec = {"id": it["id"], "subject": it["subject"], "answer": it["answer"],
-                 "pred": None, "correct": False, "error": r.get("error"), "text": None}
-        else:
-          pred = extract_fn(r.get("text", ""))
-          rec = {"id": it["id"], "subject": it["subject"], "answer": it["answer"],
-                 "pred": pred, "correct": score_fn(pred, it["answer"]), "text": r.get("text"),
-                 "n_prompt": r.get("n_prompt"), "n_gen": r.get("n_gen"),
-                 "e2e_ms": (r["t_end_ns"] - r["t_req_ns"]) / 1e6}
-        out.write(json.dumps(rec) + "\n")
-        done[it["id"]] = rec
-        if (i + 1) % 200 == 0:
-          out.flush()
-          acc = sum(p["correct"] for p in done.values()) / len(done)
-          rate = (i + 1) / (time.monotonic() - t0)
-          print(f"[aeb] {len(done)}/{len(items)} acc {acc:.4f} ({rate:.2f} q/s)",
-                file=sys.stderr, flush=True)
+  if todo:
+    with Driver(cmd, run_dir / "driver.log") as drv:
+      drv.wait_ready()
+      with open(pred_path, "a") as out:
+        for i, it in enumerate(todo):
+          r = drv.request("generate", prompt=render_fn(it), max_tokens=args.max_tokens,
+                          ignore_eos=False, return_text=True, stop_ids=workload.STOP_IDS)
+          if not r.get("ok"):
+            rec = {"id": it["id"], "subject": it["subject"], "answer": it["answer"],
+                   "pred": None, "correct": False, "error": r.get("error"), "text": None}
+          else:
+            pred = extract_fn(r.get("text", ""))
+            rec = {"id": it["id"], "subject": it["subject"], "answer": it["answer"],
+                   "pred": pred, "correct": score_fn(pred, it["answer"]), "text": r.get("text"),
+                   "n_prompt": r.get("n_prompt"), "n_gen": r.get("n_gen"),
+                   "e2e_ms": (r["t_end_ns"] - r["t_req_ns"]) / 1e6}
+          out.write(json.dumps(rec) + "\n")
+          done[it["id"]] = rec
+          if (i + 1) % 200 == 0:
+            out.flush()
+            acc = sum(p["correct"] for p in done.values()) / len(done)
+            rate = (i + 1) / (time.monotonic() - t0)
+            print(f"[aeb] {len(done)}/{len(items)} acc {acc:.4f} ({rate:.2f} q/s)",
+                  file=sys.stderr, flush=True)
 
   preds = [done[it["id"]] for it in items if it["id"] in done]
   summary = summarize(preds)

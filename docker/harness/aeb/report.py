@@ -4,7 +4,7 @@ and maintain the performance-over-time history.
   python3 -m aeb.report --machine apple-m5-max --suite /suites/gemma4-e2b-cpu.json \\
       --results /results --out /reports [--since 2026-10-01T09:00:00Z] [--date 2026-10-01]
 
-Writes reports/<date>-<suite>-<machine>/{README.md, data.json, *.png} and
+Writes reports/<date>-<suite>-<machine>/{README.md, README.html, index.html, data.json, *.png} and
 appends one line per configuration to reports/history/<suite>/<machine>.jsonl
 (idempotent per report id), then re-renders the history charts from that file.
 The history file is the long-term record: it is small, committed, and keyed by
@@ -14,14 +14,18 @@ framework commits and harness digest so regressions can be attributed.
 from __future__ import annotations
 
 import argparse
+import base64
 import collections
 import csv
 import datetime as dt
 import hashlib
+import html
 import json
+import mimetypes
+from pathlib import Path
+import re
 import statistics
 import sys
-from pathlib import Path
 
 import matplotlib
 
@@ -31,8 +35,13 @@ import matplotlib.pyplot as plt  # noqa: E402
 from . import accuracy as acc_mod  # noqa: E402
 from . import stats  # noqa: E402
 
-COLORS = {"llama.cpp": "#d9822b", "litert-lm": "#2b6cd9",
-          "onnxruntime": "#9c4d9f"}
+COLORS = {
+    "llama.cpp": "#d9822b",
+    "litert-lm": "#2b6cd9",
+    "onnxruntime": "#9c4d9f",
+    "xla": "#2e8b57",
+    "openvino": "#0095a8",
+}
 TRACK_ORDER = {"matched": 0, "fastest": 1, "reference": 2}
 HEADLINE = [  # metric, label, unit, higher_is_better, fmt
     ("ttft_ms", "TTFT", "ms", False, "{:.0f}"),
@@ -290,14 +299,22 @@ def sequence_data(runs, suite, since=None) -> dict:
                 and (since is None or r["meta"].get("started_at", "") >= since)]
   if not candidates:
     return {}
-  data = dict(sweep, rounds=suite.get("rounds", 3),
-              warmup=suite["workload"]["warmup"],
-              repetitions=suite["workload"]["repetitions"], points={})
+
+  def _has_sequence_run(c):
+    base = c["id"].split("/", 1)[1]
+    expected = {f"{base}-n{n}-d{sweep['gen_tokens']}" for n in sweep["prompt_tokens"]}
+    return any(r["meta"].get("framework") == c["framework"]
+               and r["meta"].get("label") in expected for r in candidates)
+
+  sweep_configs = [c for c in suite["configs"] if _has_sequence_run(c)] or list(suite["configs"])
+  data = dict(sweep, rounds=sweep.get("rounds", suite.get("rounds", 3)),
+              warmup=sweep.get("warmup", suite["workload"]["warmup"]),
+              repetitions=sweep.get("repetitions", suite["workload"]["repetitions"]), points={})
   for n in sweep["prompt_tokens"]:
     point = {"configs": {}, "prompt_identity": "unverified"}
     hashes = set()
     identity_configs = set()
-    for c in suite["configs"]:
+    for c in sweep_configs:
       label = f"{c['id'].split('/', 1)[1]}-n{n}-d{sweep['gen_tokens']}"
       latest = {}
       for r in sorted(candidates, key=lambda r: r["meta"]["started_at"]):
@@ -318,7 +335,7 @@ def sequence_data(runs, suite, since=None) -> dict:
           hashes.add(workload["prompt_ids_sha256"])
           identity_configs.add(c["id"])
         requests = [q for q in s.get("per_request", []) if q.get("measured")]
-        if (s.get("status") == "ok" and len(requests) == data["repetitions"]
+        if (s.get("status") == "ok" and len(requests) >= data["repetitions"]
             and m.get("workload", {}).get("prompt_tokens") == n
             and all(q.get("n_prompt") == n and q.get("n_gen") == sweep["gen_tokens"]
                     and q.get("prefill_tps", 0) and q.get("decode_tps", 0)
@@ -337,7 +354,7 @@ def sequence_data(runs, suite, since=None) -> dict:
           "runs": [{"run_dir": str(r["dir"]), "meta": _meta_slim(r["meta"]),
                     "summary": r["summary"]} for r in selected_runs],
       }
-    if len(identity_configs) == len(suite["configs"]):
+    if len(identity_configs) == len(sweep_configs):
       point["prompt_identity"] = "identical" if len(hashes) == 1 else "DIFFERENT"
     data["points"][str(n)] = point
   return data
@@ -368,8 +385,10 @@ def _label(cid: str) -> str:
 
 
 def bar_chart(path: Path, cfg_ids, agg, metrics, title):
-  fig, axes = plt.subplots(1, len(metrics), figsize=(4.2 * len(metrics), 4.2))
+  panel_w = max(4.2, 0.65 * len(cfg_ids))
+  fig, axes = plt.subplots(1, len(metrics), figsize=(panel_w * len(metrics), 4.6))
   axes = axes if len(metrics) > 1 else [axes]
+  rot = 35 if len(cfg_ids) > 6 else 0
   for ax, (m, lab, unit, hib, _) in zip(axes, metrics):
     xs, meds, lo, hi, cols = [], [], [], [], []
     for cid in cfg_ids:
@@ -380,13 +399,13 @@ def bar_chart(path: Path, cfg_ids, agg, metrics, title):
       meds.append(d["median"])
       lo.append(d["median"] - d["min"])
       hi.append(d["max"] - d["median"])
-      cols.append(HIST_STYLE.get(cid, (COLORS[cid.split("/")[0]],))[0])
+      cols.append(HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"),))[0])
     ax.bar(xs, meds, yerr=[lo, hi], color=cols, capsize=4, alpha=0.9)
     for x, v in zip(xs, meds):
       ax.annotate(f"{v:.1f}" if v < 100 else f"{v:.0f}", (x, v), ha="center", va="bottom",
-                  fontsize=8, xytext=(0, 3), textcoords="offset points")
+                  fontsize=7 if len(cfg_ids) > 6 else 8, xytext=(0, 3), textcoords="offset points")
     ax.set_title(f"{lab} ({unit}) {'↑' if hib else '↓'}")
-    ax.tick_params(axis="x", labelsize=7)
+    ax.tick_params(axis="x", labelsize=6.5 if len(cfg_ids) > 6 else 7, rotation=rot)
     ax.grid(axis="y", alpha=0.3)
   fig.suptitle(title + "  (median; whiskers = min-max over all measured requests)", fontsize=10)
   fig.tight_layout()
@@ -404,8 +423,9 @@ def sequence_charts(out: Path, data: dict):
       meds = [p["median"] if p else float("nan") for p in points]
       lo = [p["median"] - p["min"] if p else 0 for p in points]
       hi = [p["max"] - p["median"] if p else 0 for p in points]
-      ax.errorbar(lengths, meds, yerr=[lo, hi], marker="o", capsize=3,
-                  color=COLORS[cid.split("/")[0]], label=cid)
+      col, mk, ls = HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"), "o", "-"))
+      ax.errorbar(lengths, meds, yerr=[lo, hi], marker=mk, ls=ls, capsize=3,
+                  color=col, label=cid)
     ax.set_xscale("log", base=2)
     ax.set_xticks(lengths)
     ax.set_xticklabels([f"{n:,}" for n in lengths], rotation=30)
@@ -415,7 +435,7 @@ def sequence_charts(out: Path, data: dict):
     ax.set_title(f"{phase} vs input length; fixed {data['gen_tokens']}-token decode\n"
                  "Median; whiskers = min-max; unavailable points are gaps")
     ax.grid(alpha=0.3)
-    ax.legend(fontsize=9)
+    ax.legend(fontsize=8 if len(cfg_ids) > 6 else 9)
     fig.tight_layout()
     fig.savefig(out / f"sequence_{phase.lower()}.png", dpi=130)
     plt.close(fig)
@@ -432,15 +452,25 @@ def sequence_section(data: dict) -> str:
            f"Fixed **{data['gen_tokens']} generated tokens**, greedy with stop tokens ignored; "
            f"common context capacity **{data['ctx']:,}**. Model artifacts and thread counts "
            "are unchanged from the configurations above. These are reference configurations, "
-           "not matched weights. The original headline workload remains unchanged.\n",
-           f"Each point uses {data['rounds']} interleaved processes per configuration, "
-           f"{data['warmup']} warm-ups and {data['repetitions']} measured requests per process. "
-           "Long inputs repeat the same public-domain passage deterministically. "
-           "N includes BOS and chat-template tokens. Each request starts with an empty KV cache.\n",
-           "Prefill tokens/s = N / time to first token (includes tokenization and first-token "
-           f"generation). Decode tokens/s = {data['gen_tokens'] - 1} / time from the first to the last generated "
-           "token. Rates are medians; brackets show min-max. Failed, truncated or wrong-length "
-           "processes are excluded, never replaced by estimated rates.\n"]
+           "not matched weights. The original headline workload remains unchanged.\n"]
+  if data.get("select_fastest_by_dtype") or data.get("min_accuracy"):
+    min_acc = data.get("min_accuracy")
+    if isinstance(min_acc, dict):
+      gate_desc = ", ".join(f"{k} ≥ {v:.0%}" for k, v in sorted(min_acc.items()))
+    elif isinstance(min_acc, (int, float)):
+      gate_desc = f"accuracy ≥ {min_acc:.0%}"
+    else:
+      gate_desc = "the accuracy gate"
+    lines.append(f"Swept configurations are the empirically fastest configuration for each "
+                 f"`(framework, dtype)` pair that cleared the minimum accuracy gate ({gate_desc}).\n")
+  lines += [f"Each point uses {data['rounds']} interleaved processes per configuration, "
+            f"{data['warmup']} warm-ups and {data['repetitions']} measured requests per process. "
+            "Long inputs repeat the same public-domain passage deterministically. "
+            "N includes BOS and chat-template tokens. Each request starts with an empty KV cache.\n",
+            "Prefill tokens/s = N / time to first token (includes tokenization and first-token "
+            f"generation). Decode tokens/s = {data['gen_tokens'] - 1} / time from the first to the last generated "
+            "token. Rates are medians; brackets show min-max. Failed, truncated or wrong-length "
+            "processes are excluded, never replaced by estimated rates.\n"]
   for metric, phase in (("prefill_tps", "Prefill"), ("decode_tps", "Decode")):
     lines += [f"### {phase} (tokens/s)\n",
               "| N | " + " | ".join(f"`{cid}`" for cid in cfg_ids) + " |",
@@ -500,7 +530,7 @@ def timeline_chart(path: Path, cfg_ids, cfg_runs):
         cores.append((ticks[j] - ticks[j - 1]) / 100.0 / dt_)
     # 10 ms tick granularity: smooth over 5 samples for readability.
     sm = [statistics.fmean(cores[max(0, k - 2):k + 3]) for k in range(len(cores))]
-    ax2.plot(cores_t, sm, color=COLORS[cid.split("/")[0]], lw=1)
+    ax2.plot(cores_t, sm, color=COLORS.get(cid.split("/")[0], "gray"), lw=1)
     ax2.set_ylabel("cores busy")
     ax2.set_title(f"{cid}: CPU over time", fontsize=9)
     for r in _requests(run["dir"]):
@@ -546,11 +576,22 @@ def scaling_chart(path: Path, runs, machine):
   if not series:
     return False
   fig, axes = plt.subplots(1, 3, figsize=(15, 4.2))
-  styles = {"llama.cpp matched": ("#d9822b", "-o"), "litert-lm matched": ("#2b6cd9", "-o"),
-            "litert-lm ynnpack": ("#2b6cd9", "--s")}
+  styles = {
+      "llama.cpp matched": ("#d9822b", "-o"),
+      "llama.cpp q4_0": ("#a85a10", "--s"),
+      "litert-lm matched": ("#2b6cd9", "-o"),
+      "litert-lm ynnpack": ("#13408f", "--s"),
+      "xla ynnpack-bf16": ("#2e8b57", "-o"),
+      "xla onednn-bf16": ("#1b5e20", "--s"),
+      "xla ynnpack-int8": ("#66bb6a", ":^"),
+      "openvino int4": ("#0095a8", "-o"),
+      "openvino int8": ("#006064", "--s"),
+      "onnxruntime q4_k_m": ("#9c4d9f", "-d"),
+  }
   for key, pts in sorted(series.items()):
     ts = sorted(pts)
-    col, st = styles.get(key, ("gray", "-x"))
+    fw = key.split()[0]
+    col, st = styles.get(key, (COLORS.get(fw, "gray"), "-o"))
     for k, ax in enumerate(axes):
       ax.plot(ts, [pts[t][k] for t in ts], st, color=col, label=key)
   for ax, title in zip(axes, ["Prefill tok/s (1024-token prompt)", "Decode tok/s (64 tokens)",
@@ -558,7 +599,7 @@ def scaling_chart(path: Path, runs, machine):
     ax.set_title(title, fontsize=10)
     ax.set_xlabel("threads")
     ax.grid(alpha=0.3)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=7.5)
   fig.suptitle(f"Thread scaling on {machine} (sweep: 1 warm-up + 2 measured requests per point)",
                fontsize=10)
   fig.tight_layout()
@@ -569,15 +610,18 @@ def scaling_chart(path: Path, runs, machine):
 
 def accuracy_chart(path: Path, acc_rows, refs=None):
   tasks = sorted({a["task"] for a in acc_rows})
-  fig, axes = plt.subplots(1, len(tasks), figsize=(6 * len(tasks), 4), squeeze=False)
+  max_rows = max((sum(1 for a in acc_rows if a["task"] == t) for t in tasks), default=4)
+  panel_w = max(6.0, 0.75 * max_rows)
+  fig, axes = plt.subplots(1, len(tasks), figsize=(panel_w * len(tasks), 4.5), squeeze=False)
   for ax, task in zip(axes[0], tasks):
     rows = [a for a in acc_rows if a["task"] == task]
     xs = [f"{a['id']}\n(n={a['n']})" for a in rows]
     ys = [a["accuracy"] * 100 for a in rows]
     err = [a["ci95"] * 100 for a in rows]
-    ax.bar(xs, ys, yerr=err, capsize=4, color=[COLORS[a["id"].split("/")[0]] for a in rows])
+    ax.bar(xs, ys, yerr=err, capsize=4, color=[COLORS.get(a["id"].split("/")[0], "gray") for a in rows])
     for x, y, e in zip(xs, ys, err):
-      ax.annotate(f"{y:.1f}%", (x, y + e), ha="center", va="bottom", fontsize=8,
+      ax.annotate(f"{y:.1f}%", (x, y + e), ha="center", va="bottom",
+                  fontsize=7 if len(rows) > 6 else 8,
                   xytext=(0, 3), textcoords="offset points")
     # Published non-thinking bf16 references for the same benchmark.
     for r in (refs or {}).get("results", []):
@@ -587,7 +631,8 @@ def accuracy_chart(path: Path, acc_rows, refs=None):
                     (0.01, r["value"]), xycoords=("axes fraction", "data"), fontsize=6,
                     color="dimgray", va="bottom")
     ax.set_title(f"{task.upper()} accuracy (95% CI)", fontsize=10)
-    ax.tick_params(axis="x", labelsize=7)
+    ax.tick_params(axis="x", labelsize=6.5 if len(rows) > 6 else 7,
+                   rotation=30 if len(rows) > 6 else 0)
     ax.grid(axis="y", alpha=0.3)
   fig.tight_layout()
   fig.savefig(path, dpi=130)
@@ -595,9 +640,29 @@ def accuracy_chart(path: Path, acc_rows, refs=None):
 
 
 HIST_STYLE = {  # config -> (color, marker, linestyle)
-    "llama.cpp/matched": ("#d9822b", "o", "-"), "llama.cpp/fastest": ("#a85a10", "s", "--"),
-    "llama.cpp/stock-q4_0": ("#f0b070", "^", ":"), "litert-lm/matched": ("#2b6cd9", "o", "-"),
+    "llama.cpp/matched": ("#d9822b", "o", "-"),
+    "llama.cpp/fastest": ("#a85a10", "s", "--"),
+    "llama.cpp/stock-q4_0": ("#f0b070", "^", ":"),
+    "llama.cpp/q8_0": ("#c46d1f", "v", "-."),
+    "llama.cpp/int8": ("#c46d1f", "v", "-."),
+    "llama.cpp/bf16": ("#8c4600", "d", ":"),
+    "litert-lm/matched": ("#2b6cd9", "o", "-"),
     "litert-lm/fastest": ("#13408f", "s", "--"),
+    "xla/matched-ynnpack": ("#2e8b57", "o", "-"),
+    "xla/matched-onednn": ("#1b5e20", "s", "--"),
+    "xla/bf16-ynnpack": ("#43a047", "^", "-"),
+    "xla/bf16-onednn": ("#2e7d32", "v", "--"),
+    "xla/int8-ynnpack": ("#66bb6a", "d", "-."),
+    "xla/int8-onednn": ("#388e3c", "p", ":"),
+    "xla/fp32-ynnpack": ("#81c784", "x", ":"),
+    "xla/fp32-onednn": ("#4caf50", "+", ":"),
+    "openvino/int4": ("#0095a8", "s", "--"),
+    "openvino/int8": ("#006064", "o", "-"),
+    "openvino/bf16": ("#00acc1", "v", "-."),
+    "openvino/fp16": ("#4dd0e1", "^", ":"),
+    "openvino/fp32": ("#26c6da", "P", ":"),
+    "onnxruntime/q4_k_m": ("#9c4d9f", "d", "-"),
+    "onnxruntime/fp16": ("#ba68c8", "v", ":"),
 }
 
 
@@ -617,7 +682,7 @@ def history_chart(path: Path, history: list[dict]):
       pts = sorted((h for h in pts if h["metrics"].get(m)), key=lambda h: xpos[h["report_id"]])
       if not pts:
         continue
-      col, mk, ls = HIST_STYLE.get(cid, ("gray", "x", "-"))
+      col, mk, ls = HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"), "o", "-"))
       xs = [xpos[h["report_id"]] for h in pts]
       ys = [h["metrics"][m]["median"] for h in pts]
       lo = [h["metrics"][m]["median"] - h["metrics"][m]["min"] for h in pts]
@@ -773,15 +838,19 @@ def main(argv=None) -> int:
           "reproducibility": {"rows": repro_tbl, "cross_framework": repro_cross}}
   (out / "data.json").write_text(json.dumps(data, indent=1, default=str) + "\n")
 
-  extra = args.extra_notes.read_text() if args.extra_notes else ""
+  extra = args.extra_notes.read_text() if (args.extra_notes and args.extra_notes.is_file()) else ""
   args._quant_md = (quant_section(args.models / "aeb")
                     if any(c["track"] == "matched" for c in suite["configs"]) else "")
   refs_path = args.suite.parent / suite["references"] if suite.get("references") else None
   args._refs = json.loads(refs_path.read_text()) if refs_path and refs_path.is_file() else None
-  (out / "README.md").write_text(render_markdown(
+  md_text = render_markdown(
       suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, has_scaling, history, changes,
-      hist_path, extra, agreement, (repro_tbl, repro_cross), sequence))
-  print(f"wrote {out}")
+      hist_path, extra, agreement, (repro_tbl, repro_cross), sequence)
+  (out / "README.md").write_text(md_text, encoding="utf-8")
+  html_doc = markdown_to_html(md_text, base_dir=out, embed_images=True)
+  (out / "README.html").write_text(html_doc, encoding="utf-8")
+  (out / "index.html").write_text(html_doc, encoding="utf-8")
+  print(f"wrote {out} (README.md, README.html, index.html)")
   return 0
 
 
@@ -1151,6 +1220,415 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append(caveats.strip() or "_none recorded_")
   L.append("")
   return "\n".join(L)
+
+
+def _slugify(text: str) -> str:
+  plain = re.sub(r"`([^`]+)`", r"\1", text)
+  plain = re.sub(r"[^\w\s-]", "", plain.lower())
+  return re.sub(r"[\s_]+", "-", plain.strip())
+
+
+def _render_inline_text_only(text: str, tokens: dict[str, str]) -> str:
+  escaped = html.escape(text)
+  escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
+  escaped = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", escaped)
+  escaped = re.sub(r"(?<!\w)_([^_]+)_(?!\w)", r"<em>\1</em>", escaped)
+  for k, v in tokens.items():
+    escaped = escaped.replace(k, v)
+  return escaped
+
+
+def _render_inline(text: str, base_dir: Path, embed_images: bool = True) -> str:
+  tokens: dict[str, str] = {}
+
+  def _stash(html_fragment: str) -> str:
+    key = f"\x00TOK{len(tokens)}\x00"
+    tokens[key] = html_fragment
+    return key
+
+  def _repl_code(m: re.Match[str]) -> str:
+    return _stash(f"<code>{html.escape(m.group(1))}</code>")
+
+  text = re.sub(r"`([^`]+)`", _repl_code, text)
+
+  def _repl_img(m: re.Match[str]) -> str:
+    alt = html.escape(m.group(1))
+    src = m.group(2).strip()
+    img_path = (base_dir / src).resolve()
+    if embed_images and not src.startswith(("http://", "https://", "data:")) and img_path.is_file():
+      mime, _ = mimetypes.guess_type(str(img_path))
+      mime = mime or "image/png"
+      b64 = base64.b64encode(img_path.read_bytes()).decode("ascii")
+      src_attr = f"data:{mime};base64,{b64}"
+    else:
+      src_attr = html.escape(src)
+    return _stash(
+        f'<figure class="report-figure">'
+        f'<img src="{src_attr}" alt="{alt}" loading="lazy" />'
+        f'<figcaption>{alt}</figcaption>'
+        f'</figure>'
+    )
+
+  text = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", _repl_img, text)
+
+  def _repl_link(m: re.Match[str]) -> str:
+    label_raw = m.group(1)
+    href = html.escape(m.group(2).strip())
+    label_html = _render_inline_text_only(label_raw, tokens)
+    return _stash(f'<a href="{href}">{label_html}</a>')
+
+  text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", _repl_link, text)
+  text = _render_inline_text_only(text, tokens)
+  for k, v in tokens.items():
+    text = text.replace(k, v)
+  return text
+
+
+def _parse_list(lines: list[str], start: int, base_dir: Path, embed_images: bool) -> tuple[str, int]:
+  list_item_re = re.compile(r"^(\s*)(?:([-*+])|(\d+)\.)\s+(.*)$")
+
+  def _collect_items(idx: int, base_indent: int, ordered: bool) -> tuple[str, int]:
+    tag = "ol" if ordered else "ul"
+    out = [f"<{tag}>"]
+    n = len(lines)
+    while idx < n:
+      line = lines[idx]
+      if not line.strip():
+        look = idx + 1
+        while look < n and not lines[look].strip():
+          look += 1
+        if look < n:
+          m_next = list_item_re.match(lines[look])
+          if m_next and len(m_next.group(1)) >= base_indent:
+            idx = look
+            continue
+        break
+
+      m = list_item_re.match(line)
+      if not m:
+        break
+      indent = len(m.group(1))
+      is_ord = m.group(3) is not None
+      if indent < base_indent:
+        break
+      if indent > base_indent:
+        sub_html, idx = _collect_items(idx, indent, is_ord)
+        if out[-1].endswith("</li>"):
+          out[-1] = out[-1][:-5] + "\n" + sub_html + "</li>"
+        else:
+          out.append(sub_html)
+        continue
+      if is_ord != ordered:
+        break
+
+      item_lines = [m.group(4)]
+      idx += 1
+      sub_chunks: list[str] = []
+      while idx < n:
+        nxt = lines[idx]
+        if not nxt.strip():
+          break
+        m_sub = list_item_re.match(nxt)
+        if m_sub:
+          sub_indent = len(m_sub.group(1))
+          if sub_indent > base_indent:
+            sub_html, idx = _collect_items(idx, sub_indent, m_sub.group(3) is not None)
+            sub_chunks.append(sub_html)
+            continue
+          break
+        nxt_indent = len(nxt) - len(nxt.lstrip(" "))
+        if nxt_indent > base_indent:
+          item_lines.append(nxt.strip())
+          idx += 1
+        else:
+          break
+
+      item_html = _render_inline(" ".join(item_lines), base_dir, embed_images)
+      if sub_chunks:
+        out.append(f"<li>{item_html}\n" + "\n".join(sub_chunks) + "</li>")
+      else:
+        out.append(f"<li>{item_html}</li>")
+
+    out.append(f"</{tag}>")
+    return "\n".join(out), idx
+
+  m0 = list_item_re.match(lines[start])
+  assert m0 is not None
+  return _collect_items(start, len(m0.group(1)), m0.group(3) is not None)
+
+
+def _split_table_row(line: str) -> list[str]:
+  s = line.strip()
+  if s.startswith("|"):
+    s = s[1:]
+  if s.endswith("|"):
+    s = s[:-1]
+  return [cell.strip() for cell in s.split("|")]
+
+
+def markdown_to_html(md_text: str, base_dir: Path, embed_images: bool = True) -> str:
+  lines = md_text.splitlines()
+  n = len(lines)
+  i = 0
+  body_parts: list[str] = []
+  title = "AI Edge Bench Report"
+  list_item_re = re.compile(r"^(\s*)(?:([-*+])|(\d+)\.)\s+(.*)$")
+
+  while i < n:
+    line = lines[i]
+    stripped = line.strip()
+
+    if not stripped:
+      i += 1
+      continue
+
+    if stripped.startswith("```"):
+      lang = stripped[3:].strip()
+      code_lines: list[str] = []
+      i += 1
+      while i < n and not lines[i].strip().startswith("```"):
+        code_lines.append(lines[i])
+        i += 1
+      if i < n:
+        i += 1
+      cls = f' class="language-{html.escape(lang)}"' if lang else ""
+      body_parts.append(f"<pre><code{cls}>{html.escape(chr(10).join(code_lines))}</code></pre>")
+      continue
+
+    m_head = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+    if m_head:
+      level = len(m_head.group(1))
+      raw_heading = m_head.group(2).strip()
+      if level == 1 and title == "AI Edge Bench Report":
+        title = re.sub(r"`([^`]+)`", r"\1", raw_heading)
+      slug = _slugify(raw_heading)
+      heading_html = _render_inline(raw_heading, base_dir, embed_images)
+      body_parts.append(f'<h{level} id="{slug}">{heading_html}</h{level}>')
+      i += 1
+      continue
+
+    if stripped.startswith(">"):
+      bq_lines: list[str] = []
+      while i < n and lines[i].strip().startswith(">"):
+        bq_lines.append(re.sub(r"^>\s?", "", lines[i].strip()))
+        i += 1
+      bq_html = _render_inline(" ".join(bq_lines), base_dir, embed_images)
+      body_parts.append(f"<blockquote><p>{bq_html}</p></blockquote>")
+      continue
+
+    if "|" in stripped and i + 1 < n and re.match(r"^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$", lines[i + 1].strip()):
+      headers = _split_table_row(lines[i])
+      i += 2
+      rows: list[list[str]] = []
+      while i < n and "|" in lines[i] and lines[i].strip():
+        rows.append(_split_table_row(lines[i]))
+        i += 1
+      th_html = "".join(f"<th>{_render_inline(h, base_dir, embed_images)}</th>" for h in headers)
+      tr_list: list[str] = []
+      for r in rows:
+        cells = [f"<td>{_render_inline(c, base_dir, embed_images)}</td>" for c in r]
+        tr_list.append("<tr>" + "".join(cells) + "</tr>")
+      body_parts.append(
+          '<div class="table-wrap"><table>'
+          f"<thead><tr>{th_html}</tr></thead>"
+          f"<tbody>{''.join(tr_list)}</tbody>"
+          "</table></div>"
+      )
+      continue
+
+    if list_item_re.match(line):
+      list_html, i = _parse_list(lines, i, base_dir, embed_images)
+      body_parts.append(list_html)
+      continue
+
+    if re.match(r"^!\[([^\]]*)\]\(([^)]+)\)$", stripped):
+      body_parts.append(_render_inline(stripped, base_dir, embed_images))
+      i += 1
+      continue
+
+    para_lines: list[str] = []
+    while i < n:
+      cur = lines[i].strip()
+      if (
+          not cur
+          or cur.startswith("#")
+          or cur.startswith("```")
+          or cur.startswith(">")
+          or list_item_re.match(lines[i])
+          or ("|" in cur and i + 1 < n and re.match(r"^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$", lines[i + 1].strip()))
+      ):
+        break
+      para_lines.append(cur)
+      i += 1
+    para_html = _render_inline(" ".join(para_lines), base_dir, embed_images)
+    body_parts.append(f"<p>{para_html}</p>")
+
+  body_joined = "\n".join(body_parts)
+  return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{html.escape(title)}</title>
+  <style>
+    :root {{
+      --bg: #ffffff;
+      --fg: #1f2328;
+      --muted: #59636e;
+      --border: #d1d9e0;
+      --surface: #f6f8fa;
+      --accent: #0969da;
+      --code-bg: #eff1f3;
+    }}
+    * {{
+      box-sizing: border-box;
+    }}
+    body {{
+      margin: 0;
+      padding: 2rem 1.5rem 4rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--fg);
+      background: var(--bg);
+    }}
+    main {{
+      max-width: 1440px;
+      margin: 0 auto;
+    }}
+    h1, h2, h3, h4 {{
+      margin-top: 1.8rem;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }}
+    h1 {{
+      font-size: 1.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }}
+    h2 {{
+      font-size: 1.4rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--border);
+    }}
+    h3 {{
+      font-size: 1.15rem;
+    }}
+    p, ul, ol, blockquote {{
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }}
+    ul, ol {{
+      padding-left: 1.75rem;
+    }}
+    li {{
+      margin-bottom: 0.25rem;
+    }}
+    li > ul, li > ol {{
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
+    }}
+    a {{
+      color: var(--accent);
+      text-decoration: none;
+    }}
+    a:hover {{
+      text-decoration: underline;
+    }}
+    blockquote {{
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      color: var(--muted);
+      border-left: 4px solid var(--border);
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+    }}
+    blockquote p:last-child {{
+      margin-bottom: 0;
+    }}
+    code {{
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.88em;
+      padding: 0.15em 0.35em;
+      background: var(--code-bg);
+      border-radius: 4px;
+    }}
+    pre {{
+      padding: 1rem;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }}
+    pre code {{
+      padding: 0;
+      background: transparent;
+    }}
+    .table-wrap {{
+      width: 100%;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      white-space: nowrap;
+    }}
+    th, td {{
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }}
+    th:last-child, td:last-child {{
+      border-right: none;
+    }}
+    tr:last-child td {{
+      border-bottom: none;
+    }}
+    thead th {{
+      background: var(--surface);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }}
+    tbody tr:nth-child(even) {{
+      background: #fafbfc;
+    }}
+    tbody tr:hover {{
+      background: #f0f4f8;
+    }}
+    .report-figure {{
+      margin: 1.5rem 0;
+      text-align: center;
+    }}
+    .report-figure img {{
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }}
+    .report-figure figcaption {{
+      margin-top: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }}
+  </style>
+</head>
+<body>
+  <main>
+{body_joined}
+  </main>
+</body>
+</html>
+"""
 
 
 if __name__ == "__main__":
