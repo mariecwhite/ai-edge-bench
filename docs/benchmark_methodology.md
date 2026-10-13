@@ -21,6 +21,29 @@ acceleration settings; device, CPU/GPU/NPU, memory, operating system, and
 power/thermal conditions. Run competing frameworks on the same device where
 possible, without concurrent heavy workloads.
 
+### Official model weights and framework implementations
+
+- Always use the official published model weights and the official model
+  implementation available in each inference framework or open-source library
+  (for example, Hugging Face `transformers` / `optimum-intel`, Google `tunix` +
+  `qwix` on Flax NNX/JAX, `libllama` in `llama.cpp`, `liblitert-lm` in
+  LiteRT-LM, `onnxruntime_genai`, and `openvino_genai`).
+- Never implement custom, hand-written model architectures or bespoke layer
+  graphs inside benchmark harness drivers. Harness drivers must remain thin
+  protocol adapters that load official checkpoints into the target framework's
+  official model/runtime API and record timing and token events.
+- When a framework requires an offline format conversion (such as GGUF,
+  OpenVINO IR via `optimum-cli`, or ONNX Runtime GenAI), generate the artifact
+  from the official upstream checkpoint using the framework's official
+  conversion tools and record the source revision and conversion steps.
+- **No on-the-fly dynamic or channel-wise quantization on unquantized checkpoints.**
+  Do not apply runtime/on-the-fly weight quantization (such as dynamic channel-wise
+  PTQ) or dynamic activation quantization to an unquantized checkpoint (e.g., in
+  OpenXLA) unless the checkpoint's weights and metadata (`quantization_config`)
+  explicitly provide pre-quantized weights and scales. When evaluating a quantized
+  precision tier (`INT8`, `INT4`, `QAT-mobile`), only include frameworks that have
+  a pre-quantized checkpoint or pre-built quantized artifact for that precision.
+
 ### Quantization equivalence is proven on tensors, not on labels
 
 "4-bit" on two model cards rarely means the same weights. Before calling a
@@ -84,8 +107,16 @@ with an empty context/cache; use the same cache policy for comparisons.
   record whether each cache existed at process start, and make sure the cache
   directory exists — LiteRT-LM silently disables the weight cache otherwise,
   which changes both load time and resident memory.
-- **Fresh KV per request.** Every request starts from an empty KV cache; no
-  prefix or response caching between requests.
+- **Fresh KV per request (stateless headline benchmark).** Every request in the
+  headline `perf` benchmark starts from an empty KV cache; no prefix or response
+  caching is allowed between requests.
+- **Cached-prefix KV benchmark (`prefix-cache` track).** Because multi-turn chat
+  and system-prompt workloads reuse a shared prompt prefix across turns, suites
+  may also define a separate `prefix_cache` benchmark (`--cache-prefix`) that
+  keeps a shared prefix of `P` tokens (for example, `896` tokens of a `1,024`-token
+  prompt) warm in the KV cache while varying the final `S = N - P` suffix tokens
+  on every request. Report cached-prefix results in their own dedicated section
+  alongside the stateless baseline, never mixed into cold-KV headline numbers.
 
 For each measured request, start a monotonic timer immediately before handing
 the prepared input to the framework and stop when generation finishes. Capture
@@ -110,6 +141,7 @@ Report these metrics using the **actual** number of generated output tokens
 | End-to-end latency | Time from request start to completion, in milliseconds. |
 | Time to first token (TTFT) | Time from request start to first output token available at the API boundary, in milliseconds. Includes prompt processing. |
 | Prefill throughput | Prompt tokens ÷ TTFT, in tokens/second. |
+| Suffix prefill throughput (cached-prefix mode) | Uncached suffix tokens (`N_prompt - N_cached`) ÷ warm TTFT, in tokens/second. |
 | Decode throughput | `(N - 1) / (last-token time - first-token time)`, in tokens/second, for `N >= 2`. The first token is excluded because TTFT includes prefill. |
 | Inter-token latency | Distribution of gaps between consecutive streamed tokens (p50, p99). |
 
@@ -138,17 +170,68 @@ Run the framework in its own process and sample it, not the harness:
 - Record whole-machine CPU busy time during each request to detect background
   load.
 
+## Cached-prefix KV benchmark (`prefix_cache`)
+
+To measure how effectively each runtime reuses KV state across requests that
+share a common prefix (such as a system prompt or document context), suites may
+define a `prefix_cache` section (`prompt_tokens`, `prefix_tokens`, `gen_tokens`,
+`warmup`, `repetitions`, `rounds`):
+
+- The harness constructs a sequence of `warmup + repetitions` distinct prompts
+  of exact token length `prompt_tokens` that share the identical first
+  `prefix_tokens` token IDs (`P`) and differ in the trailing
+  `S = prompt_tokens - prefix_tokens` suffix tokens, so full-response caching
+  cannot short-circuit suffix evaluation or decoding.
+- Each framework driver is started with `--cache-prefix` and reuses or snapshots
+  the KV state for the `P`-token prefix from the warm-up turn, evaluating only
+  the `S` new suffix tokens before decoding `gen_tokens` tokens.
+- Reports compare **Cold TTFT** (from the stateless `perf` run at the same total
+  prompt length) against **Warm TTFT**, **TTFT Speedup (`Cold ÷ Warm`)**,
+  **Effective Prefill Throughput (`prompt_tokens ÷ Warm TTFT`)**,
+  **Suffix Prefill Throughput (`S ÷ Warm TTFT`)**, and **Decode Throughput**.
+
+## Input-length throughput sweep
+
+In addition to the headline workload (`1,024` prompt tokens → `256` generated
+tokens), suites may define an input-length sequence sweep (`sequence_sweep`)
+across multiple prompt lengths (for example `64` to `4,096` or `16,384` tokens)
+at a fixed decode length:
+
+- Every prompt length uses the same real-text passage, chat template, and
+  token-exact trimming, with SHA-256 token-id verification at each length `N`.
+- In multi-precision suites (`select_fastest_by_dtype: true`), the sequence
+  sweep automatically selects the empirically fastest configuration per
+  `(framework, dtype)` pair from the headline `perf` runs that also passes the
+  minimum accuracy threshold (`min_accuracy`), ensuring scaling curves only
+  include configurations with verified output quality.
+
 ## Accuracy gate
 
 Timing a configuration that produces wrong tokens is meaningless. Every
-configuration in a report must be checked for output validity with the same
-drivers, prompts and decoding used for timing:
+configuration or `(framework, dtype)` cell in a report must be checked for
+output validity with the same drivers, prompts and decoding used for timing:
 
 - Use pinned revisions of industry-standard datasets (here the full MMLU test
   set, 14,042 questions, and GSM8K for long greedy generations) and record the
   dataset checksums.
-- Matched configurations run the full set; fastest/reference configurations
-  run at least a deterministic stratified subset (≥ 2,000 MMLU items).
+- Matched single-dtype suites run the full set; fastest/reference or
+  multi-precision matrix suites run a deterministic stratified subset
+  (≥ 2,000 MMLU items).
+- **Apples-to-apples item limits across frameworks and data types.** Every
+  configuration compared in a report must use the **exact same stratified item
+  limit** (for example, `mmlu_limit: 2000` across all `fp32`, `bf16`, `int8`,
+  and `int4` configurations) so that accuracy intervals and paired McNemar
+  agreement tests are computed over the identical set of questions.
+- **Data-type-aware winner selection (`accuracy_select_fastest_by_dtype`).**
+  When a suite includes multiple candidate configurations for the same
+  `(framework, dtype)` pair (such as matched vs. fastest kernel/quantization
+  variants), the runner can group configurations by `(framework, dtype)` and
+  evaluate accuracy on the empirically fastest configuration (lowest median
+  end-to-end latency in `perf`) for each `(framework, dtype)` cell.
+- **Checkpointing and resumption.** Accuracy runs stream per-item predictions to
+  `predictions.jsonl` and support `--resume` (automatically enabled by
+  `scripts/suite.py --skip-existing`) so interrupted evaluations continue from
+  already-scored item indices without repeating work.
 - Accuracy runs do not need an idle machine and may run side by side, but
   only after showing that outputs do not depend on the thread count, and
   only if the total number of threads stays within the allocated CPUs.
@@ -174,8 +257,9 @@ configuration.
 **Workload.** A fixed set of 12 prompts covering short answers, multiple
 choice, arithmetic, word problems, code, summarization, structured JSON,
 translation and open-ended text (`data/repro_prompts.json`). Each request uses
-a fresh session/KV cache, the chat template, stop tokens honoured and at most
-128 new tokens. Both modes are tested:
+a fresh session/KV cache, the chat template, stop tokens honoured and a fixed
+token cap (128 new tokens by default, or configured via `repro.max_tokens` in
+the suite JSON). Both modes are tested:
 
 - **Greedy**: temperature 0.
 - **Seeded sampling**: the model's recommended sampling (Gemma: temperature
@@ -188,10 +272,13 @@ state included. Mixing modes in one process would therefore test the wrong
 thing. Run each mode, and each seed, in its own process.
 
 **Levels.** Report each separately; a lower level never implies a higher one.
+Suites may configure `repro.repeats` (default `3`, minimum `2`) and
+`repro.slots` in the suite JSON when constraining total runtime on large CPU
+matrices.
 
 | Level | Comparison | Expected for a deterministic engine |
 | --- | --- | --- |
-| Within process | Each prompt repeated 3× in one process, interleaved with the other prompts (A B C … A B C …), so state carried between requests becomes visible. | identical |
+| Within process | Each prompt repeated `N`× (`N = 3` by default, or `repro.repeats`) in one process, interleaved with the other prompts (A B C … A B C …), so state carried between requests becomes visible. | identical |
 | Across processes | A second fresh process with the same request sequence. | identical |
 | Across thread counts | A process with half the threads. Thread-dependent reduction order is a common source of divergence. | identical (report if not) |
 | Seed control | The seeded process rerun with seed + 1. | outputs **change** for most prompts; if not, the seed is ignored or sampling has collapsed to greedy |
@@ -216,16 +303,17 @@ states whether all of them were identical.
 ## Repetition and reporting
 
 Unless a benchmark explicitly studies cold starts, perform at least one
-unmeasured warm-up request followed by at least five measured requests with
-the same inputs and configuration. Keep warm-up and measured runs distinct;
-state the repetition count and order, and disclose thermal throttling or
-background activity. For cold starts, use a separately specified cache and
-process-reset procedure rather than mixing cold and warm timings.
+unmeasured warm-up request followed by multiple measured requests (default five,
+or configured via `workload.repetitions` in the suite JSON) with the same
+inputs and configuration. Keep warm-up and measured runs distinct; state the
+repetition count and order, and disclose thermal throttling or background
+activity. For cold starts, use a separately specified cache and process-reset
+procedure rather than mixing cold and warm timings.
 
-- **Repeat at the process level.** Run each configuration in at least three
-  separate processes (pyperf, SPEC), each with its own warm-up. Process-level
-  effects (memory layout, thread placement) are often larger than
-  request-to-request noise.
+- **Repeat at the process level.** Run each configuration across multiple
+  separate processes (`workload.rounds`, default three; pyperf, SPEC), each with
+  its own warm-up. Process-level effects (memory layout, thread placement) are
+  often larger than request-to-request noise.
 - **Interleave.** Alternate configurations and reverse the order every other
   round (A B C, C B A, …) with a fixed cool-down between processes, so drift
   and thermal effects spread across configurations instead of biasing the last

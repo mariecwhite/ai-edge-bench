@@ -4,7 +4,7 @@ and maintain the performance-over-time history.
   python3 -m aeb.report --machine apple-m5-max --suite /suites/gemma4-e2b-cpu.json \\
       --results /results --out /reports [--since 2026-10-01T09:00:00Z] [--date 2026-10-01]
 
-Writes reports/<date>-<suite>-<machine>/{README.md, data.json, *.png} and
+Writes reports/<date>-<suite>-<machine>/{README.md, README.html, index.html, data.json, *.png} and
 appends one line per configuration to reports/history/<suite>/<machine>.jsonl
 (idempotent per report id), then re-renders the history charts from that file.
 The history file is the long-term record: it is small, committed, and keyed by
@@ -14,14 +14,18 @@ framework commits and harness digest so regressions can be attributed.
 from __future__ import annotations
 
 import argparse
+import base64
 import collections
 import csv
 import datetime as dt
 import hashlib
+import html
 import json
+import mimetypes
+from pathlib import Path
+import re
 import statistics
 import sys
-from pathlib import Path
 
 import matplotlib
 
@@ -31,8 +35,13 @@ import matplotlib.pyplot as plt  # noqa: E402
 from . import accuracy as acc_mod  # noqa: E402
 from . import stats  # noqa: E402
 
-COLORS = {"llama.cpp": "#d9822b", "litert-lm": "#2b6cd9",
-          "onnxruntime": "#9c4d9f"}
+COLORS = {
+    "llama.cpp": "#d9822b",
+    "litert-lm": "#2b6cd9",
+    "onnxruntime": "#9c4d9f",
+    "xla": "#2e8b57",
+    "openvino": "#0095a8",
+}
 TRACK_ORDER = {"matched": 0, "fastest": 1, "reference": 2}
 HEADLINE = [  # metric, label, unit, higher_is_better, fmt
     ("ttft_ms", "TTFT", "ms", False, "{:.0f}"),
@@ -262,6 +271,7 @@ def config_runs(runs, suite, since: str | None) -> dict[str, list[dict]]:
   for c in suite["configs"]:
     fw, label = c["framework"], c["id"].split("/", 1)[1]
     mine = [r for r in runs if r["meta"].get("framework") == fw and r["meta"].get("label") == label
+            and r["meta"].get("track") != "prefix-cache"
             and r["meta"].get("notes", "").startswith(tag)
             and (since is None or r["meta"].get("started_at", "") >= since)]
     mine.sort(key=lambda r: r["meta"]["started_at"])
@@ -276,7 +286,15 @@ def pooled(runs: list[dict], metric: str) -> list[float]:
   for r in runs:
     for m in r["summary"].get("per_request", []):
       if m.get("measured") and m.get(metric) is not None:
-        vals.append(m[metric])
+        val = m[metric]
+        if (
+            metric == "rss_file_max_mb"
+            and val == 0
+            and m.get("rss_max_mb") is not None
+            and m.get("rss_anon_max_mb") is not None
+        ):
+          val = max(0.0, float(m["rss_max_mb"]) - float(m["rss_anon_max_mb"]))
+        vals.append(val)
   return vals
 
 
@@ -290,14 +308,22 @@ def sequence_data(runs, suite, since=None) -> dict:
                 and (since is None or r["meta"].get("started_at", "") >= since)]
   if not candidates:
     return {}
-  data = dict(sweep, rounds=suite.get("rounds", 3),
-              warmup=suite["workload"]["warmup"],
-              repetitions=suite["workload"]["repetitions"], points={})
+
+  def _has_sequence_run(c):
+    base = c["id"].split("/", 1)[1]
+    expected = {f"{base}-n{n}-d{sweep['gen_tokens']}" for n in sweep["prompt_tokens"]}
+    return any(r["meta"].get("framework") == c["framework"]
+               and r["meta"].get("label") in expected for r in candidates)
+
+  sweep_configs = [c for c in suite["configs"] if _has_sequence_run(c)] or list(suite["configs"])
+  data = dict(sweep, rounds=sweep.get("rounds", suite.get("rounds", 3)),
+              warmup=sweep.get("warmup", suite["workload"]["warmup"]),
+              repetitions=sweep.get("repetitions", suite["workload"]["repetitions"]), points={})
   for n in sweep["prompt_tokens"]:
     point = {"configs": {}, "prompt_identity": "unverified"}
     hashes = set()
     identity_configs = set()
-    for c in suite["configs"]:
+    for c in sweep_configs:
       label = f"{c['id'].split('/', 1)[1]}-n{n}-d{sweep['gen_tokens']}"
       latest = {}
       for r in sorted(candidates, key=lambda r: r["meta"]["started_at"]):
@@ -318,7 +344,7 @@ def sequence_data(runs, suite, since=None) -> dict:
           hashes.add(workload["prompt_ids_sha256"])
           identity_configs.add(c["id"])
         requests = [q for q in s.get("per_request", []) if q.get("measured")]
-        if (s.get("status") == "ok" and len(requests) == data["repetitions"]
+        if (s.get("status") == "ok" and len(requests) >= data["repetitions"]
             and m.get("workload", {}).get("prompt_tokens") == n
             and all(q.get("n_prompt") == n and q.get("n_gen") == sweep["gen_tokens"]
                     and q.get("prefill_tps", 0) and q.get("decode_tps", 0)
@@ -337,10 +363,104 @@ def sequence_data(runs, suite, since=None) -> dict:
           "runs": [{"run_dir": str(r["dir"]), "meta": _meta_slim(r["meta"]),
                     "summary": r["summary"]} for r in selected_runs],
       }
-    if len(identity_configs) == len(suite["configs"]):
+    if len(identity_configs) == len(sweep_configs):
       point["prompt_identity"] = "identical" if len(hashes) == 1 else "DIFFERENT"
     data["points"][str(n)] = point
   return data
+
+
+def prefix_cache_data(runs, suite, cfg_runs, agg, since=None) -> dict:
+  pc = suite.get("prefix_cache")
+  if not pc:
+    return {}
+  tag = f"suite={suite['name']}"
+  candidates = [r for r in runs if r["meta"].get("track") == "prefix-cache"
+                and r["meta"].get("notes", "").startswith(tag)
+                and (since is None or r["meta"].get("started_at", "") >= since)]
+  if not candidates:
+    return {}
+
+  w = suite["workload"]
+  prompt_tokens = int(pc.get("prompt_tokens", w["prompt_tokens"]))
+  prefix_tokens = int(pc["prefix_tokens"])
+  suffix_tokens = prompt_tokens - prefix_tokens
+  gen_tokens = int(pc.get("gen_tokens", w["gen_tokens"]))
+  rounds = int(pc.get("rounds", suite.get("rounds", 3)))
+  warmup = int(pc.get("warmup", w["warmup"]))
+  repetitions = int(pc.get("repetitions", w["repetitions"]))
+
+  configs = {}
+  for c in suite["configs"]:
+    cid = c["id"]
+    base_label = cid.split("/", 1)[1]
+    expected_labels = {
+        f"{base_label}-prefix-p{prefix_tokens}-s{suffix_tokens}-d{gen_tokens}",
+        f"{base_label}-p{prefix_tokens}",
+    }
+    latest = {}
+    for r in sorted(candidates, key=lambda r: r["meta"]["started_at"]):
+      m = r["meta"]
+      params = m.get("params", {})
+      if (m.get("framework") == c["framework"] and m.get("label") in expected_labels
+          and params.get("prompt_tokens") == prompt_tokens
+          and params.get("prefix_tokens") == prefix_tokens
+          and params.get("gen_tokens") == gen_tokens
+          and m.get("round") in range(rounds)):
+        latest[m["round"]] = r
+    selected_runs = list(latest.values())
+    if not selected_runs:
+      continue
+    valid, errors = [], []
+    for r in selected_runs:
+      m, s = r["meta"], r["summary"]
+      requests = [q for q in s.get("per_request", []) if q.get("measured")]
+      if (s.get("status") == "ok" and len(requests) >= repetitions
+          and all(q.get("n_prompt") == prompt_tokens and q.get("n_gen") == gen_tokens
+                  and q.get("n_cached") == prefix_tokens
+                  and q.get("n_prefilled") == suffix_tokens
+                  for q in requests)):
+        valid.append(r)
+      else:
+        errors.append(m.get("error") or
+                      f"{r['dir']}: {s.get('status')}; incomplete or wrong-length requests")
+    if not valid and not errors:
+      continue
+    cold_runs = cfg_runs.get(cid, [])
+    cold_ttft_vals = pooled(cold_runs, "ttft_ms")
+    warm_ttft_vals = pooled(valid, "ttft_ms")
+    cold_e2e_vals = pooled(cold_runs, "e2e_ms")
+    warm_e2e_vals = pooled(valid, "e2e_ms")
+    configs[cid] = {
+        "status": "complete" if len(valid) == rounds else "partial" if valid else "unavailable",
+        "errors": errors,
+        "n_requests": len(warm_ttft_vals),
+        "cold_ttft_ms": (agg.get(cid) or {}).get("ttft_ms"),
+        "warm_ttft_ms": stats.describe(warm_ttft_vals),
+        "ttft_speedup": (stats.bootstrap_ratio_ci(cold_ttft_vals, warm_ttft_vals)
+                         if cold_ttft_vals and warm_ttft_vals else None),
+        "cold_prefill_tps": (agg.get(cid) or {}).get("prefill_tps"),
+        "warm_effective_prefill_tps": stats.describe(pooled(valid, "prefill_tps")),
+        "warm_suffix_prefill_tps": stats.describe(pooled(valid, "suffix_prefill_tps")),
+        "warm_decode_tps": stats.describe(pooled(valid, "decode_tps")),
+        "cold_e2e_ms": (agg.get(cid) or {}).get("e2e_ms"),
+        "warm_e2e_ms": stats.describe(warm_e2e_vals),
+        "e2e_speedup": (stats.bootstrap_ratio_ci(cold_e2e_vals, warm_e2e_vals)
+                        if cold_e2e_vals and warm_e2e_vals else None),
+        "runs": [{"run_dir": str(r["dir"]), "meta": _meta_slim(r["meta"]),
+                  "summary": r["summary"]} for r in selected_runs],
+    }
+  if not configs:
+    return {}
+  return {
+      "prompt_tokens": prompt_tokens,
+      "prefix_tokens": prefix_tokens,
+      "suffix_tokens": suffix_tokens,
+      "gen_tokens": gen_tokens,
+      "rounds": rounds,
+      "warmup": warmup,
+      "repetitions": repetitions,
+      "configs": configs,
+  }
 
 
 def fmt(v, f="{:.2f}"):
@@ -353,7 +473,10 @@ def describe_cfg(runs):
       "peak_rss_mb_lifetime": stats.describe([r["summary"].get("peak_rss_mb_lifetime") for r in runs]),
       "idle_rss_mb": stats.describe([(r["summary"].get("idle_after_load") or {}).get("rss_mb") for r in runs]),
       "idle_rss_anon_mb": stats.describe([(r["summary"].get("idle_after_load") or {}).get("rss_anon_mb") for r in runs]),
-      "cgroup_peak_mb": stats.describe([r["summary"].get("cgroup_memory_peak_mb") for r in runs]),
+      "cgroup_peak_mb": stats.describe([
+          v for r in runs
+          if (v := r["summary"].get("cgroup_memory_peak_mb")) is not None and v > 0
+      ]),
       "system_cpu_busy_frac": stats.describe(pooled(runs, "system_cpu_busy_frac")),
       "round_medians_decode": [((r["summary"]["metrics"].get("decode_tps") or {}).get("median")) for r in runs],
       "round_medians_ttft": [((r["summary"]["metrics"].get("ttft_ms") or {}).get("median")) for r in runs],
@@ -368,9 +491,11 @@ def _label(cid: str) -> str:
 
 
 def bar_chart(path: Path, cfg_ids, agg, metrics, title):
-  fig, axes = plt.subplots(1, len(metrics), figsize=(4.2 * len(metrics), 4.2))
-  axes = axes if len(metrics) > 1 else [axes]
-  for ax, (m, lab, unit, hib, _) in zip(axes, metrics):
+  panel_w = max(10.5, 0.72 * len(cfg_ids))
+  fig, axes = plt.subplots(len(metrics), 1, figsize=(panel_w, 4.2 * len(metrics)), squeeze=False)
+  axes_flat = [axes[i][0] for i in range(len(metrics))]
+  rot = 25 if len(cfg_ids) > 6 else 0
+  for ax, (m, lab, unit, hib, _) in zip(axes_flat, metrics):
     xs, meds, lo, hi, cols = [], [], [], [], []
     for cid in cfg_ids:
       d = agg[cid].get(m)
@@ -380,15 +505,17 @@ def bar_chart(path: Path, cfg_ids, agg, metrics, title):
       meds.append(d["median"])
       lo.append(d["median"] - d["min"])
       hi.append(d["max"] - d["median"])
-      cols.append(HIST_STYLE.get(cid, (COLORS[cid.split("/")[0]],))[0])
+      cols.append(HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"),))[0])
     ax.bar(xs, meds, yerr=[lo, hi], color=cols, capsize=4, alpha=0.9)
+    if meds:
+      ax.set_ylim(0, max(m_val + h_val for m_val, h_val in zip(meds, hi)) * 1.14)
     for x, v in zip(xs, meds):
       ax.annotate(f"{v:.1f}" if v < 100 else f"{v:.0f}", (x, v), ha="center", va="bottom",
                   fontsize=8, xytext=(0, 3), textcoords="offset points")
-    ax.set_title(f"{lab} ({unit}) {'↑' if hib else '↓'}")
-    ax.tick_params(axis="x", labelsize=7)
+    ax.set_title(f"{lab} ({unit}) {'↑' if hib else '↓'}", fontsize=10.5, fontweight="bold")
+    ax.tick_params(axis="x", labelsize=8, rotation=rot)
     ax.grid(axis="y", alpha=0.3)
-  fig.suptitle(title + "  (median; whiskers = min-max over all measured requests)", fontsize=10)
+  fig.suptitle(title + "  (median; whiskers = min-max over all measured requests)", fontsize=11, fontweight="bold")
   fig.tight_layout()
   fig.savefig(path, dpi=130)
   plt.close(fig)
@@ -404,8 +531,9 @@ def sequence_charts(out: Path, data: dict):
       meds = [p["median"] if p else float("nan") for p in points]
       lo = [p["median"] - p["min"] if p else 0 for p in points]
       hi = [p["max"] - p["median"] if p else 0 for p in points]
-      ax.errorbar(lengths, meds, yerr=[lo, hi], marker="o", capsize=3,
-                  color=COLORS[cid.split("/")[0]], label=cid)
+      col, mk, ls = HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"), "o", "-"))
+      ax.errorbar(lengths, meds, yerr=[lo, hi], marker=mk, ls=ls, capsize=3,
+                  color=col, label=cid)
     ax.set_xscale("log", base=2)
     ax.set_xticks(lengths)
     ax.set_xticklabels([f"{n:,}" for n in lengths], rotation=30)
@@ -415,7 +543,7 @@ def sequence_charts(out: Path, data: dict):
     ax.set_title(f"{phase} vs input length; fixed {data['gen_tokens']}-token decode\n"
                  "Median; whiskers = min-max; unavailable points are gaps")
     ax.grid(alpha=0.3)
-    ax.legend(fontsize=9)
+    ax.legend(fontsize=8 if len(cfg_ids) > 6 else 9)
     fig.tight_layout()
     fig.savefig(out / f"sequence_{phase.lower()}.png", dpi=130)
     plt.close(fig)
@@ -427,22 +555,32 @@ def sequence_section(data: dict) -> str:
   cfg_ids = list(next(iter(data["points"].values()))["configs"])
   dates = sorted({r["meta"]["started_at"][:10] for p in data["points"].values()
                   for c in p["configs"].values() for r in c["runs"]})
-  lines = ["## Input-length throughput sweep\n",
+  lines = ["#### Input-length throughput sweep\n",
            "Sweep measurement dates (UTC): " + ", ".join(dates) + ".\n",
            f"Fixed **{data['gen_tokens']} generated tokens**, greedy with stop tokens ignored; "
            f"common context capacity **{data['ctx']:,}**. Model artifacts and thread counts "
            "are unchanged from the configurations above. These are reference configurations, "
-           "not matched weights. The original headline workload remains unchanged.\n",
-           f"Each point uses {data['rounds']} interleaved processes per configuration, "
-           f"{data['warmup']} warm-ups and {data['repetitions']} measured requests per process. "
-           "Long inputs repeat the same public-domain passage deterministically. "
-           "N includes BOS and chat-template tokens. Each request starts with an empty KV cache.\n",
-           "Prefill tokens/s = N / time to first token (includes tokenization and first-token "
-           f"generation). Decode tokens/s = {data['gen_tokens'] - 1} / time from the first to the last generated "
-           "token. Rates are medians; brackets show min-max. Failed, truncated or wrong-length "
-           "processes are excluded, never replaced by estimated rates.\n"]
+           "not matched weights. The original headline workload remains unchanged.\n"]
+  if data.get("select_fastest_by_dtype") or data.get("min_accuracy"):
+    min_acc = data.get("min_accuracy")
+    if isinstance(min_acc, dict):
+      gate_desc = ", ".join(f"{k} ≥ {v:.0%}" for k, v in sorted(min_acc.items()))
+    elif isinstance(min_acc, (int, float)):
+      gate_desc = f"accuracy ≥ {min_acc:.0%}"
+    else:
+      gate_desc = "the accuracy gate"
+    lines.append(f"Swept configurations are the empirically fastest configuration for each "
+                 f"`(framework, dtype)` pair that cleared the minimum accuracy gate ({gate_desc}).\n")
+  lines += [f"Each point uses {data['rounds']} interleaved processes per configuration, "
+            f"{data['warmup']} warm-ups and {data['repetitions']} measured requests per process. "
+            "Long inputs repeat the same public-domain passage deterministically. "
+            "N includes BOS and chat-template tokens. Each request starts with an empty KV cache.\n",
+            "Prefill tokens/s = N / time to first token (includes tokenization and first-token "
+            f"generation). Decode tokens/s = {data['gen_tokens'] - 1} / time from the first to the last generated "
+            "token. Rates are medians; brackets show min-max. Failed, truncated or wrong-length "
+            "processes are excluded, never replaced by estimated rates.\n"]
   for metric, phase in (("prefill_tps", "Prefill"), ("decode_tps", "Decode")):
-    lines += [f"### {phase} (tokens/s)\n",
+    lines += [f"##### {phase} (tokens/s)\n",
               "| N | " + " | ".join(f"`{cid}`" for cid in cfg_ids) + " |",
               "| --- " * (len(cfg_ids) + 1) + "|"]
     for n in data["prompt_tokens"]:
@@ -456,41 +594,119 @@ def sequence_section(data: dict) -> str:
         cells.append(value)
       lines.append(f"| {n:,} | " + " | ".join(cells) + " |")
     lines.append(f"\n![{phase} by input length](sequence_{phase.lower()}.png)\n")
-  lines += ["### Sweep validation\n",
-            "| N | Token-ID identity | Measured requests by configuration |",
-            "| --- | --- | --- |"]
-  for n in data["prompt_tokens"]:
-    point = data["points"][str(n)]
-    counts = "; ".join(f"`{cid}`: {c['n_requests']}" for cid, c in point["configs"].items())
-    lines.append(f"| {n:,} | {point['prompt_identity']} | {counts} |")
-  for n, point in data["points"].items():
-    for cid, c in point["configs"].items():
-      for error in c["errors"]:
-        lines.append(f"\n- N={n}, `{cid}`: {error.replace(chr(10), ' ')}")
+  return "\n".join(lines) + "\n"
+
+
+def prefix_cache_chart(path: Path, data: dict):
+  if not data or not data.get("configs"):
+    return
+  cfg_ids = [cid for cid, c in data["configs"].items() if c.get("warm_ttft_ms")]
+  if not cfg_ids:
+    return
+  panel_w = max(10.5, 0.75 * len(cfg_ids))
+  fig, axes = plt.subplots(3, 1, figsize=(panel_w, 4.2 * 3))
+  rot = 25 if len(cfg_ids) > 6 else 0
+  xs = [_label(cid) for cid in cfg_ids]
+  x_pos = list(range(len(cfg_ids)))
+  w = 0.36
+  panels = [
+      ("ttft_ms", "TTFT (ms) ↓", False),
+      ("prefill_tps", "Effective Prefill (tok/s) ↑", True),
+      ("e2e_ms", "End-to-end (ms) ↓", False),
+  ]
+  for ax, (metric, title, _) in zip(axes, panels):
+    cold_key = f"cold_{metric}"
+    warm_key = "warm_effective_prefill_tps" if metric == "prefill_tps" else f"warm_{metric}"
+    c_meds = [(data["configs"][cid].get(cold_key) or {}).get("median") or 0.0 for cid in cfg_ids]
+    w_meds = [(data["configs"][cid].get(warm_key) or {}).get("median") or 0.0 for cid in cfg_ids]
+    cols = [HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"),))[0] for cid in cfg_ids]
+    ax.bar([x - w / 2 for x in x_pos], c_meds, width=w, color=cols, alpha=0.45,
+           edgecolor="black", linewidth=0.5, label="Cold (0 cached)")
+    ax.bar([x + w / 2 for x in x_pos], w_meds, width=w, color=cols, alpha=0.95,
+           edgecolor="black", linewidth=0.5, label=f"Warm ({data['prefix_tokens']} cached)")
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(xs, fontsize=8, rotation=rot)
+    ax.set_title(title, fontsize=10.5, fontweight="bold")
+    ax.grid(axis="y", alpha=0.3)
+    if metric == "ttft_ms":
+      ax.legend(fontsize=8.5)
+  fig.suptitle(
+      f"Prefix caching: {data['prompt_tokens']}-token prompt "
+      f"({data['prefix_tokens']} cached prefix + {data['suffix_tokens']} new suffix) -> "
+      f"{data['gen_tokens']} generated tokens",
+      fontsize=11,
+      fontweight="bold",
+  )
+  fig.tight_layout()
+  fig.savefig(path, dpi=130)
+  plt.close(fig)
+
+
+def prefix_cache_section(data: dict) -> str:
+  if not data or not data.get("configs"):
+    return ""
+  p_tok = data["prompt_tokens"]
+  c_tok = data["prefix_tokens"]
+  s_tok = data["suffix_tokens"]
+  g_tok = data["gen_tokens"]
+  lines = [
+      "### Prefix caching (warm vs. cold KV cache)\n",
+      f"Measures multi-turn / shared-system-prompt inference where **{c_tok:,} prefix tokens** "
+      f"of a **{p_tok:,}-token prompt** are already present in the KV cache, and each request "
+      f"appends a distinct **{s_tok:,}-token suffix** before generating **{g_tok:,} tokens** "
+      f"(greedy, stop tokens ignored). The headline suite above remains strictly stateless "
+      f"(fresh KV cache per request).\n",
+      f"- **Cold TTFT / Cold prefill tok/s**: full {p_tok:,}-token prompt evaluated from an empty KV cache.\n"
+      f"- **Warm TTFT**: latency to first generated token when reusing the {c_tok:,}-token prefix KV cache and prefilling only the {s_tok:,}-token suffix.\n"
+      f"- **Effective prefill tok/s**: `{p_tok} / warm_ttft_s` (effective prompt processing rate seen by the caller).\n"
+      f"- **Incremental suffix tok/s**: `{s_tok} / warm_ttft_s` (actual compute throughput on the {s_tok} uncached suffix tokens at KV position {c_tok}..{p_tok}).\n",
+      "| Config | Cold TTFT (ms) ↓ | Warm TTFT (ms) ↓ | TTFT speedup ↑ | Cold prefill (tok/s) ↑ | Warm effective prefill (tok/s) ↑ | Warm suffix prefill (tok/s) ↑ | Cold E2E (ms) ↓ | Warm E2E (ms) ↓ | E2E speedup ↑ |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+  ]
+  for cid, c in data["configs"].items():
+    def _cell(d, f="{:.0f}"):
+      if not d:
+        return "n/a"
+      return f"{f.format(d['median'])} [{f.format(d['min'])}–{f.format(d['max'])}]"
+
+    def _ratio(r):
+      if not r:
+        return "n/a"
+      return f"**{r[0]:.2f}×** [{r[1]:.2f}, {r[2]:.2f}]"
+
+    lines.append(
+        f"| `{cid}` | {_cell(c.get('cold_ttft_ms'), '{:.0f}')} | "
+        f"{_cell(c.get('warm_ttft_ms'), '{:.0f}')} | {_ratio(c.get('ttft_speedup'))} | "
+        f"{_cell(c.get('cold_prefill_tps'), '{:.1f}')} | "
+        f"{_cell(c.get('warm_effective_prefill_tps'), '{:.1f}')} | "
+        f"{_cell(c.get('warm_suffix_prefill_tps'), '{:.1f}')} | "
+        f"{_cell(c.get('cold_e2e_ms'), '{:.0f}')} | "
+        f"{_cell(c.get('warm_e2e_ms'), '{:.0f}')} | {_ratio(c.get('e2e_speedup'))} |"
+    )
+  lines.append("\n![Prefix caching comparison](prefix_cache.png)\n")
+  for cid, c in data["configs"].items():
+    for err in c.get("errors", []):
+      lines.append(f"\n- `{cid}`: {err.replace(chr(10), ' ')}")
   return "\n".join(lines) + "\n"
 
 
 def timeline_chart(path: Path, cfg_ids, cfg_runs):
   rows = [cid for cid in cfg_ids if cfg_runs.get(cid)]
-  fig, axes = plt.subplots(len(rows), 2, figsize=(13, 2.6 * len(rows)), squeeze=False)
-  for i, cid in enumerate(rows):
+  fig, (ax_mem, ax_cpu) = plt.subplots(2, 1, figsize=(11.5, 9.0))
+  for cid in rows:
     run = cfg_runs[cid][0]
     ts = read_timeseries(run["dir"] / "timeseries.csv")
     if not ts.get("t_ns"):
       continue
     t0 = ts["t_ns"][0]
     t = [(x - t0) / 1e9 for x in ts["t_ns"]]
-    ax = axes[i][0]
-    anon = [(v or 0) / 1024 for v in ts["rss_anon_kb"]]
-    file_ = [(v or 0) / 1024 for v in ts["rss_file_kb"]]
-    ax.stackplot(t, anon, file_, labels=["RSS anon", "RSS file-backed (mmap)"],
-                 colors=["#555555", "#bbbbbb"], alpha=0.85)
-    pss = [(tt, v / 1024) for tt, v in zip(t, ts["pss_kb"]) if v is not None]
-    if pss:
-      ax.plot(*zip(*pss), "k.", ms=3, label="PSS")
-    ax.set_ylabel("MB")
-    ax.set_title(f"{cid}: memory over time (round 0 process)", fontsize=9)
-    ax2 = axes[i][1]
+    rss_mb = [
+        ((a or 0) + (f or 0)) / 1024.0
+        for a, f in zip(ts["rss_anon_kb"], ts["rss_file_kb"])
+    ]
+    col, _, ls = HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"), "o", "-"))
+    ax_mem.plot(t, rss_mb, color=col, ls=ls, lw=1.6, alpha=0.9, label=cid)
+
     ticks = ts["cpu_ticks"]
     cores_t, cores = [], []
     for j in range(1, len(t)):
@@ -498,23 +714,26 @@ def timeline_chart(path: Path, cfg_ids, cfg_runs):
       if dt_ > 0:
         cores_t.append(t[j])
         cores.append((ticks[j] - ticks[j - 1]) / 100.0 / dt_)
-    # 10 ms tick granularity: smooth over 5 samples for readability.
+    # Smooth over 5 samples for readability.
     sm = [statistics.fmean(cores[max(0, k - 2):k + 3]) for k in range(len(cores))]
-    ax2.plot(cores_t, sm, color=COLORS[cid.split("/")[0]], lw=1)
-    ax2.set_ylabel("cores busy")
-    ax2.set_title(f"{cid}: CPU over time", fontsize=9)
-    for r in _requests(run["dir"]):
-      a, b, c = ((r["t_req_ns"] - t0) / 1e9, (r["t_first_ns"] - t0) / 1e9, (r["t_end_ns"] - t0) / 1e9)
-      for axx in (ax, ax2):
-        axx.axvspan(a, b, color="#f4c542", alpha=0.25, lw=0)
-        axx.axvspan(b, c, color="#7ec97e", alpha=0.18, lw=0)
-    if i == 0:
-      ax.legend(fontsize=7, loc="lower right")
-    for axx in (ax, ax2):
-      axx.grid(alpha=0.3)
-      axx.set_xlabel("seconds since process start (yellow = prefill, green = decode)", fontsize=7)
+    ax_cpu.plot(cores_t, sm, color=col, ls=ls, lw=1.4, alpha=0.88, label=cid)
+
+  ax_mem.set_ylabel("Total RSS (MB)")
+  ax_mem.set_xlabel("Seconds since process start")
+  ax_mem.set_title("Memory (Total RSS) over time across configurations (round 0 process)",
+                   fontsize=10.5, fontweight="bold")
+  ax_mem.grid(alpha=0.3)
+  ax_mem.legend(fontsize=8, ncol=3, loc="upper right", framealpha=0.9)
+
+  ax_cpu.set_ylabel("CPU cores busy")
+  ax_cpu.set_xlabel("Seconds since process start")
+  ax_cpu.set_title("CPU utilization (cores busy) over time across configurations (round 0 process)",
+                   fontsize=10.5, fontweight="bold")
+  ax_cpu.grid(alpha=0.3)
+  ax_cpu.legend(fontsize=8, ncol=3, loc="upper right", framealpha=0.9)
+
   fig.tight_layout()
-  fig.savefig(path, dpi=110)
+  fig.savefig(path, dpi=130)
   plt.close(fig)
 
 
@@ -529,14 +748,30 @@ def _requests(d: Path):
   return out
 
 
+THREAD_SWEEP_STYLES = {
+    "llama.cpp matched": ("#d9822b", "-o"),
+    "llama.cpp q4_0": ("#a85a10", "--s"),
+    "litert-lm matched": ("#2b6cd9", "-o"),
+    "litert-lm ynnpack": ("#13408f", "--s"),
+    "xla ynnpack-bf16": ("#2e8b57", "-o"),
+    "xla onednn-bf16": ("#1b5e20", "--s"),
+    "xla ynnpack-int8": ("#66bb6a", ":^"),
+    "openvino int4": ("#0095a8", "-o"),
+    "openvino int8": ("#006064", "--s"),
+    "onnxruntime q4_k_m": ("#9c4d9f", "-d"),
+}
+
+
 def scaling_chart(path: Path, runs, machine):
   series = collections.defaultdict(dict)
-  for r in runs:
+  for r in sorted(runs, key=lambda r: r["meta"].get("started_at", "")):
     m = r["meta"]
     if m.get("track") != "sweep-threads":
       continue
     label = m["label"]
-    name, _, t = label.rpartition("-t")
+    name, sep, t = label.rpartition("-t")
+    if not sep or not t.isdigit():
+      continue
     key = f"{m['framework']} {name}"
     s = r["summary"]["metrics"]
     if not s.get("decode_tps"):
@@ -545,22 +780,21 @@ def scaling_chart(path: Path, runs, machine):
                            (s.get("cpu_cores_decode") or {}).get("median"))
   if not series:
     return False
-  fig, axes = plt.subplots(1, 3, figsize=(15, 4.2))
-  styles = {"llama.cpp matched": ("#d9822b", "-o"), "litert-lm matched": ("#2b6cd9", "-o"),
-            "litert-lm ynnpack": ("#2b6cd9", "--s")}
+  fig, axes = plt.subplots(3, 1, figsize=(10.5, 4.0 * 3))
   for key, pts in sorted(series.items()):
     ts = sorted(pts)
-    col, st = styles.get(key, ("gray", "-x"))
+    fw = key.split()[0]
+    col, st = THREAD_SWEEP_STYLES.get(key, (COLORS.get(fw, "gray"), "-o"))
     for k, ax in enumerate(axes):
       ax.plot(ts, [pts[t][k] for t in ts], st, color=col, label=key)
   for ax, title in zip(axes, ["Prefill tok/s (1024-token prompt)", "Decode tok/s (64 tokens)",
                                "CPU cores busy during decode"]):
-    ax.set_title(title, fontsize=10)
+    ax.set_title(title, fontsize=10.5, fontweight="bold")
     ax.set_xlabel("threads")
     ax.grid(alpha=0.3)
     ax.legend(fontsize=8)
   fig.suptitle(f"Thread scaling on {machine} (sweep: 1 warm-up + 2 measured requests per point)",
-               fontsize=10)
+               fontsize=11, fontweight="bold")
   fig.tight_layout()
   fig.savefig(path, dpi=130)
   plt.close(fig)
@@ -569,25 +803,30 @@ def scaling_chart(path: Path, runs, machine):
 
 def accuracy_chart(path: Path, acc_rows, refs=None):
   tasks = sorted({a["task"] for a in acc_rows})
-  fig, axes = plt.subplots(1, len(tasks), figsize=(6 * len(tasks), 4), squeeze=False)
-  for ax, task in zip(axes[0], tasks):
+  max_rows = max((sum(1 for a in acc_rows if a["task"] == t) for t in tasks), default=4)
+  panel_w = max(10.5, 0.75 * max_rows)
+  fig, axes = plt.subplots(len(tasks), 1, figsize=(panel_w, 4.4 * len(tasks)), squeeze=False)
+  axes_flat = [axes[i][0] for i in range(len(tasks))]
+  for ax, task in zip(axes_flat, tasks):
     rows = [a for a in acc_rows if a["task"] == task]
     xs = [f"{a['id']}\n(n={a['n']})" for a in rows]
     ys = [a["accuracy"] * 100 for a in rows]
     err = [a["ci95"] * 100 for a in rows]
-    ax.bar(xs, ys, yerr=err, capsize=4, color=[COLORS[a["id"].split("/")[0]] for a in rows])
+    ax.bar(xs, ys, yerr=err, capsize=4, color=[COLORS.get(a["id"].split("/")[0], "gray") for a in rows])
+    if ys:
+      ax.set_ylim(0, max(y + e for y, e in zip(ys, err)) * 1.15)
     for x, y, e in zip(xs, ys, err):
-      ax.annotate(f"{y:.1f}%", (x, y + e), ha="center", va="bottom", fontsize=8,
-                  xytext=(0, 3), textcoords="offset points")
+      ax.annotate(f"{y:.1f}%", (x, y + e), ha="center", va="bottom",
+                  fontsize=8, xytext=(0, 3), textcoords="offset points")
     # Published non-thinking bf16 references for the same benchmark.
     for r in (refs or {}).get("results", []):
       if r["benchmark"].lower() == task and "thinking on" not in r["setup"]:
         ax.axhline(r["value"], ls="--", lw=1, color="gray")
         ax.annotate(f"published {r['value']:.1f}% ({r['source_name'].split(',')[0]}; {r['setup'][:38]}…)",
-                    (0.01, r["value"]), xycoords=("axes fraction", "data"), fontsize=6,
+                    (0.01, r["value"]), xycoords=("axes fraction", "data"), fontsize=7,
                     color="dimgray", va="bottom")
-    ax.set_title(f"{task.upper()} accuracy (95% CI)", fontsize=10)
-    ax.tick_params(axis="x", labelsize=7)
+    ax.set_title(f"{task.upper()} accuracy (95% CI)", fontsize=10.5, fontweight="bold")
+    ax.tick_params(axis="x", labelsize=8, rotation=25 if len(rows) > 6 else 0)
     ax.grid(axis="y", alpha=0.3)
   fig.tight_layout()
   fig.savefig(path, dpi=130)
@@ -595,9 +834,30 @@ def accuracy_chart(path: Path, acc_rows, refs=None):
 
 
 HIST_STYLE = {  # config -> (color, marker, linestyle)
-    "llama.cpp/matched": ("#d9822b", "o", "-"), "llama.cpp/fastest": ("#a85a10", "s", "--"),
-    "llama.cpp/stock-q4_0": ("#f0b070", "^", ":"), "litert-lm/matched": ("#2b6cd9", "o", "-"),
+    "llama.cpp/matched": ("#d9822b", "o", "-"),
+    "llama.cpp/fastest": ("#a85a10", "s", "--"),
+    "llama.cpp/stock-q4_0": ("#f0b070", "^", ":"),
+    "llama.cpp/q8_0": ("#c46d1f", "v", "-."),
+    "llama.cpp/int8": ("#c46d1f", "v", "-."),
+    "llama.cpp/bf16": ("#8c4600", "d", ":"),
+    "litert-lm/matched": ("#2b6cd9", "o", "-"),
     "litert-lm/fastest": ("#13408f", "s", "--"),
+    "litert-lm/ynnpack": ("#5c9aff", "^", "-."),
+    "xla/matched-ynnpack": ("#2e8b57", "o", "-"),
+    "xla/matched-onednn": ("#1b5e20", "s", "--"),
+    "xla/bf16-ynnpack": ("#43a047", "^", "-"),
+    "xla/bf16-onednn": ("#2e7d32", "v", "--"),
+    "xla/int8-ynnpack": ("#66bb6a", "d", "-."),
+    "xla/int8-onednn": ("#388e3c", "p", ":"),
+    "xla/fp32-ynnpack": ("#81c784", "x", ":"),
+    "xla/fp32-onednn": ("#4caf50", "+", ":"),
+    "openvino/int4": ("#0095a8", "s", "--"),
+    "openvino/int8": ("#006064", "o", "-"),
+    "openvino/bf16": ("#00acc1", "v", "-."),
+    "openvino/fp16": ("#4dd0e1", "^", ":"),
+    "openvino/fp32": ("#26c6da", "P", ":"),
+    "onnxruntime/q4_k_m": ("#9c4d9f", "d", "-"),
+    "onnxruntime/fp16": ("#ba68c8", "v", ":"),
 }
 
 
@@ -608,7 +868,7 @@ def history_chart(path: Path, history: list[dict]):
              ("ttft_ms", "TTFT ms ↓"), ("rss_max_mb", "Peak RSS MB ↓")]
   reports = sorted({(h["date"], h["report_id"]) for h in history})
   xpos = {rid: i for i, (_, rid) in enumerate(reports)}
-  fig, axes = plt.subplots(1, len(metrics), figsize=(4.4 * len(metrics), 4.2))
+  fig, axes = plt.subplots(len(metrics), 1, figsize=(10.5, 3.8 * len(metrics)))
   by_cfg = collections.defaultdict(list)
   for h in history:
     by_cfg[h["config"]].append(h)
@@ -617,20 +877,20 @@ def history_chart(path: Path, history: list[dict]):
       pts = sorted((h for h in pts if h["metrics"].get(m)), key=lambda h: xpos[h["report_id"]])
       if not pts:
         continue
-      col, mk, ls = HIST_STYLE.get(cid, ("gray", "x", "-"))
+      col, mk, ls = HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"), "o", "-"))
       xs = [xpos[h["report_id"]] for h in pts]
       ys = [h["metrics"][m]["median"] for h in pts]
       lo = [h["metrics"][m]["median"] - h["metrics"][m]["min"] for h in pts]
       hi = [h["metrics"][m]["max"] - h["metrics"][m]["median"] for h in pts]
       ax.errorbar(xs, ys, yerr=[lo, hi], marker=mk, ls=ls, color=col, label=cid, capsize=3, ms=6)
     ax.set_xticks(range(len(reports)))
-    ax.set_xticklabels([d for d, _ in reports], rotation=30, fontsize=7)
+    ax.set_xticklabels([d for d, _ in reports], rotation=20, fontsize=8)
     ax.set_xlim(-0.5, max(len(reports) - 0.5, 0.5))
-    ax.set_title(title, fontsize=10)
+    ax.set_title(title, fontsize=10.5, fontweight="bold")
     ax.grid(alpha=0.3)
-  axes[0].legend(fontsize=7)
+  axes[0].legend(fontsize=8, ncol=3)
   fig.suptitle("Performance over time (one column per report; whiskers = min-max over requests)",
-               fontsize=10)
+               fontsize=11, fontweight="bold")
   fig.tight_layout()
   fig.savefig(path, dpi=130)
   plt.close(fig)
@@ -711,6 +971,7 @@ def main(argv=None) -> int:
                    key=lambda cid: (TRACK_ORDER.get(_track(suite, cid), 9), cid))
   agg = {cid: describe_cfg(cfg_runs[cid]) for cid in cfg_ids}
   sequence = sequence_data(runs, suite, args.since)
+  prefix_cache = prefix_cache_data(runs, suite, cfg_runs, agg, args.since)
 
   # ---- accuracy: latest complete set of shards per (config, task, limit)
   acc_rows, acc_preds = merge_accuracy(load_accuracy(args.results, args.machine), agg)
@@ -727,14 +988,21 @@ def main(argv=None) -> int:
   timeline_chart(out / "timeline.png", cfg_ids, cfg_runs)
   if sequence:
     sequence_charts(out, sequence)
+  if prefix_cache:
+    prefix_cache_chart(out / "prefix_cache.png", prefix_cache)
+  sweep_thread_runs = [
+      r for r in runs
+      if r["meta"].get("track") == "sweep-threads"
+      and (not r["meta"].get("notes") or r["meta"].get("notes", "").startswith(f"suite={suite['name']}"))
+      and (args.since is None or r["meta"].get("started_at", "") >= args.since)
+  ]
   has_scaling = scaling_chart(
-      out / "thread_scaling.png",
-      [r for r in runs if r["meta"].get("notes", "").startswith(f"suite={suite['name']}")],
-      args.machine)
+      out / "thread_scaling.png", sweep_thread_runs, args.machine)
   if acc_rows:
     refs_path = args.suite.parent / suite["references"] if suite.get("references") else None
     accuracy_chart(out / "accuracy.png", acc_rows,
                    json.loads(refs_path.read_text()) if refs_path and refs_path.is_file() else None)
+  has_pareto = pareto_chart(out / "pareto.png", suite, cfg_ids, cfg_runs, agg, acc_rows)
 
   # ---- history
   def first_meta(cid):
@@ -769,19 +1037,25 @@ def main(argv=None) -> int:
                                       "summary": r["summary"]} for r in cfg_runs[cid]],
                             "aggregate": agg[cid]} for cid in cfg_ids},
           "sequence_sweep": sequence,
+          "prefix_cache": prefix_cache,
           "accuracy": acc_rows, "accuracy_agreement": agreement,
           "reproducibility": {"rows": repro_tbl, "cross_framework": repro_cross}}
   (out / "data.json").write_text(json.dumps(data, indent=1, default=str) + "\n")
 
-  extra = args.extra_notes.read_text() if args.extra_notes else ""
+  extra = args.extra_notes.read_text() if (args.extra_notes and args.extra_notes.is_file()) else ""
   args._quant_md = (quant_section(args.models / "aeb")
                     if any(c["track"] == "matched" for c in suite["configs"]) else "")
   refs_path = args.suite.parent / suite["references"] if suite.get("references") else None
   args._refs = json.loads(refs_path.read_text()) if refs_path and refs_path.is_file() else None
-  (out / "README.md").write_text(render_markdown(
+  md_text = render_markdown(
       suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, has_scaling, history, changes,
-      hist_path, extra, agreement, (repro_tbl, repro_cross), sequence))
-  print(f"wrote {out}")
+      hist_path, extra, agreement, (repro_tbl, repro_cross), sequence, prefix_cache,
+      has_pareto=has_pareto)
+  (out / "README.md").write_text(md_text, encoding="utf-8")
+  html_doc = markdown_to_html(md_text, base_dir=out, embed_images=True)
+  (out / "README.html").write_text(html_doc, encoding="utf-8")
+  (out / "index.html").write_text(html_doc, encoding="utf-8")
+  print(f"wrote {out} (README.md, README.html, index.html)")
   return 0
 
 
@@ -874,8 +1148,443 @@ def ratio_line(agg, cfg_runs, a, b, metric, higher_better):
   return f"{r:.2f}× [{lo:.2f}, {hi:.2f}]"
 
 
+def _config_dtype_info(suite: dict, cid: str, meta: dict) -> tuple[str, str, str, str]:
+  """Return (dtype_group, checkpoint_label, weights_acts_kv, threads_str) for cid."""
+  cfg_dict = next((c for c in suite.get("configs", []) if c["id"] == cid), {})
+  raw_dtype = (cfg_dict.get("dtype") or "").lower()
+  cid_lo = cid.lower()
+  mp = meta.get("model_path") or ""
+  cmd = [str(x) for x in (meta.get("driver_cmd") or [])]
+  info = (meta.get("driver_ready") or {}).get("info") or {}
+  fw = meta.get("framework") or cid.split("/")[0]
+
+  if raw_dtype == "fp32" or "fp32" in cid_lo:
+    group = "fp32"
+  elif raw_dtype == "bf16" or "bf16" in cid_lo:
+    group = "bf16"
+  elif raw_dtype == "fp16" or "fp16" in cid_lo:
+    group = "fp16"
+  elif raw_dtype in ("int8", "q8_0") or "int8" in cid_lo or "q8_0" in cid_lo:
+    group = "int8"
+  else:
+    group = "int4"
+
+  threads = info.get("threads")
+  if threads is None and "--threads" in cmd:
+    idx = cmd.index("--threads")
+    if idx + 1 < len(cmd):
+      threads = cmd[idx + 1]
+  threads_str = str(threads) if threads is not None else "—"
+
+  if "qat-mobile" in mp or "litert-lm" in mp or fw == "litert-lm":
+    checkpoint = "`qat-mobile`"
+  elif fw == "llama.cpp" or mp.endswith(".gguf"):
+    checkpoint = "`it` (GGUF)"
+  elif fw == "openvino" or "-ov" in mp:
+    checkpoint = "`it` (OV)"
+  elif fw == "onnxruntime" or "onnx" in mp:
+    checkpoint = "`it` (ONNX)"
+  else:
+    checkpoint = "`it` (HF)"
+
+  if fw == "xla":
+    if group == "fp32":
+      wak = "`fp32 / fp32 / fp32`"
+    elif group == "bf16":
+      wak = "`bf16 / bf16 / bf16`"
+    elif group == "int8":
+      wak = "`int8 / int8 / bf16`"
+    else:
+      wak = "`int2_int4_int8 / int8 / bf16`"
+  elif fw == "openvino":
+    if group == "fp32":
+      wak = "`fp32 / fp32 / fp16`"
+    elif group == "bf16":
+      wak = "`bf16 / bf16 / bf16`"
+    elif group == "fp16":
+      wak = "`fp16 / fp16 / fp16`"
+    elif group == "int8":
+      wak = "`int8_asym / bf16 / int8`"
+    else:
+      wak = "`int4_asym / bf16 / int8`"
+  elif fw == "litert-lm":
+    wak = "`int2_int4_int8 / int8 / int8`"
+  elif fw == "onnxruntime":
+    wak = "`fp16 / fp16 / fp16`" if group == "fp16" else "`q4_k_m / fp32 / fp32`"
+  elif fw == "llama.cpp":
+    kv = str(info.get("cache_type_k") or "")
+    if not kv and "--cache-type-k" in cmd:
+      idx = cmd.index("--cache-type-k")
+      if idx + 1 < len(cmd):
+        kv = cmd[idx + 1]
+    kv = "fp16" if kv in ("", "f16", "fp16") else kv
+    if group == "fp32":
+      wak = f"`fp32 / fp32 / {kv}`"
+    elif group == "bf16":
+      wak = f"`bf16 / fp32 / {kv}`"
+    elif group == "int8":
+      wak = f"`q8_0 / q8_0 / {kv}`"
+    elif "matched-q4" in mp or cid_lo.endswith("/fastest"):
+      wak = f"`q4_0_q8_0 / q8_0 / {kv}`"
+    elif "matched" in mp or cid_lo.endswith("/matched"):
+      wak = f"`q2_k_q4_0_q8_0 / q8_0 / {kv}`"
+    else:
+      wak = f"`q4_0 / q8_0 / {kv}`"
+  else:
+    wak = f"`{group}`"
+
+  return group, checkpoint, wak, threads_str
+
+
+def _resolve_acc_lookup(cfg_runs: dict, acc_rows: list[dict]):
+  """Return a helper _get_acc(cid, task) that resolves accuracy by cid or shared (framework, model_sha256)."""
+  acc_by_id: dict[tuple[str, str], dict] = {}
+  acc_by_model: dict[tuple[str, str, str], dict] = {}
+  for a in acc_rows:
+    acc_by_id[(a["id"], a["task"])] = a
+    runs_for_a = cfg_runs.get(a["id"])
+    if runs_for_a:
+      m0 = runs_for_a[0]["meta"]
+      fw = m0.get("framework") or a["id"].split("/")[0]
+      sha = m0.get("model_sha256")
+      if fw and sha:
+        acc_by_model[(fw, sha, a["task"])] = a
+
+  def _get_acc(cid: str, task: str) -> float | None:
+    if (cid, task) in acc_by_id:
+      return acc_by_id[(cid, task)]["accuracy"]
+    runs_for_c = cfg_runs.get(cid)
+    if not runs_for_c:
+      return None
+    m0 = runs_for_c[0]["meta"]
+    fw = m0.get("framework") or cid.split("/")[0]
+    sha = m0.get("model_sha256")
+    if fw and sha and (fw, sha, task) in acc_by_model:
+      return acc_by_model[(fw, sha, task)]["accuracy"]
+    return None
+
+  return _get_acc
+
+
+def pareto_chart(path: Path, suite: dict, cfg_ids: list[str], cfg_runs: dict,
+                 agg: dict, acc_rows: list[dict]) -> bool:
+  """Scatter plot of MMLU accuracy (y-axis) vs. End-to-End latency (x-axis) with Pareto frontier."""
+  _get_acc = _resolve_acc_lookup(cfg_runs, acc_rows)
+  pts = []
+  for cid in cfg_ids:
+    e2e_d = agg.get(cid, {}).get("e2e_ms")
+    e2e = e2e_d.get("median") if e2e_d else None
+    mmlu = _get_acc(cid, "mmlu")
+    if e2e is None or mmlu is None:
+      continue
+    m0 = cfg_runs[cid][0]["meta"]
+    grp, _, _, _ = _config_dtype_info(suite, cid, m0)
+    fw = m0.get("framework") or cid.split("/")[0]
+    pts.append({
+        "cid": cid,
+        "fw": fw,
+        "dtype": grp.upper() if grp != "int4" else "INT4/Mixed",
+        "grp": grp,
+        "e2e_ms": float(e2e),
+        "mmlu_pct": float(mmlu) * 100.0,
+    })
+
+  if not pts:
+    return False
+
+  # Identify Pareto-optimal points (minimize e2e_ms, maximize mmlu_pct)
+  pts_sorted = sorted(pts, key=lambda p: (p["e2e_ms"], -p["mmlu_pct"]))
+  pareto = []
+  best_y = -1.0
+  for p in pts_sorted:
+    if p["mmlu_pct"] > best_y + 1e-9:
+      pareto.append(p)
+      best_y = p["mmlu_pct"]
+  pareto_cids = {p["cid"] for p in pareto}
+
+  dtype_markers = {
+      "fp32": ("D", "FP32"),
+      "bf16": ("^", "BF16"),
+      "fp16": ("v", "FP16"),
+      "int8": ("s", "INT8"),
+      "int4": ("o", "INT4 / Mixed"),
+  }
+
+  fig, ax = plt.subplots(figsize=(10.5, 6.2))
+
+  # Plot each point colored by framework and shaped by data type
+  for p in pts:
+    col = COLORS.get(p["fw"], "#555555")
+    mk, _ = dtype_markers.get(p["grp"], ("o", p["dtype"]))
+    is_par = p["cid"] in pareto_cids
+    if is_par:
+      ax.scatter(
+          [p["e2e_ms"]], [p["mmlu_pct"]],
+          s=190, facecolors="none", edgecolors="#2e8b57", linewidths=2.2, zorder=3,
+      )
+    ax.scatter(
+        [p["e2e_ms"]], [p["mmlu_pct"]],
+        s=95 if is_par else 70, color=col, marker=mk,
+        edgecolors="black" if is_par else "white", linewidths=0.9, zorder=4,
+    )
+
+  # De-overlap point annotations with vertical spreading for close clusters
+  xs = [p["e2e_ms"] for p in pts]
+  ys = [p["mmlu_pct"] for p in pts]
+  x_span = max(max(xs) - min(xs), 500.0)
+  y_span = max(max(ys) - min(ys), 2.0)
+  x_min = max(0.0, min(xs) - 0.10 * x_span)
+  x_max = max(xs) + 0.22 * x_span
+  y_min = min(ys) - 0.16 * y_span
+  y_max = max(ys) + 0.36 * y_span
+  ax.set_xlim(x_min, x_max)
+  ax.set_ylim(y_min, y_max)
+
+  ax_w_pts = 620.0
+  ax_h_pts = 340.0
+  placed_boxes: list[tuple[float, float, float, float]] = [
+      # Reserve top-left box region for the Pareto corner callout
+      (0.0, 0.44, 0.82, 1.0),
+  ]
+  for p in pts:
+    px_n = (p["e2e_ms"] - x_min) / (x_max - x_min)
+    py_n = (p["mmlu_pct"] - y_min) / (y_max - y_min)
+    placed_boxes.append((px_n - 8.0 / ax_w_pts, px_n + 8.0 / ax_w_pts,
+                         py_n - 8.0 / ax_h_pts, py_n + 8.0 / ax_h_pts))
+
+  candidate_offsets = [
+      (9, 0), (9, 12), (9, -12), (9, 24), (9, -24), (9, 36), (9, -36),
+      (9, 48), (9, -48), (9, 60), (9, -60), (-9, 0), (-9, 14), (-9, -14),
+      (-9, 28), (-9, -28), (28, 18), (28, -18), (28, 32), (28, -32),
+  ]
+  for p in sorted(pts, key=lambda item: (item["e2e_ms"], -item["mmlu_pct"])):
+    nx = (p["e2e_ms"] - x_min) / (x_max - x_min)
+    ny = (p["mmlu_pct"] - y_min) / (y_max - y_min)
+    lbl = f"{p['cid']} ({p['dtype']})"
+    w_box = (len(lbl) * 4.6 + 4.0) / ax_w_pts
+    h_box = 11.0 / ax_h_pts
+    best_cand = candidate_offsets[0]
+    best_rect = (nx, nx + w_box, ny - h_box / 2.0, ny + h_box / 2.0)
+    best_score = float("inf")
+    for dx, dy in candidate_offsets:
+      cx = nx + dx / ax_w_pts
+      cy = ny + dy / ax_h_pts
+      x0 = cx if dx >= 0 else cx - w_box
+      x1 = cx + w_box if dx >= 0 else cx
+      y0 = cy - h_box / 2.0
+      y1 = cy + h_box / 2.0
+      if x0 < 0.01 or x1 > 0.99 or y0 < 0.02 or y1 > 0.98:
+        continue
+      ov_area = 0.0
+      for bx0, bx1, by0, by1 in placed_boxes:
+        ix = max(0.0, min(x1, bx1) - max(x0, bx0))
+        iy = max(0.0, min(y1, by1) - max(y0, by0))
+        ov_area += ix * iy
+      dist_pen = 1e-6 * (abs(dx) + abs(dy))
+      score = ov_area + dist_pen
+      if score < best_score:
+        best_score = score
+        best_cand = (dx, dy)
+        best_rect = (x0, x1, y0, y1)
+      if ov_area == 0.0:
+        break
+    chosen = best_cand
+    placed_boxes.append(best_rect)
+
+    ha = "left" if chosen[0] >= 0 else "right"
+    use_leader = abs(chosen[1]) >= 11 or abs(chosen[0]) >= 15
+    relpos = (0.0, 0.5) if chosen[0] >= 0 else (1.0, 0.5)
+    ax.annotate(
+        lbl,
+        (p["e2e_ms"], p["mmlu_pct"]),
+        xytext=chosen,
+        textcoords="offset points",
+        ha=ha,
+        va="center",
+        fontsize=8,
+        fontweight="bold" if p["cid"] in pareto_cids else "normal",
+        color="#1b5e20" if p["cid"] in pareto_cids else "#24292f",
+        arrowprops=({"arrowstyle": "-", "color": "#999999", "lw": 0.7, "relpos": relpos}
+                    if use_leader else None),
+        zorder=5,
+    )
+
+  # Highlight the Pareto corner (Top-Left: lower E2E latency + higher MMLU accuracy)
+  ax.annotate(
+      "↖ Pareto Optimal Corner\n(Lower E2E Latency, Higher MMLU Accuracy)",
+      xy=(0.012, 0.98),
+      xycoords="axes fraction",
+      xytext=(0.055, 0.955),
+      textcoords="axes fraction",
+      ha="left",
+      va="top",
+      fontsize=9,
+      fontweight="bold",
+      color="#1b5e20",
+      bbox={"boxstyle": "round,pad=0.45", "facecolor": "#e8f5e9", "edgecolor": "#2e8b57", "lw": 1.5},
+      arrowprops={"arrowstyle": "->", "color": "#2e8b57", "lw": 2.0},
+      zorder=6,
+  )
+
+  # Build combined legend for Frameworks (color) and Data Types (marker shape)
+  from matplotlib.lines import Line2D
+  seen_fws = sorted({p["fw"] for p in pts})
+  seen_grps = [g for g, _ in [("fp32", ""), ("bf16", ""), ("fp16", ""), ("int8", ""), ("int4", "")]
+               if any(p["grp"] == g for p in pts)]
+  handles = []
+  for fw in seen_fws:
+    handles.append(Line2D([0], [0], marker="o", color="w", label=f"{fw}",
+                          markerfacecolor=COLORS.get(fw, "#555555"), markersize=8))
+  for grp in seen_grps:
+    mk, grp_lbl = dtype_markers[grp]
+    handles.append(Line2D([0], [0], marker=mk, color="w", label=f"dtype: {grp_lbl}",
+                          markerfacecolor="#666666", markeredgecolor="black", markersize=7))
+  handles.append(Line2D([0], [0], ls="none", color="#2e8b57", marker="o",
+                        markerfacecolor="none", markeredgecolor="#2e8b57", markeredgewidth=2.0,
+                        markersize=9, label="Pareto optimal"))
+  ax.legend(handles=handles, loc="lower right", fontsize=8, framealpha=0.92, ncol=2)
+
+  w = suite.get("workload") or {}
+  mmlu_ns = {a["n"] for a in acc_rows if a["task"] == "mmlu"}
+  mmlu_n_str = f" (n={next(iter(mmlu_ns))})" if len(mmlu_ns) == 1 else ""
+  ax.set_xlabel(
+      f"End-to-End Latency (ms, {w.get('prompt_tokens', 1024)} prompt → "
+      f"{w.get('gen_tokens', 128)} decode tokens) — lower is better ←",
+      fontsize=9.5,
+  )
+  ax.set_ylabel(f"MMLU Accuracy (%{mmlu_n_str}) — higher is better ↑", fontsize=9.5)
+  ax.set_title("MMLU Accuracy vs. End-to-End Latency by Framework & Data Type", fontsize=11, fontweight="bold")
+  ax.grid(True, alpha=0.3)
+  fig.tight_layout()
+  fig.savefig(path, dpi=130)
+  plt.close(fig)
+  return True
+
+
+def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, agg: dict,
+                             acc_rows: list[dict], has_pareto: bool = False) -> str:
+  """Render a single top-level summary table grouped by data type, highlighting the best row per data type."""
+  w = suite.get("workload") or {}
+  n_prompt = w.get("prompt_tokens", 1024)
+  n_gen = w.get("gen_tokens", 128)
+  _get_acc = _resolve_acc_lookup(cfg_runs, acc_rows)
+
+  mmlu_ns = {a["n"] for a in acc_rows if a["task"] == "mmlu"}
+  gsm8k_ns = {a["n"] for a in acc_rows if a["task"] == "gsm8k"}
+  mmlu_hdr = f"MMLU (n={next(iter(mmlu_ns))})" if len(mmlu_ns) == 1 else "MMLU"
+  gsm8k_hdr = f"GSM8K (n={next(iter(gsm8k_ns))})" if len(gsm8k_ns) == 1 else "GSM8K"
+
+  dtype_tracks = [
+      ("fp32", "FP32 Track"),
+      ("bf16", "BF16 Track"),
+      ("fp16", "FP16 Track"),
+      ("int8", "INT8 Track"),
+      ("int4", "INT4 / Mixed Track"),
+  ]
+  by_group: dict[str, list[tuple[str, str, str, str]]] = collections.defaultdict(list)
+  for cid in cfg_ids:
+    m0 = cfg_runs[cid][0]["meta"]
+    grp, ckpt, wak, thr = _config_dtype_info(suite, cid, m0)
+    by_group[grp].append((cid, ckpt, wak, thr))
+
+  L = [
+      "## Summary\n",
+      f"Headline medians (`{n_prompt}` prompt → `{n_gen}` generated tokens, stateless cold KV cache) "
+      "and accuracy grouped by data type. Within each data type, rows are ordered from fastest to "
+      "slowest end-to-end latency, with the best-performing row highlighted (**🏆**) and best "
+      "per-column metrics bolded.\n",
+  ]
+  if has_pareto:
+    L.append("![MMLU Accuracy vs. End-to-End Latency (Pareto Frontier)](pareto.png)\n")
+  L.extend([
+      f"| Framework / Config | Checkpoint | Weights / Acts / KV | Threads | TTFT (ms) ↓ | "
+      f"Prefill (tok/s) ↑ | Decode (tok/s) ↑ | E2E (ms) ↓ | Peak RSS (MB) ↓ | {mmlu_hdr} ↑ | {gsm8k_hdr} ↑ |",
+      "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+  ])
+
+  def _med(cid: str, key: str) -> float | None:
+    d = agg.get(cid, {}).get(key)
+    return d["median"] if d and d.get("median") is not None else None
+
+  for grp_key, grp_label in dtype_tracks:
+    items = by_group.get(grp_key)
+    if not items:
+      continue
+    items.sort(key=lambda item: (
+        _med(item[0], "e2e_ms") if _med(item[0], "e2e_ms") is not None else float("inf"),
+        item[0],
+    ))
+    best_row_cid = items[0][0]
+
+    def _best(vals: list[float | None], higher: bool) -> float | None:
+      clean = [v for v in vals if v is not None]
+      if not clean:
+        return None
+      return max(clean) if higher else min(clean)
+
+    cids_in_grp = [it[0] for it in items]
+    best_ttft = _best([_med(c, "ttft_ms") for c in cids_in_grp], False)
+    best_prefill = _best([_med(c, "prefill_tps") for c in cids_in_grp], True)
+    best_decode = _best([_med(c, "decode_tps") for c in cids_in_grp], True)
+    best_e2e = _best([_med(c, "e2e_ms") for c in cids_in_grp], False)
+    best_rss = _best([_med(c, "rss_max_mb") for c in cids_in_grp], False)
+    best_mmlu = _best([_get_acc(c, "mmlu") for c in cids_in_grp], True)
+    best_gsm8k = _best([_get_acc(c, "gsm8k") for c in cids_in_grp], True)
+
+    L.append(f"| **{grp_label}** | | | | | | | | | | |")
+
+    for cid, ckpt, wak, thr in items:
+      is_winner = (cid == best_row_cid)
+      v_ttft = _med(cid, "ttft_ms")
+      v_prefill = _med(cid, "prefill_tps")
+      v_decode = _med(cid, "decode_tps")
+      v_e2e = _med(cid, "e2e_ms")
+      v_rss = _med(cid, "rss_max_mb")
+      v_mmlu = _get_acc(cid, "mmlu")
+      v_gsm8k = _get_acc(cid, "gsm8k")
+
+      def _fmt_cell(val: float | None, best_val: float | None, fmt_str: str) -> str:
+        if val is None:
+          return "—"
+        s = fmt_str.format(val)
+        if is_winner or (best_val is not None and abs(val - best_val) <= 1e-9):
+          return f"**{s}**"
+        return s
+
+      cfg_cell = f"🏆 **`{cid}`**" if is_winner else f"`{cid}`"
+      ckpt_cell = f"**{ckpt}**" if is_winner else ckpt
+      wak_cell = f"**{wak}**" if is_winner else wak
+      thr_cell = f"**{thr}**" if is_winner else thr
+
+      L.append(
+          f"| {cfg_cell} | {ckpt_cell} | {wak_cell} | {thr_cell} | "
+          f"{_fmt_cell(v_ttft, best_ttft, '{:,.0f}')} | "
+          f"{_fmt_cell(v_prefill, best_prefill, '{:,.1f}')} | "
+          f"{_fmt_cell(v_decode, best_decode, '{:.2f}')} | "
+          f"{_fmt_cell(v_e2e, best_e2e, '{:,.0f}')} | "
+          f"{_fmt_cell(v_rss, best_rss, '{:,.0f}')} | "
+          f"{_fmt_cell(v_mmlu, best_mmlu, '{:.2%}')} | "
+          f"{_fmt_cell(v_gsm8k, best_gsm8k, '{:.2%}')} |"
+      )
+
+  L.append("")
+  L.append(
+      "**Legend:**\n"
+      "- **`matched`**: Apples-to-apples comparison using the **exact same pre-quantized integer weights** "
+      "from the mobile QAT checkpoint (`qat-mobile`: mixed per-channel `INT2` / `INT4` / `INT8` tensors), "
+      "matching thread counts, context length, and closest KV-cache precision (`Q2_K`/`Q4_0`/`Q8_0` in "
+      "`llama.cpp/matched`, `.litertlm` in `litert-lm/matched`, and `QArray` in `xla/matched-ynnpack`).\n"
+      "- **`fastest`**: Each framework's empirically fastest configuration on the mobile QAT checkpoint "
+      "selected by the thread-scaling and kernel sweep (e.g., `llama.cpp/fastest` stores the mobile QAT "
+      "`INT2` tensors in `Q4_0` blocks so `llama.cpp` can dispatch repacked AVX-512/AMX kernels instead "
+      "of scalar `Q2_K`, and `litert-lm/fastest` uses the sweep-selected thread count).\n"
+  )
+  return "\n".join(L)
+
+
 def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, has_scaling,
-                    history, changes, hist_path, extra, agreement=(), repro=([], []), sequence=None):
+                    history, changes, hist_path, extra, agreement=(), repro=([], []), sequence=None,
+                    prefix_cache=None, has_pareto=False):
   L = []
   w = suite["workload"]
   first = cfg_runs[cfg_ids[0]][0]["meta"]
@@ -883,116 +1592,42 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append(f"# {suite['name']} on {args.machine} — {args.date}\n")
   sweep_count = sum(len(c["runs"]) for p in (sequence or {}).get("points", {}).values()
                     for c in p["configs"].values())
-  process_description = ("benchmark processes" if not sweep_count else
-                         f"headline benchmark processes plus {sweep_count} input-length sweep processes")
+  pc_count = sum(len(c["runs"]) for c in (prefix_cache or {}).get("configs", {}).values())
+  extra_procs = []
+  if sweep_count:
+    extra_procs.append(f"{sweep_count} input-length sweep processes")
+  if pc_count:
+    extra_procs.append(f"{pc_count} prefix-cache processes")
+  process_description = ("benchmark processes" if not extra_procs else
+                         "headline benchmark processes plus " + " and ".join(extra_procs))
   L.append(f"> Generated by `python3 -m aeb.report` from {sum(len(v) for v in cfg_runs.values())} "
            f"{process_description}. Raw per-request data: [data.json](data.json). "
            f"Methodology: [benchmark_methodology.md](../../docs/benchmark_methodology.md).\n")
   L.append(suite["description"] + "\n")
-  # Hand-written notes: anything before "## Caveats" (e.g. "## Key findings")
-  # goes to the top, the caveats section to the end.
-  top, _, caveats = extra.partition("## Caveats")
-  if top.strip():
-    L.append(top.strip() + "\n")
+  L.append(summary_by_dtype_section(suite, cfg_ids, cfg_runs, agg, acc_rows, has_pareto=has_pareto))
 
-  # environment
-  L.append("## Environment\n")
-  builds = {}
-  for cid in cfg_ids:
-    m = cfg_runs[cid][0]["meta"]
-    builds[m["framework"]] = m["build"]
-  L.append("| Item | Value |\n| --- | --- |")
-  L.append(f"| Machine | {args.machine} — {first.get('machine_notes', '')} |")
-  cpu = sysinfo.get("cpu", {})
-  L.append(f"| Container view | {sysinfo.get('container', {}).get('os', '?')}, kernel "
-           f"{sysinfo.get('container', {}).get('kernel', '?')}, {cpu.get('nproc', '?')} vCPUs, "
-           f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.1f} GiB RAM |")
-  for fw, b in sorted(builds.items()):
-    revision = f", commit `{str(b['commit'])[:12]}`" if b.get("commit") else ""
-    L.append(f"| {fw} | `{b.get('ref')}`{revision}, built {b.get('built_at')} |")
-  L.append(f"| Harness | digest `{str(first['build'].get('harness_sha256'))[:12]}`, repo rev "
-           f"`{first['build'].get('repo_rev')}` |")
-  L.append(f"| Workload | {w['prompt_tokens']}-token real-text chat prompt → {w['gen_tokens']} "
-           f"greedy tokens (fixed length), context {w['ctx']}, {w['warmup']} warm-up + "
-           f"{w['repetitions']} measured requests per process, {suite.get('rounds', 3)} processes per "
-           f"config interleaved A-B-…/…-B-A |")
-  sha = {cfg_runs[cid][0]["meta"].get("workload", {}).get("prompt_ids_sha256") for cid in cfg_ids}
-  L.append(f"| Prompt identity | {'identical token ids in every config' if len(sha) == 1 else 'DIFFERENT token ids: ' + ', '.join(map(str, sha))} "
-           f"(sha256 `{str(next(iter(sha)))[:16]}…`) |\n")
-
-  # configs
-  L.append("## Configurations\n")
-  L.append("| Config | Track | Model file | Driver arguments |\n| --- | --- | --- | --- |")
-  for cid in cfg_ids:
-    m = cfg_runs[cid][0]["meta"]
-    args_ = " ".join(m["driver_cmd"][1:] if m["framework"] == "llama.cpp" else m["driver_cmd"][3:])
-    args_ = args_.replace(m.get("model_path") or "\0", "<model>")
-    L.append(f"| `{cid}` | {_track(suite, cid)} | `{Path(m.get('model_path') or '').name}` "
-             f"(sha256 `{str(m.get('model_sha256'))[:12]}`) | `{args_}` |")
-  L.append("")
-
-  if getattr(args, "_quant_md", ""):
-    L.append(args._quant_md)
-
-  # headline table
+  # headline table (Results right after Summary)
   L.append("## Results\n")
-  L.append("Medians over all measured requests (n per cell in the last row); "
-           "[min – max] in brackets.\n")
-  hdr = "| Metric | " + " | ".join(f"`{c}`" for c in cfg_ids) + " |"
-  L.append(hdr)
-  L.append("| --- " * (len(cfg_ids) + 1) + "|")
-  for m, lab, unit, hib, f in HEADLINE:
-    cells = []
-    for cid in cfg_ids:
-      d = agg[cid].get(m)
-      cells.append("n/a" if not d else f"{f.format(d['median'])} [{f.format(d['min'])}–{f.format(d['max'])}]")
-    L.append(f"| {lab} ({unit}) {'↑' if hib else '↓'} | " + " | ".join(cells) + " |")
-  for key, lab, f in (("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
-                      ("peak_rss_mb_lifetime", "Peak RSS, process lifetime (VmHWM, MB)", "{:.0f}"),
-                      ("idle_rss_mb", "RSS after load, before 1st request (MB)", "{:.0f}"),
-                      ("idle_rss_anon_mb", "  …of which anonymous (MB)", "{:.0f}"),
-                      ("cgroup_peak_mb", "Container memory.peak incl. page cache (MB)", "{:.0f}")):
-    cells = [fmt((agg[cid].get(key) or {}).get("median"), f) for cid in cfg_ids]
-    L.append(f"| {lab} | " + " | ".join(cells) + " |")
-  L.append("| Measured requests (n) | " + " | ".join(
-      str((agg[cid].get("e2e_ms") or {}).get("n", 0)) for cid in cfg_ids) + " |")
-  L.append("| Decode CV across requests | " + " | ".join(
-      fmt((agg[cid].get("decode_tps") or {}).get("cv"), "{:.1%}") for cid in cfg_ids) + " |\n")
-
-  # ratios
-  pairs = []
-  if "llama.cpp/matched" in agg and "litert-lm/matched" in agg:
-    pairs.append(("matched", "llama.cpp/matched", "litert-lm/matched"))
-  if "llama.cpp/fastest" in agg and "litert-lm/fastest" in agg:
-    pairs.append(("fastest", "llama.cpp/fastest", "litert-lm/fastest"))
-  if pairs:
-    L.append("### llama.cpp ÷ LiteRT-LM\n")
-    L.append("Ratio of medians with a 95% bootstrap interval over requests. >1 means llama.cpp has "
-             "the larger value (better for throughput, worse for latency/CPU/memory).\n")
-    L.append("| Track | Prefill tok/s | Decode tok/s | TTFT | End-to-end | CPU s / request | Peak RSS |")
-    L.append("| --- | --- | --- | --- | --- | --- | --- |")
-    for name, a, b in pairs:
-      L.append(f"| {name} | " + " | ".join(ratio_line(agg, cfg_runs, a, b, m, True) for m in
-                                           ("prefill_tps", "decode_tps", "ttft_ms", "e2e_ms",
-                                            "cpu_seconds", "rss_max_mb")) + " |")
-    L.append("")
-
+  L.append("### Throughput\n")
   L.append("![Throughput](throughput.png)\n")
+  if sequence:
+    L.append(sequence_section(sequence))
+  L.append("### Latency\n")
   L.append("![Latency](latency.png)\n")
+  if prefix_cache:
+    L.append(prefix_cache_section(prefix_cache))
+  L.append("### CPU\n")
   L.append("![CPU](cpu.png)\n")
+  L.append("### Memory\n")
   L.append("![Memory](memory.png)\n")
   L.append("### Memory and CPU over time\n")
-  L.append("One process per configuration (round 0): load, warm-up and measured requests. "
-           "Yellow = prefill, green = decode. File-backed RSS is mmap'd model pages (shared, "
-           "reclaimable); anonymous RSS is private memory (KV cache, activations, repacked or "
-           "converted weights).\n")
+  L.append("Combined timeline (round 0 process per configuration: model load, warm-up, and "
+           "measured requests) showing Total RSS (MB) and active CPU cores over time.\n")
   L.append("![Timeline](timeline.png)\n")
+
   if has_scaling:
     L.append("### Thread scaling\n")
     L.append("![Thread scaling](thread_scaling.png)\n")
-
-  if sequence:
-    L.append(sequence_section(sequence))
 
   # generated text on the timing prompt
   L.append("### Generated text on the timing prompt\n")
@@ -1100,29 +1735,51 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
                f"identical text for {c['same']}/{c['n']} prompt-repeats{med}. Identical weights do "
                f"not imply identical outputs when activation/KV quantization and kernels differ.\n")
 
-  # history
-  L.append("## Performance over time\n")
-  L.append(f"Every report appends one line per configuration to "
-           f"[`{hist_path.relative_to(args.out)}`](../{hist_path.relative_to(args.out)}) "
-           f"(medians, ranges, framework commits, harness digest, model hashes). A change is "
-           f"flagged when the median moves by more than max({CHANGE_THRESHOLD:.0%}, 3 × the "
-           f"larger coefficient of variation) between consecutive reports of the same config.\n")
-  L.append("![History](history.png)\n")
-  rows = [h for h in history if h["machine"] == args.machine]
-  L.append("| Date | Config | Framework commit | Decode tok/s | Prefill tok/s | TTFT ms | Peak RSS MB | MMLU |")
-  L.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
-  for h in sorted(rows, key=lambda h: (h["date"], h["config"]))[-30:]:
-    mt = h["metrics"]
-    mm = h.get("accuracy", {}).get("mmlu")
-    L.append(f"| {h['date']} | `{h['config']}` | `{str(h['framework_commit'])[:10]}` | "
-             f"{fmt((mt.get('decode_tps') or {}).get('median'))} | "
-             f"{fmt((mt.get('prefill_tps') or {}).get('median'), '{:.1f}')} | "
-             f"{fmt((mt.get('ttft_ms') or {}).get('median'), '{:.0f}')} | "
-             f"{fmt((mt.get('rss_max_mb') or {}).get('median'), '{:.0f}')} | "
-             f"{fmt(mm['acc'], '{:.2%}') if mm else 'n/a'} |")
+  # Hand-written notes: anything before "## Caveats" (e.g. "## Key findings")
+  # goes here, the caveats section to the end.
+  top, _, caveats = extra.partition("## Caveats")
+  if top.strip():
+    L.append(top.strip() + "\n")
+
+  # environment
+  L.append("## Environment\n")
+  builds = {}
+  for cid in cfg_ids:
+    m = cfg_runs[cid][0]["meta"]
+    builds[m["framework"]] = m["build"]
+  L.append("| Item | Value |\n| --- | --- |")
+  L.append(f"| Machine | {args.machine} — {first.get('machine_notes', '')} |")
+  cpu = sysinfo.get("cpu", {})
+  kernel_str = re.sub(r"-smp-[0-9.]+", "", str(sysinfo.get("container", {}).get("kernel", "?")))
+  L.append(f"| Container view | {sysinfo.get('container', {}).get('os', '?')}, kernel "
+           f"{kernel_str}, {cpu.get('nproc', '?')} vCPUs, "
+           f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.1f} GiB RAM |")
+  for fw, b in sorted(builds.items()):
+    revision = f", commit `{str(b['commit'])[:12]}`" if b.get("commit") else ""
+    L.append(f"| {fw} | `{b.get('ref')}`{revision}, built {b.get('built_at')} |")
+  L.append(f"| Harness | digest `{str(first['build'].get('harness_sha256'))[:12]}`, repo rev "
+           f"`{first['build'].get('repo_rev')}` |")
+  L.append(f"| Workload | {w['prompt_tokens']}-token real-text chat prompt → {w['gen_tokens']} "
+           f"greedy tokens (fixed length), context {w['ctx']}, {w['warmup']} warm-up + "
+           f"{w['repetitions']} measured requests per process, {suite.get('rounds', 3)} processes per "
+           f"config interleaved A-B-…/…-B-A |")
+  sha = {cfg_runs[cid][0]["meta"].get("workload", {}).get("prompt_ids_sha256") for cid in cfg_ids}
+  L.append(f"| Prompt identity | {'identical token ids in every config' if len(sha) == 1 else 'DIFFERENT token ids: ' + ', '.join(map(str, sha))} "
+           f"(sha256 `{str(next(iter(sha)))[:16]}…`) |\n")
+
+  # configs
+  L.append("## Configurations\n")
+  L.append("| Config | Track | Model file | Driver arguments |\n| --- | --- | --- | --- |")
+  for cid in cfg_ids:
+    m = cfg_runs[cid][0]["meta"]
+    args_ = " ".join(m["driver_cmd"][1:] if m["framework"] == "llama.cpp" else m["driver_cmd"][3:])
+    args_ = args_.replace(m.get("model_path") or "\0", "<model>")
+    L.append(f"| `{cid}` | {_track(suite, cid)} | `{Path(m.get('model_path') or '').name}` "
+             f"(sha256 `{str(m.get('model_sha256'))[:12]}`) | `{args_}` |")
   L.append("")
-  L.append("**Flagged changes vs. previous report:** " +
-           ("; ".join(changes) if changes else "none (first report, or all within noise).") + "\n")
+
+  if getattr(args, "_quant_md", ""):
+    L.append(args._quant_md)
 
   # automatic data-quality notes
   L.append("## Data-quality checks\n")
@@ -1150,7 +1807,510 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append("## Caveats\n")
   L.append(caveats.strip() or "_none recorded_")
   L.append("")
+
+  suite_rel = f"suites/{args.suite.name}"
+  service_map = {
+      "llama.cpp": "harness-llama-cpp",
+      "litert-lm": "harness-litert-lm",
+      "onnxruntime": "harness-onnxruntime",
+      "xla": "harness-xla",
+      "openvino": "harness-openvino",
+  }
+  L.append("## Reproducing these results\n")
+  L.append("### 1. Machine setup & full suite (all phases)\n")
+  if args.machine == "sapphire-rapids":
+    L.append("```bash\n"
+             "# Step 0 (from workstation): bootstrap /data/aeb and sync repo, container rootfs bundles,\n"
+             "# datasets, and SHA-256 verified models to the target x86 AMX machine:\n"
+             "./scripts/setup_amx_machine.sh <user@hostname> --bundles\n\n"
+             "# Step 1 (on the target machine): run all phases\n"
+             "# (prep, build, thread-sweep, perf, prefix-cache, accuracy, sequence, repro, report):\n"
+             "/data/aeb/repo/scripts/run_amx_benchmarks.sh\n"
+             "```\n")
+  L.append(f"```bash\n"
+           f"# Step-by-step suite phases on {args.machine}:\n"
+           f"python3 scripts/suite.py perf         --machine {args.machine} --suite {suite_rel}\n"
+           f"python3 scripts/suite.py prefix-cache --machine {args.machine} --suite {suite_rel}\n"
+           f"python3 scripts/suite.py accuracy     --machine {args.machine} --suite {suite_rel} --parallel 2 --shards 2 --threads half\n"
+           f"python3 scripts/suite.py sequence     --machine {args.machine} --suite {suite_rel}\n"
+           f"python3 scripts/suite.py repro        --machine {args.machine} --suite {suite_rel}\n"
+           f"make MACHINE={args.machine} SUITE={suite_rel} report\n"
+           f"```\n")
+  L.append("### 2. Single-configuration performance commands\n")
+  L.append("```bash")
+  for cid in cfg_ids:
+    m = cfg_runs[cid][0]["meta"]
+    fw = m["framework"]
+    svc = service_map.get(fw, f"harness-{fw}")
+    drv_args = " ".join(m["driver_cmd"][1:] if fw == "llama.cpp" else m["driver_cmd"][3:])
+    L.append(
+        f"# {cid}\n"
+        f"docker compose -f compose.yaml -f compose/machines/{args.machine}.yaml --profile harness run --rm -T \\\n"
+        f"  {svc} aeb.perf --framework {fw} --label {m['label']} --track {_track(suite, cid)} \\\n"
+        f"  --prompt-tokens {w['prompt_tokens']} --gen-tokens {w['gen_tokens']} "
+        f"--warmup {w['warmup']} --repetitions {w['repetitions']} -- \\\n"
+        f"  {drv_args}"
+    )
+  L.append("```\n")
   return "\n".join(L)
+
+
+def _slugify(text: str) -> str:
+  plain = re.sub(r"`([^`]+)`", r"\1", text)
+  plain = re.sub(r"[^\w\s-]", "", plain.lower())
+  return re.sub(r"[\s_]+", "-", plain.strip())
+
+
+def _render_inline_text_only(text: str, tokens: dict[str, str]) -> str:
+  escaped = html.escape(text)
+  escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
+  escaped = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", escaped)
+  escaped = re.sub(r"(?<!\w)_([^_]+)_(?!\w)", r"<em>\1</em>", escaped)
+  for k, v in tokens.items():
+    escaped = escaped.replace(k, v)
+  return escaped
+
+
+def _render_inline(text: str, base_dir: Path, embed_images: bool = True) -> str:
+  tokens: dict[str, str] = {}
+
+  def _stash(html_fragment: str) -> str:
+    key = f"\x00TOK{len(tokens)}\x00"
+    tokens[key] = html_fragment
+    return key
+
+  def _repl_code(m: re.Match[str]) -> str:
+    return _stash(f"<code>{html.escape(m.group(1))}</code>")
+
+  text = re.sub(r"`([^`]+)`", _repl_code, text)
+
+  def _repl_img(m: re.Match[str]) -> str:
+    alt = html.escape(m.group(1))
+    src = m.group(2).strip()
+    img_path = (base_dir / src).resolve()
+    if embed_images and not src.startswith(("http://", "https://", "data:")) and img_path.is_file():
+      mime, _ = mimetypes.guess_type(str(img_path))
+      mime = mime or "image/png"
+      b64 = base64.b64encode(img_path.read_bytes()).decode("ascii")
+      src_attr = f"data:{mime};base64,{b64}"
+    else:
+      src_attr = html.escape(src)
+    return _stash(
+        f'<figure class="report-figure">'
+        f'<img src="{src_attr}" alt="{alt}" loading="lazy" />'
+        f'<figcaption>{alt}</figcaption>'
+        f'</figure>'
+    )
+
+  text = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", _repl_img, text)
+
+  def _repl_link(m: re.Match[str]) -> str:
+    label_raw = m.group(1)
+    href = html.escape(m.group(2).strip())
+    label_html = _render_inline_text_only(label_raw, tokens)
+    return _stash(f'<a href="{href}">{label_html}</a>')
+
+  text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", _repl_link, text)
+  text = _render_inline_text_only(text, tokens)
+  for k, v in tokens.items():
+    text = text.replace(k, v)
+  return text
+
+
+def _parse_list(lines: list[str], start: int, base_dir: Path, embed_images: bool) -> tuple[str, int]:
+  list_item_re = re.compile(r"^(\s*)(?:([-*+])|(\d+)\.)\s+(.*)$")
+
+  def _collect_items(idx: int, base_indent: int, ordered: bool) -> tuple[str, int]:
+    tag = "ol" if ordered else "ul"
+    out = [f"<{tag}>"]
+    n = len(lines)
+    while idx < n:
+      line = lines[idx]
+      if not line.strip():
+        look = idx + 1
+        while look < n and not lines[look].strip():
+          look += 1
+        if look < n:
+          m_next = list_item_re.match(lines[look])
+          if m_next and len(m_next.group(1)) >= base_indent:
+            idx = look
+            continue
+        break
+
+      m = list_item_re.match(line)
+      if not m:
+        break
+      indent = len(m.group(1))
+      is_ord = m.group(3) is not None
+      if indent < base_indent:
+        break
+      if indent > base_indent:
+        sub_html, idx = _collect_items(idx, indent, is_ord)
+        if out[-1].endswith("</li>"):
+          out[-1] = out[-1][:-5] + "\n" + sub_html + "</li>"
+        else:
+          out.append(sub_html)
+        continue
+      if is_ord != ordered:
+        break
+
+      item_lines = [m.group(4)]
+      idx += 1
+      sub_chunks: list[str] = []
+      while idx < n:
+        nxt = lines[idx]
+        if not nxt.strip():
+          break
+        m_sub = list_item_re.match(nxt)
+        if m_sub:
+          sub_indent = len(m_sub.group(1))
+          if sub_indent > base_indent:
+            sub_html, idx = _collect_items(idx, sub_indent, m_sub.group(3) is not None)
+            sub_chunks.append(sub_html)
+            continue
+          break
+        nxt_indent = len(nxt) - len(nxt.lstrip(" "))
+        if nxt_indent > base_indent:
+          item_lines.append(nxt.strip())
+          idx += 1
+        else:
+          break
+
+      item_html = _render_inline(" ".join(item_lines), base_dir, embed_images)
+      if sub_chunks:
+        out.append(f"<li>{item_html}\n" + "\n".join(sub_chunks) + "</li>")
+      else:
+        out.append(f"<li>{item_html}</li>")
+
+    out.append(f"</{tag}>")
+    return "\n".join(out), idx
+
+  m0 = list_item_re.match(lines[start])
+  assert m0 is not None
+  return _collect_items(start, len(m0.group(1)), m0.group(3) is not None)
+
+
+def _split_table_row(line: str) -> list[str]:
+  s = line.strip()
+  if s.startswith("|"):
+    s = s[1:]
+  if s.endswith("|"):
+    s = s[:-1]
+  return [cell.strip() for cell in s.split("|")]
+
+
+def markdown_to_html(md_text: str, base_dir: Path, embed_images: bool = True) -> str:
+  lines = md_text.splitlines()
+  n = len(lines)
+  i = 0
+  body_parts: list[str] = []
+  title = "AI Edge Bench Report"
+  list_item_re = re.compile(r"^(\s*)(?:([-*+])|(\d+)\.)\s+(.*)$")
+
+  while i < n:
+    line = lines[i]
+    stripped = line.strip()
+
+    if not stripped:
+      i += 1
+      continue
+
+    if stripped.startswith("```"):
+      lang = stripped[3:].strip()
+      code_lines: list[str] = []
+      i += 1
+      while i < n and not lines[i].strip().startswith("```"):
+        code_lines.append(lines[i])
+        i += 1
+      if i < n:
+        i += 1
+      cls = f' class="language-{html.escape(lang)}"' if lang else ""
+      body_parts.append(f"<pre><code{cls}>{html.escape(chr(10).join(code_lines))}</code></pre>")
+      continue
+
+    m_head = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+    if m_head:
+      level = len(m_head.group(1))
+      raw_heading = m_head.group(2).strip()
+      if level == 1 and title == "AI Edge Bench Report":
+        title = re.sub(r"`([^`]+)`", r"\1", raw_heading)
+      slug = _slugify(raw_heading)
+      heading_html = _render_inline(raw_heading, base_dir, embed_images)
+      body_parts.append(f'<h{level} id="{slug}">{heading_html}</h{level}>')
+      i += 1
+      continue
+
+    if stripped.startswith(">"):
+      bq_lines: list[str] = []
+      while i < n and lines[i].strip().startswith(">"):
+        bq_lines.append(re.sub(r"^>\s?", "", lines[i].strip()))
+        i += 1
+      bq_html = _render_inline(" ".join(bq_lines), base_dir, embed_images)
+      body_parts.append(f"<blockquote><p>{bq_html}</p></blockquote>")
+      continue
+
+    if "|" in stripped and i + 1 < n and re.match(r"^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$", lines[i + 1].strip()):
+      headers = _split_table_row(lines[i])
+      align_specs = _split_table_row(lines[i + 1])
+      aligns = []
+      for idx_col in range(len(headers)):
+        sp = align_specs[idx_col] if idx_col < len(align_specs) else ""
+        if sp.startswith(":") and sp.endswith(":"):
+          aligns.append(' style="text-align: center;"')
+        elif sp.endswith(":"):
+          aligns.append(' style="text-align: right;"')
+        else:
+          aligns.append("")
+      i += 2
+      rows: list[list[str]] = []
+      while i < n and "|" in lines[i] and lines[i].strip():
+        rows.append(_split_table_row(lines[i]))
+        i += 1
+      th_html = "".join(
+          f"<th{aligns[idx_col]}>{_render_inline(h, base_dir, embed_images)}</th>"
+          for idx_col, h in enumerate(headers)
+      )
+      tr_list: list[str] = []
+      for r in rows:
+        if r and r[0] and len(r) > 1 and all(not c for c in r[1:]):
+          tr_list.append(
+              f'<tr class="group-row"><td colspan="{len(headers)}">'
+              f"{_render_inline(r[0], base_dir, embed_images)}</td></tr>"
+          )
+          continue
+        tr_cls = ' class="best-row"' if (r and "🏆" in r[0]) else ""
+        cells = [
+            f"<td{aligns[idx_col] if idx_col < len(aligns) else ''}>"
+            f"{_render_inline(c, base_dir, embed_images)}</td>"
+            for idx_col, c in enumerate(r)
+        ]
+        tr_list.append(f"<tr{tr_cls}>" + "".join(cells) + "</tr>")
+      body_parts.append(
+          '<div class="table-wrap"><table>'
+          f"<thead><tr>{th_html}</tr></thead>"
+          f"<tbody>{''.join(tr_list)}</tbody>"
+          "</table></div>"
+      )
+      continue
+
+    if list_item_re.match(line):
+      list_html, i = _parse_list(lines, i, base_dir, embed_images)
+      body_parts.append(list_html)
+      continue
+
+    if re.match(r"^!\[([^\]]*)\]\(([^)]+)\)$", stripped):
+      body_parts.append(_render_inline(stripped, base_dir, embed_images))
+      i += 1
+      continue
+
+    para_lines: list[str] = []
+    while i < n:
+      cur = lines[i].strip()
+      if (
+          not cur
+          or cur.startswith("#")
+          or cur.startswith("```")
+          or cur.startswith(">")
+          or list_item_re.match(lines[i])
+          or ("|" in cur and i + 1 < n and re.match(r"^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$", lines[i + 1].strip()))
+      ):
+        break
+      para_lines.append(cur)
+      i += 1
+    para_html = _render_inline(" ".join(para_lines), base_dir, embed_images)
+    body_parts.append(f"<p>{para_html}</p>")
+
+  body_joined = "\n".join(body_parts)
+  return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{html.escape(title)}</title>
+  <style>
+    :root {{
+      --bg: #ffffff;
+      --fg: #1f2328;
+      --muted: #59636e;
+      --border: #d1d9e0;
+      --surface: #f6f8fa;
+      --accent: #0969da;
+      --code-bg: #eff1f3;
+    }}
+    * {{
+      box-sizing: border-box;
+    }}
+    body {{
+      margin: 0;
+      padding: 2rem 1.5rem 4rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--fg);
+      background: var(--bg);
+    }}
+    main {{
+      max-width: 1440px;
+      margin: 0 auto;
+    }}
+    h1, h2, h3, h4, h5 {{
+      margin-top: 1.8rem;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }}
+    h1 {{
+      font-size: 1.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }}
+    h2 {{
+      font-size: 1.45rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--border);
+    }}
+    h3 {{
+      font-size: 1.25rem;
+    }}
+    h4 {{
+      font-size: 1.08rem;
+      margin-top: 1.4rem;
+    }}
+    h5 {{
+      font-size: 0.98rem;
+      margin-top: 1.1rem;
+    }}
+    p, ul, ol, blockquote {{
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }}
+    ul, ol {{
+      padding-left: 1.75rem;
+    }}
+    li {{
+      margin-bottom: 0.25rem;
+    }}
+    li > ul, li > ol {{
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
+    }}
+    a {{
+      color: var(--accent);
+      text-decoration: none;
+    }}
+    a:hover {{
+      text-decoration: underline;
+    }}
+    blockquote {{
+      margin-left: 0;
+      padding: 0.5rem 1rem;
+      color: var(--muted);
+      border-left: 4px solid var(--border);
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+    }}
+    blockquote p:last-child {{
+      margin-bottom: 0;
+    }}
+    code {{
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.88em;
+      padding: 0.15em 0.35em;
+      background: var(--code-bg);
+      border-radius: 4px;
+    }}
+    pre {{
+      padding: 1rem;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }}
+    pre code {{
+      padding: 0;
+      background: transparent;
+    }}
+    .table-wrap {{
+      width: 100%;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      white-space: nowrap;
+    }}
+    th, td {{
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }}
+    th:last-child, td:last-child {{
+      border-right: none;
+    }}
+    tr:last-child td {{
+      border-bottom: none;
+    }}
+    thead th {{
+      background: var(--surface);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }}
+    tbody tr:nth-child(even) {{
+      background: #fafbfc;
+    }}
+    tbody tr:hover {{
+      background: #f0f4f8;
+    }}
+    tbody tr.group-row td {{
+      background: #eef2f7;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: 0.02em;
+      border-top: 2px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }}
+    tbody tr.best-row {{
+      background: #e8f5e9 !important;
+    }}
+    tbody tr.best-row:hover {{
+      background: #dcf0de !important;
+    }}
+    tbody tr.best-row td:first-child {{
+      border-left: 4px solid #2e8b57;
+    }}
+    .report-figure {{
+      margin: 1.5rem 0;
+      text-align: center;
+    }}
+    .report-figure img {{
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }}
+    .report-figure figcaption {{
+      margin-top: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }}
+  </style>
+</head>
+<body>
+  <main>
+{body_joined}
+  </main>
+</body>
+</html>
+"""
 
 
 if __name__ == "__main__":

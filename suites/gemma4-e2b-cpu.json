@@ -130,6 +130,20 @@
           "selected_by": "harness sweep t{1,2,4,6,8,10,12} x {XNNPACK, YNNPACK} then harness confirmation of t{6,8} YNNPACK on the full workload; lowest median end-to-end latency"
         }
       }
+    },
+    "sapphire-rapids": {
+      "threads": 16,
+      "fastest": {
+        "llama.cpp": {
+          "threads": 16,
+          "ubatch": 1024,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} on Xeon Platinum 8481C"
+        },
+        "litert-lm": {
+          "threads": 16,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} x {XNNPACK, YNNPACK} on Xeon Platinum 8481C"
+        }
+      }
     }
   }
 }
