@@ -1,6 +1,6 @@
 {
   "name": "gemma4-e2b-cpu-sapphire-rapids",
-  "description": "Gemma 4 E2B on x86 Sapphire Rapids CPU (Intel Xeon Platinum 8481C, Socket 0): OpenXLA (YNNPACK), LiteRT-LM (with YNNPACK and XNNPACK), llama.cpp (AVX-512 + AMX), OpenVINO GenAI, and ONNX Runtime GenAI across FP32, BF16, INT8, and INT4/INT2 model precisions. Frameworks are only benchmarked on data types where pre-built model artifacts exist (e.g., llama.cpp is omitted from FP32 because no pre-built F32 GGUF is published in ggml-org/gemma-4-E2B-it-GGUF).",
+  "description": "Gemma 4 E2B on x86 Intel Xeon AMX CPU (NUMA node 0 physical cores) across FP32, BF16, INT8, and INT4/INT2 model precisions:\n\n- **OpenXLA** (with YNNPACK)\n- **LiteRT-LM** (with XNNPACK and YNNPACK)\n- **llama.cpp** (AVX-512 + AMX)\n- **OpenVINO GenAI**\n- **ONNX Runtime GenAI**\n\nFrameworks are only benchmarked on data types where pre-built model artifacts exist (e.g., `llama.cpp` is omitted from FP32 because no pre-built F32 GGUF is published in `ggml-org/gemma-4-E2B-it-GGUF`).",
   "references": "references/gemma-4-E2B-it.json",
   "models": {
     "litertlm": "/models/litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm",
@@ -45,6 +45,26 @@
       "gsm8k": 0.4
     }
   },
+  "prefix_cache": {
+    "prompt_tokens": 1024,
+    "prefix_tokens": 896,
+    "gen_tokens": 128,
+    "ctx": 4096,
+    "rounds": 1,
+    "warmup": 1,
+    "repetitions": 3,
+    "cooldown_s": 1,
+    "only": [
+      "llama.cpp/matched",
+      "llama.cpp/fastest",
+      "llama.cpp/stock-q4_0",
+      "litert-lm/matched",
+      "litert-lm/fastest",
+      "xla/matched-ynnpack",
+      "openvino/int4",
+      "onnxruntime/q4_k_m"
+    ]
+  },
   "repro": {
     "repeats": 2,
     "max_tokens": 64,
@@ -83,6 +103,7 @@
     "only": [
       "llama.cpp/matched",
       "llama.cpp/fastest",
+      "llama.cpp/stock-q4_0",
       "litert-lm/matched",
       "litert-lm/fastest",
       "xla/matched-ynnpack",
@@ -142,39 +163,15 @@
       "track": "matched",
       "args": [
         "--model",
-        "{hf_bf16}",
+        "{hf_qat_mobile}",
         "--threads",
         "{fastest.xla.threads}",
         "--ctx",
         "{ctx}",
         "--dtype",
-        "int4",
+        "qat-mobile",
         "--cache-dir",
-        "/results/_cache/xla-int4-ynnpack"
-      ],
-      "accuracy": {
-        "mmlu_limit": 2000
-      }
-    },
-    {
-      "id": "xla/matched-onednn",
-      "disabled": true,
-      "_comment": "Disabled: XLA oneDNN custom-call rewriter fails on INT4 weight quantization (--dtype int4 --onednn).",
-      "framework": "xla",
-      "dtype": "int4",
-      "track": "matched",
-      "args": [
-        "--model",
-        "{hf_bf16}",
-        "--threads",
-        "{fastest.xla-onednn.threads}",
-        "--ctx",
-        "{ctx}",
-        "--dtype",
-        "int4",
-        "--onednn",
-        "--cache-dir",
-        "/results/_cache/xla-int4-onednn"
+        "/results/_cache/xla-qat-mobile-ynnpack"
       ],
       "accuracy": {
         "mmlu_limit": 2000
@@ -214,6 +211,26 @@
         "{fastest.litert-lm.threads}",
         "--ctx",
         "{ctx}",
+        "--cache-dir",
+        "/results/_cache/litert-lm-xnnpack-fastest"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "litert-lm/ynnpack",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{litertlm}",
+        "--threads",
+        "{fastest.litert-lm-ynnpack.threads}",
+        "--ctx",
+        "{ctx}",
         "--ynnpack",
         "--cache-dir",
         "/results/_cache/litert-lm-ynnpack"
@@ -241,51 +258,6 @@
       "accuracy": {
         "mmlu_limit": 2000,
         "gsm8k_limit": 250
-      }
-    },
-    {
-      "id": "xla/int8-ynnpack",
-      "framework": "xla",
-      "dtype": "int8",
-      "track": "reference",
-      "args": [
-        "--model",
-        "{hf_bf16}",
-        "--threads",
-        "{fastest.xla.threads}",
-        "--ctx",
-        "{ctx}",
-        "--dtype",
-        "int8",
-        "--cache-dir",
-        "/results/_cache/xla-int8-ynnpack"
-      ],
-      "accuracy": {
-        "mmlu_limit": 2000
-      }
-    },
-    {
-      "id": "xla/int8-onednn",
-      "disabled": true,
-      "_comment": "Disabled: XLA experimental oneDNN custom-call rewriter crashes compiling Tunix Gemma 4 multi-axis Einsum contractions.",
-      "framework": "xla",
-      "dtype": "int8",
-      "track": "reference",
-      "args": [
-        "--model",
-        "{hf_bf16}",
-        "--threads",
-        "{fastest.xla-onednn.threads}",
-        "--ctx",
-        "{ctx}",
-        "--dtype",
-        "int8",
-        "--onednn",
-        "--cache-dir",
-        "/results/_cache/xla-int8-onednn"
-      ],
-      "accuracy": {
-        "mmlu_limit": 2000
       }
     },
     {
@@ -329,7 +301,7 @@
     {
       "id": "llama.cpp/stock-q4_0",
       "framework": "llama.cpp",
-      "dtype": "int4",
+      "dtype": "q4_0",
       "track": "reference",
       "args": [
         "--model",
@@ -339,10 +311,13 @@
         "--ctx",
         "{ctx}",
         "--flash-attn",
-        "on"
+        "on",
+        "--ubatch",
+        "{fastest.llama.cpp.ubatch}"
       ],
       "accuracy": {
-        "mmlu_limit": 2000
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
       }
     },
     {
@@ -379,30 +354,6 @@
         "bf16",
         "--cache-dir",
         "/results/_cache/xla-bf16-ynnpack"
-      ],
-      "accuracy": {
-        "mmlu_limit": 2000
-      }
-    },
-    {
-      "id": "xla/bf16-onednn",
-      "disabled": true,
-      "_comment": "Disabled: XLA experimental oneDNN custom-call rewriter crashes compiling Tunix Gemma 4 multi-axis Einsum contractions.",
-      "framework": "xla",
-      "dtype": "bf16",
-      "track": "reference",
-      "args": [
-        "--model",
-        "{hf_bf16}",
-        "--threads",
-        "{fastest.xla-onednn.threads}",
-        "--ctx",
-        "{ctx}",
-        "--dtype",
-        "bf16",
-        "--onednn",
-        "--cache-dir",
-        "/results/_cache/xla-bf16-onednn"
       ],
       "accuracy": {
         "mmlu_limit": 2000
@@ -468,30 +419,6 @@
       }
     },
     {
-      "id": "xla/fp32-onednn",
-      "disabled": true,
-      "_comment": "Disabled: XLA experimental oneDNN custom-call rewriter crashes compiling Tunix Gemma 4 multi-axis Einsum contractions.",
-      "framework": "xla",
-      "dtype": "fp32",
-      "track": "reference",
-      "args": [
-        "--model",
-        "{hf_bf16}",
-        "--threads",
-        "{fastest.xla-onednn.threads}",
-        "--ctx",
-        "{ctx}",
-        "--dtype",
-        "fp32",
-        "--onednn",
-        "--cache-dir",
-        "/results/_cache/xla-fp32-onednn"
-      ],
-      "accuracy": {
-        "mmlu_limit": 2000
-      }
-    },
-    {
       "id": "openvino/fp32",
       "framework": "openvino",
       "dtype": "fp32",
@@ -521,16 +448,16 @@
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
         },
         "litert-lm": {
+          "threads": 32,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} x {XNNPACK, YNNPACK} (XNNPACK t=32 E2E winner)"
+        },
+        "litert-lm-ynnpack": {
           "threads": 16,
-          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} x {XNNPACK, YNNPACK}"
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (YNNPACK)"
         },
         "xla": {
           "threads": 40,
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (YNNPACK)"
-        },
-        "xla-onednn": {
-          "threads": 16,
-          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (oneDNN)"
         },
         "openvino": {
           "threads": 40,

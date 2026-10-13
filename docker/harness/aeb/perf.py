@@ -41,12 +41,23 @@ def request_metrics(r: dict, samples: list[tuple]) -> dict:
   # streamed; otherwise (LiteRT-LM filters some special tokens from the
   # stream) fall back to completion time.
   t_last = tok[-1] if len(tok) == n_gen and tok else t_end
+  n_prompt = r.get("n_prompt")
+  n_cached = r.get("n_cached", 0) or 0
+  n_prefilled = r.get("n_prefilled") if r.get("n_prefilled") is not None else (
+      (n_prompt - n_cached) if n_prompt is not None else None
+  )
+  ttft_s = (t_first - t_req) / 1e9
   m = {
-      "n_prompt": r.get("n_prompt"),
+      "n_prompt": n_prompt,
+      "n_cached": n_cached,
+      "n_prefilled": n_prefilled,
       "n_gen": n_gen,
       "e2e_ms": (t_end - t_req) / 1e6,
       "ttft_ms": (t_first - t_req) / 1e6,
-      "prefill_tps": r["n_prompt"] / ((t_first - t_req) / 1e9) if r.get("n_prompt") else None,
+      "prefill_tps": n_prompt / ttft_s if n_prompt and ttft_s > 0 else None,
+      "suffix_prefill_tps": (
+          n_prefilled / ttft_s if n_prefilled and ttft_s > 0 else None
+      ),
       "decode_tps": (n_gen - 1) / ((t_last - t_first) / 1e9) if n_gen >= 2 and t_last > t_first else None,
       "tpot_ms": ((t_last - t_first) / 1e6) / (n_gen - 1) if n_gen >= 2 else None,
   }
@@ -70,7 +81,7 @@ def request_metrics(r: dict, samples: list[tuple]) -> dict:
     if window:
       m["rss_max_mb"] = max(s[2] for s in window) / 1024
       m["rss_anon_max_mb"] = max(s[3] for s in window) / 1024
-      m["rss_file_max_mb"] = max(s[4] for s in window) / 1024
+      m["rss_file_max_mb"] = max((s[4] or 0) + (s[5] or 0) for s in window) / 1024
       pss = [s[8] for s in window if s[8] is not None]
       m["pss_max_mb"] = max(pss) / 1024 if pss else None
       sys_busy = (window[-1][10] - window[0][10])
@@ -95,9 +106,10 @@ def cache_state(driver_args: list[str]) -> dict | None:
   return {"dir": d, "files": files, "warm": bool(files)}
 
 
-METRICS = ("e2e_ms", "ttft_ms", "prefill_tps", "decode_tps", "tpot_ms", "itl_p50_ms",
-           "itl_p99_ms", "cpu_cores_prefill", "cpu_cores_decode", "cpu_cores_request",
-           "cpu_seconds", "rss_max_mb", "rss_anon_max_mb", "rss_file_max_mb", "pss_max_mb",
+METRICS = ("e2e_ms", "ttft_ms", "prefill_tps", "suffix_prefill_tps", "decode_tps",
+           "tpot_ms", "itl_p50_ms", "itl_p99_ms", "cpu_cores_prefill",
+           "cpu_cores_decode", "cpu_cores_request", "cpu_seconds", "rss_max_mb",
+           "rss_anon_max_mb", "rss_file_max_mb", "pss_max_mb",
            "system_cpu_busy_frac")
 
 
@@ -113,6 +125,8 @@ def main(argv=None) -> int:
   ap.add_argument("--label", required=True, help="configuration label, e.g. matched")
   ap.add_argument("--track", default="", help="report track: matched | fastest | sweep | ...")
   ap.add_argument("--prompt-tokens", type=int, default=1024)
+  ap.add_argument("--prefix-tokens", type=int, default=0,
+                  help="cached shared prefix tokens (0 = stateless cold KV cache per request)")
   ap.add_argument("--gen-tokens", type=int, default=256)
   ap.add_argument("--warmup", type=int, default=2)
   ap.add_argument("--repetitions", type=int, default=5)
@@ -124,6 +138,8 @@ def main(argv=None) -> int:
 
   if args.framework == "litert-lm" and "--fixed-decode-tokens" not in driver_args:
     driver_args += ["--fixed-decode-tokens", str(args.gen_tokens)]
+  if args.prefix_tokens > 0 and "--cache-prefix" not in driver_args:
+    driver_args += ["--cache-prefix"]
   ctx_needed = args.prompt_tokens + args.gen_tokens
   run_dir = common.new_run_dir("perf", args.framework, args.label)
   cmd = driver_command(args.framework, driver_args)
@@ -142,8 +158,8 @@ def main(argv=None) -> int:
       "model_path": model,
       "model_sha256": common.model_sha256(model) if model else None,
       "build": common.build_info(),
-      "params": {k: getattr(args, k) for k in ("prompt_tokens", "gen_tokens", "warmup",
-                                                "repetitions", "cooldown_s", "sample_ms")},
+      "params": {k: getattr(args, k) for k in ("prompt_tokens", "prefix_tokens", "gen_tokens",
+                                                "warmup", "repetitions", "cooldown_s", "sample_ms")},
   }
   meta["cache_state_before"] = cache_state(driver_args)
   common.write_sysinfo(run_dir / "sysinfo.json")
@@ -164,25 +180,63 @@ def main(argv=None) -> int:
     idle_after_load = mon.sample(with_pss=True)
 
     tok = lambda text: drv.request("tokenize", text=text, add_bos=True)["ids"]
-    prompt, ids = workload.build_perf_prompt(tok, args.prompt_tokens)
-    meta["workload"] = {
-        "kind": "chat-template real-text prompt (aeb.workload.build_perf_prompt)",
-        "prompt_tokens": len(ids),
-        "gen_tokens": args.gen_tokens,
-        "prompt_ids_sha256": workload.ids_sha256(ids),
-        "prompt_text_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
-        "decode": "greedy, fixed length (stop tokens ignored)",
-        "context_tokens_needed": ctx_needed,
-    }
+    total = args.warmup + args.repetitions
+    if args.prefix_tokens > 0:
+      prompt_variants = [
+          workload.build_prefix_cache_prompt(
+              tok, args.prompt_tokens, args.prefix_tokens, variant=i
+          )
+          for i in range(total)
+      ]
+      prompt0, _, _, ids0, prefix_ids0 = prompt_variants[0]
+      meta["workload"] = {
+          "kind": "chat-template real-text prompt with shared prefix (aeb.workload.build_prefix_cache_prompt)",
+          "prompt_tokens": len(ids0),
+          "prefix_tokens": len(prefix_ids0),
+          "suffix_tokens": len(ids0) - len(prefix_ids0),
+          "gen_tokens": args.gen_tokens,
+          "prompt_ids_sha256": workload.ids_sha256(ids0),
+          "prefix_ids_sha256": workload.ids_sha256(prefix_ids0),
+          "prompt_text_sha256": hashlib.sha256(prompt0.encode()).hexdigest(),
+          "decode": "greedy, fixed length (stop tokens ignored)",
+          "context_tokens_needed": ctx_needed,
+      }
+    else:
+      prompt, ids = workload.build_perf_prompt(tok, args.prompt_tokens)
+      meta["workload"] = {
+          "kind": "chat-template real-text prompt (aeb.workload.build_perf_prompt)",
+          "prompt_tokens": len(ids),
+          "prefix_tokens": 0,
+          "suffix_tokens": len(ids),
+          "gen_tokens": args.gen_tokens,
+          "prompt_ids_sha256": workload.ids_sha256(ids),
+          "prompt_text_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+          "decode": "greedy, fixed length (stop tokens ignored)",
+          "context_tokens_needed": ctx_needed,
+      }
     time.sleep(args.cooldown_s)
 
-    total = args.warmup + args.repetitions
     for i in range(total):
       measured = i >= args.warmup
       before_ticks = monitor.read_cpu_ticks(drv.pid)
       before = time.monotonic_ns()
-      r = drv.request("generate", prompt=prompt, max_tokens=args.gen_tokens,
-                      ignore_eos=True, return_text=True, stop_ids=workload.STOP_IDS)
+      if args.prefix_tokens > 0:
+        req_prompt, req_prefix, req_suffix, _, _ = prompt_variants[i]
+        r = drv.request(
+            "generate",
+            prompt=req_prompt,
+            prefix_text=req_prefix,
+            suffix_text=req_suffix,
+            prefix_tokens=args.prefix_tokens,
+            cache_prefix=True,
+            max_tokens=args.gen_tokens,
+            ignore_eos=True,
+            return_text=True,
+            stop_ids=workload.STOP_IDS,
+        )
+      else:
+        r = drv.request("generate", prompt=prompt, max_tokens=args.gen_tokens,
+                        ignore_eos=True, return_text=True, stop_ids=workload.STOP_IDS)
       after = time.monotonic_ns()
       after_ticks = monitor.read_cpu_ticks(drv.pid)
       if not r.get("ok"):
@@ -234,9 +288,9 @@ def main(argv=None) -> int:
       "peak_rss_mb_lifetime": (end_sample[6] / 1024) if end_sample else
                               (max(s[6] for s in samples) / 1024 if samples else None),
       "idle_after_load": {"rss_mb": idle_after_load[2] / 1024, "rss_anon_mb": idle_after_load[3] / 1024,
-                          "rss_file_mb": idle_after_load[4] / 1024,
+                          "rss_file_mb": ((idle_after_load[4] or 0) + (idle_after_load[5] or 0)) / 1024,
                           "pss_mb": (idle_after_load[8] or 0) / 1024} if idle_after_load else None,
-      "cgroup_memory_peak_mb": (meta["cgroup_memory_peak_bytes"] or 0) / 2**20,
+      "cgroup_memory_peak_mb": (meta["cgroup_memory_peak_bytes"] / 2**20) if meta["cgroup_memory_peak_bytes"] else None,
       "outliers_e2e": stats.mad_outliers([m["e2e_ms"] for m in measured]),
       "per_request": per_req,
   }

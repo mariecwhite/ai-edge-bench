@@ -109,6 +109,23 @@ class WorkloadTest(unittest.TestCase):
     text, _ = workload.build_perf_prompt(tok, 1024)
     self.assertIn(workload.passage()[:1000], text)
 
+  def test_prefix_cache_prompt_splits_cleanly_and_varies_suffix(self):
+    def tok(text):
+      return [2] + [ord(c) for c in text[::4]]
+    p0, pref0, s0, ids0, pids0 = workload.build_prefix_cache_prompt(tok, 256, 192, variant=0)
+    p1, pref1, s1, ids1, pids1 = workload.build_prefix_cache_prompt(tok, 256, 192, variant=1)
+    self.assertEqual(len(ids0), 256)
+    self.assertEqual(len(ids1), 256)
+    self.assertEqual(len(pids0), 192)
+    self.assertEqual(pref0, pref1)
+    self.assertEqual(pids0, pids1)
+    self.assertEqual(ids0[:192], pids0)
+    self.assertEqual(ids1[:192], pids1)
+    self.assertEqual(pref0 + s0, p0)
+    self.assertEqual(pref1 + s1, p1)
+    self.assertNotEqual(s0, s1)
+    self.assertNotEqual(ids0[192:], ids1[192:])
+
 
 class StatsTest(unittest.TestCase):
 
@@ -190,15 +207,36 @@ class SuiteTest(unittest.TestCase):
                      ["python3", "-m", "aeb.drivers.xla_driver", "--threads", "16", "--onednn"])
     self.assertEqual(driver_command("openvino", ["--threads", "16"]),
                      ["python3", "-m", "aeb.drivers.openvino_driver", "--threads", "16"])
+    self.assertEqual(driver_command("llama.cpp", ["--threads", "16"]),
+                     ["aeb-llama-driver", "--threads", "16"])
+    self.assertEqual(driver_command("llama.cpp", ["--threads", "16", "--cache-prefix"]),
+                     ["python3", "-m", "aeb.drivers.llama_cpp_driver", "--threads", "16", "--cache-prefix"])
+
+  def test_prefix_cache_commands_generation(self):
+    import suite as suite_mod
+    path = ROOT.parents[1] / "suites" / "gemma4-e2b-cpu-sapphire-rapids.json"
+    if not path.is_file():
+      raise unittest.SkipTest("suites/ not mounted")
+    s, ctx = suite_mod.load(path, "sapphire-rapids")
+    cmds = suite_mod.prefix_cache_commands(s, ctx, "sapphire-rapids", 1, "llama.cpp/matched", False)
+    self.assertEqual(len(cmds), 1)
+    for label, cmd in cmds:
+      self.assertEqual(label, "llama.cpp/matched-prefix-p896-s128-d128")
+      self.assertEqual(cmd[cmd.index("--track") + 1], "prefix-cache")
+      self.assertEqual(cmd[cmd.index("--prompt-tokens") + 1], "1024")
+      self.assertEqual(cmd[cmd.index("--prefix-tokens") + 1], "896")
+      self.assertEqual(cmd[cmd.index("--gen-tokens") + 1], "128")
+      self.assertFalse(any("{" in a for a in cmd), cmd)
 
   def test_xla_driver_flags_for_ynnpack_and_onednn(self):
     import os
+    import numpy as np
     from aeb.drivers import xla_driver
     old = os.environ.get("XLA_FLAGS")
     try:
       os.environ.pop("XLA_FLAGS", None)
-      args_ynn = xla_driver._parse_args(["--model", "/tmp/m", "--threads", "16", "--dtype", "int4"])
-      self.assertEqual(args_ynn.dtype, "int4")
+      args_ynn = xla_driver._parse_args(["--model", "/tmp/m", "--threads", "16", "--dtype", "qat-mobile"])
+      self.assertEqual(args_ynn.dtype, "qat-mobile")
       flags_ynn = xla_driver._configure_xla_env(args_ynn)
       self.assertTrue(all(tok.startswith("--") for tok in flags_ynn.split()), flags_ynn)
       self.assertNotIn("--xla_cpu_experimental_onednn_custom_call=true", flags_ynn)
@@ -209,11 +247,21 @@ class SuiteTest(unittest.TestCase):
       self.assertTrue(all(tok.startswith("--") for tok in flags_odnn.split()), flags_odnn)
       self.assertIn("--xla_cpu_experimental_onednn_custom_call=true", flags_odnn)
       self.assertIn("--xla_cpu_experimental_ynn_fusion_type=invalid", flags_odnn)
+      self.assertIn("--xla_disable_hlo_passes=onednn-ops-rewriter", flags_odnn)
     finally:
       if old is None:
         os.environ.pop("XLA_FLAGS", None)
       else:
         os.environ["XLA_FLAGS"] = old
+
+    # Verify offset-binary unpacking for INT2 (4 per byte, offset -2) and INT4 (2 per byte, offset -8)
+    packed_i2 = np.array([[0x00 | (0x01 << 2) | (0x02 << 4) | (0x03 << 6)]], dtype=np.uint8)
+    unpacked_i2 = xla_driver._unpack_gemma_int(packed_i2, 4)
+    np.testing.assert_array_equal(unpacked_i2, np.array([[-2, -1, 0, 1]], dtype=np.int8))
+
+    packed_i4 = np.array([[0x00 | (0x0F << 4), 0x08 | (0x09 << 4)]], dtype=np.uint8)
+    unpacked_i4 = xla_driver._unpack_gemma_int(packed_i4, 4)
+    np.testing.assert_array_equal(unpacked_i4, np.array([[-8, 7, 0, 1]], dtype=np.int8))
 
   def test_suite_resolves_for_every_machine(self):
     import suite as suite_mod
@@ -226,8 +274,14 @@ class SuiteTest(unittest.TestCase):
       data = json.loads(path.read_text())
       for machine in data["machines"]:
         s, ctx = suite_mod.load(path, machine)
+        cfg_ids = {c["id"] for c in s["configs"]}
+        for cid in (s.get("prefix_cache") or {}).get("only", []):
+          self.assertIn(cid, cfg_ids, f"{cid} in prefix_cache.only missing from {path.name}")
         for _, cmd in suite_mod.perf_commands(s, ctx, machine, 2, None, False):
           self.assertFalse(any("{" in a for a in cmd), cmd)
+        if "prefix_cache" in s:
+          for _, cmd in suite_mod.prefix_cache_commands(s, ctx, machine, 1, None, False):
+            self.assertFalse(any("{" in a for a in cmd), cmd)
 
   def test_unknown_suite_selection_fails(self):
     import suite as suite_mod
@@ -470,6 +524,98 @@ class SequenceReportTest(unittest.TestCase):
     data = self.report.sequence_data([self.run_data(n=64), self.run_data(n=128)], suite)
     self.assertEqual(list(data["points"]["64"]["configs"]), ["llama.cpp/reference"])
     self.assertEqual(data["points"]["64"]["prompt_identity"], "identical")
+
+  def test_prefix_cache_data_and_section(self):
+    suite = {
+        "name": "test",
+        "rounds": 1,
+        "workload": {"prompt_tokens": 1024, "gen_tokens": 128, "warmup": 1, "repetitions": 2},
+        "prefix_cache": {"prompt_tokens": 1024, "prefix_tokens": 896, "gen_tokens": 128},
+        "configs": [{"id": "llama.cpp/reference", "framework": "llama.cpp"}],
+    }
+    cold_run = {
+        "dir": Path("/cold"),
+        "meta": {"framework": "llama.cpp", "label": "reference", "round": 0,
+                 "track": "reference", "notes": "suite=test", "started_at": "2026-10-03T00:00:00Z"},
+        "summary": {
+            "status": "ok",
+            "metrics": {"decode_tps": {"median": 30.0}, "ttft_ms": {"median": 2000.0}},
+            "per_request": [
+                {"measured": True, "n_prompt": 1024, "n_gen": 128,
+                 "ttft_ms": 2000.0, "prefill_tps": 512.0, "decode_tps": 30.0, "e2e_ms": 6200.0},
+                {"measured": True, "n_prompt": 1024, "n_gen": 128,
+                 "ttft_ms": 2000.0, "prefill_tps": 512.0, "decode_tps": 30.0, "e2e_ms": 6200.0},
+            ],
+        },
+    }
+    warm_run = {
+        "dir": Path("/warm"),
+        "meta": {"framework": "llama.cpp", "label": "reference-p896", "round": 0,
+                 "track": "prefix-cache", "notes": "suite=test", "started_at": "2026-10-03T00:00:00Z",
+                 "params": {"prompt_tokens": 1024, "prefix_tokens": 896, "gen_tokens": 128}},
+        "summary": {"status": "ok", "per_request": [
+            {"measured": True, "n_prompt": 1024, "n_cached": 896, "n_prefilled": 128, "n_gen": 128,
+             "ttft_ms": 250.0, "prefill_tps": 4096.0, "suffix_prefill_tps": 512.0,
+             "decode_tps": 30.0, "e2e_ms": 4450.0},
+            {"measured": True, "n_prompt": 1024, "n_cached": 896, "n_prefilled": 128, "n_gen": 128,
+             "ttft_ms": 250.0, "prefill_tps": 4096.0, "suffix_prefill_tps": 512.0,
+             "decode_tps": 30.0, "e2e_ms": 4450.0},
+        ]},
+    }
+    cfg_runs = self.report.config_runs([cold_run, warm_run], suite, None)
+    self.assertEqual(len(cfg_runs["llama.cpp/reference"]), 1)
+    agg = {"llama.cpp/reference": self.report.describe_cfg(cfg_runs["llama.cpp/reference"])}
+    pc = self.report.prefix_cache_data([cold_run, warm_run], suite, cfg_runs, agg)
+    c = pc["configs"]["llama.cpp/reference"]
+    self.assertEqual(c["warm_ttft_ms"]["median"], 250.0)
+    self.assertAlmostEqual(c["ttft_speedup"][0], 8.0, places=2)
+    md = self.report.prefix_cache_section(pc)
+    self.assertIn("Prefix caching (warm vs. cold KV cache)", md)
+    self.assertIn("**8.00×**", md)
+
+  def test_summary_by_dtype_section_and_html_highlighting(self):
+    suite = {
+        "name": "test",
+        "workload": {"prompt_tokens": 1024, "gen_tokens": 128},
+        "configs": [
+            {"id": "openvino/bf16", "framework": "openvino", "dtype": "bf16"},
+            {"id": "llama.cpp/bf16", "framework": "llama.cpp", "dtype": "bf16"},
+        ],
+    }
+    cfg_ids = ["llama.cpp/bf16", "openvino/bf16"]
+    cfg_runs = {
+        "openvino/bf16": [{"meta": {
+            "framework": "openvino", "model_path": "/models/OpenVINO/gemma-4-E2B-it-fp16-ov",
+            "model_sha256": "sha-ov", "driver_ready": {"info": {"threads": 32}},
+        }}],
+        "llama.cpp/bf16": [{"meta": {
+            "framework": "llama.cpp", "model_path": "/models/gemma-4-E2B-it-BF16.gguf",
+            "model_sha256": "sha-gguf", "driver_ready": {"info": {"threads": 32, "cache_type_k": "f16"}},
+        }}],
+    }
+    agg = {
+        "openvino/bf16": {
+            "ttft_ms": {"median": 296.0}, "prefill_tps": {"median": 3456.7},
+            "decode_tps": {"median": 34.47}, "e2e_ms": {"median": 3985.0},
+            "rss_max_mb": {"median": 9570.0},
+        },
+        "llama.cpp/bf16": {
+            "ttft_ms": {"median": 1971.0}, "prefill_tps": {"median": 519.5},
+            "decode_tps": {"median": 35.28}, "e2e_ms": {"median": 5574.0},
+            "rss_max_mb": {"median": 4633.0},
+        },
+    }
+    acc_rows = [
+        {"id": "openvino/bf16", "task": "mmlu", "accuracy": 0.6035, "n": 2000},
+        {"id": "llama.cpp/bf16", "task": "mmlu", "accuracy": 0.6035, "n": 2000},
+    ]
+    md = self.report.summary_by_dtype_section(suite, cfg_ids, cfg_runs, agg, acc_rows)
+    self.assertIn("## Summary", md)
+    self.assertIn("| **BF16 Track** |", md)
+    self.assertIn("| 🏆 **`openvino/bf16`** |", md)
+    html_out = self.report.markdown_to_html(md, Path("."), embed_images=False)
+    self.assertIn('<tr class="group-row">', html_out)
+    self.assertIn('<tr class="best-row">', html_out)
 
 
 if __name__ == "__main__":

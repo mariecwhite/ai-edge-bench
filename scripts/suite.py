@@ -238,10 +238,12 @@ def perf_commands(suite, ctx, machine, rounds, only, dev,
         print(f"[suite] skip existing perf {c['id']} (round {r})", flush=True)
         continue
       args = ["aeb.perf", "--framework", fw, "--label", label, "--track", c["track"],
-              "--round", str(r), "--prompt-tokens", str(w["prompt_tokens"]),
-              "--gen-tokens", str(w["gen_tokens"]), "--warmup", str(w["warmup"]),
-              "--repetitions", str(w["repetitions"]), "--cooldown-s", str(w["cooldown_s"]),
-              "--notes", f"suite={suite['name']}", "--"]
+              "--round", str(r), "--prompt-tokens", str(w["prompt_tokens"])]
+      if int(w.get("prefix_tokens") or 0) > 0:
+        args += ["--prefix-tokens", str(w["prefix_tokens"])]
+      args += ["--gen-tokens", str(w["gen_tokens"]), "--warmup", str(w["warmup"]),
+               "--repetitions", str(w["repetitions"]), "--cooldown-s", str(w["cooldown_s"]),
+               "--notes", f"suite={suite['name']}", "--"]
       args += [resolve(a, ctx) for a in c["args"]]
       out.append((c["id"], run_cmd(machine, fw, args, dev)))
   return out
@@ -336,7 +338,7 @@ def _config_median_e2e_ms(results_dir: Path, machine: str, suite_name: str, roun
       continue
     if summ.get("status") != "ok":
       continue
-    if meta.get("track") in ("sweep-sequence", "prime", "sweep-threads"):
+    if meta.get("track") in ("sweep-sequence", "prime", "sweep-threads", "prefix-cache"):
       continue
     runs.append((meta.get("notes", "").startswith(tag), str(meta.get("started_at", "")), summ))
   if not runs:
@@ -505,6 +507,49 @@ def sequence_commands(suite, ctx, machine, rounds, only, dev, results_dir: Path 
   return out
 
 
+def prefix_cache_commands(suite, ctx, machine, rounds, only, dev,
+                          results_dir: Path | None = None, skip_existing: bool = False):
+  """Run cached-prefix benchmarks where `prefix_tokens` of the prompt are pre-cached
+  in the KV cache and each request appends a distinct suffix of
+  `prompt_tokens - prefix_tokens` tokens."""
+  pc = suite.get("prefix_cache") or {}
+  w = suite["workload"]
+  prompt_tokens = int(pc.get("prompt_tokens", w["prompt_tokens"]))
+  prefix_tokens = int(pc.get("prefix_tokens", prompt_tokens * 7 // 8))
+  gen_tokens = int(pc.get("gen_tokens", w["gen_tokens"]))
+  pc_ctx_len = int(pc.get("ctx", w["ctx"]))
+  if prefix_tokens < 8 or prefix_tokens >= prompt_tokens or pc_ctx_len < prompt_tokens + gen_tokens:
+    raise ValueError("invalid prefix_cache lengths or context capacity")
+  if only:
+    cfgs = selected(suite, only)
+  elif pc.get("only"):
+    present_ids = {c["id"] for c in suite.get("configs", [])}
+    active_only = [cid for cid in pc["only"] if cid in present_ids]
+    cfgs = selected(suite, ",".join(active_only)) if active_only else []
+  else:
+    cfgs = [c for c in selected(suite, None) if c.get("track") in ("matched", "fastest")]
+  suffix_tokens = prompt_tokens - prefix_tokens
+  point = dict(suite)
+  point["workload"] = dict(
+      w,
+      prompt_tokens=prompt_tokens,
+      prefix_tokens=prefix_tokens,
+      gen_tokens=gen_tokens,
+      warmup=int(pc.get("warmup", w["warmup"])),
+      repetitions=int(pc.get("repetitions", w["repetitions"])),
+      cooldown_s=pc.get("cooldown_s", w["cooldown_s"]),
+  )
+  point["configs"] = [
+      dict(c, id=f"{c['id']}-prefix-p{prefix_tokens}-s{suffix_tokens}-d{gen_tokens}",
+           track="prefix-cache")
+      for c in cfgs
+  ]
+  pc_ctx = dict(ctx, ctx=pc_ctx_len)
+  pc_rounds = int(pc.get("rounds", rounds))
+  return perf_commands(point, pc_ctx, machine, pc_rounds, None, dev,
+                       results_dir=results_dir, skip_existing=skip_existing)
+
+
 TASK_ITEMS = {"mmlu": 14042, "gsm8k": 1319}
 TASK_COST = {"mmlu": 1.0, "gsm8k": 8.0}  # rough relative seconds per item
 
@@ -638,7 +683,7 @@ def keep_awake() -> None:
 def main(argv=None) -> int:
   ap = argparse.ArgumentParser(description=__doc__,
                                formatter_class=argparse.RawDescriptionHelpFormatter)
-  ap.add_argument("action", choices=["perf", "sequence", "accuracy", "repro", "plan"])
+  ap.add_argument("action", choices=["perf", "sequence", "prefix-cache", "accuracy", "repro", "plan"])
   ap.add_argument("--machine", required=True)
   ap.add_argument("--suite", type=Path, default=ROOT / "suites" / "gemma4-e2b-cpu.json")
   ap.add_argument("--rounds", type=int)
@@ -673,6 +718,12 @@ def main(argv=None) -> int:
                           results_dir=args.results, skip_existing=args.skip_existing)
     cmds += perf_commands(suite, ctx, args.machine, rounds, args.only, args.dev,
                           results_dir=args.results, skip_existing=args.skip_existing)
+    if args.action == "plan" and suite.get("prefix_cache"):
+      cmds += prefix_cache_commands(suite, ctx, args.machine, rounds, args.only, args.dev,
+                                    results_dir=args.results, skip_existing=args.skip_existing)
+  elif args.action == "prefix-cache":
+    cmds = prefix_cache_commands(suite, ctx, args.machine, rounds, args.only, args.dev,
+                                 results_dir=args.results, skip_existing=args.skip_existing)
   elif args.action == "sequence":
     seq_only = args.only
     if not seq_only:

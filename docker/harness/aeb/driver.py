@@ -18,6 +18,8 @@ FRAMEWORKS = ("llama.cpp", "litert-lm", "onnxruntime", "xla", "openvino")
 
 def driver_command(framework: str, driver_args: list[str]) -> list[str]:
   if framework == "llama.cpp":
+    if "--cache-prefix" in driver_args:
+      return ["python3", "-m", "aeb.drivers.llama_cpp_driver", *driver_args]
     return ["aeb-llama-driver", *driver_args]
   if framework == "litert-lm":
     return ["python3", "-m", "aeb.drivers.litert_lm_driver", *driver_args]

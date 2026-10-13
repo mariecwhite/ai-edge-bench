@@ -36,6 +36,13 @@ possible, without concurrent heavy workloads.
   OpenVINO IR via `optimum-cli`, or ONNX Runtime GenAI), generate the artifact
   from the official upstream checkpoint using the framework's official
   conversion tools and record the source revision and conversion steps.
+- **No on-the-fly dynamic or channel-wise quantization on unquantized checkpoints.**
+  Do not apply runtime/on-the-fly weight quantization (such as dynamic channel-wise
+  PTQ) or dynamic activation quantization to an unquantized checkpoint (e.g., in
+  OpenXLA) unless the checkpoint's weights and metadata (`quantization_config`)
+  explicitly provide pre-quantized weights and scales. When evaluating a quantized
+  precision tier (`INT8`, `INT4`, `QAT-mobile`), only include frameworks that have
+  a pre-quantized checkpoint or pre-built quantized artifact for that precision.
 
 ### Quantization equivalence is proven on tensors, not on labels
 
@@ -100,8 +107,16 @@ with an empty context/cache; use the same cache policy for comparisons.
   record whether each cache existed at process start, and make sure the cache
   directory exists — LiteRT-LM silently disables the weight cache otherwise,
   which changes both load time and resident memory.
-- **Fresh KV per request.** Every request starts from an empty KV cache; no
-  prefix or response caching between requests.
+- **Fresh KV per request (stateless headline benchmark).** Every request in the
+  headline `perf` benchmark starts from an empty KV cache; no prefix or response
+  caching is allowed between requests.
+- **Cached-prefix KV benchmark (`prefix-cache` track).** Because multi-turn chat
+  and system-prompt workloads reuse a shared prompt prefix across turns, suites
+  may also define a separate `prefix_cache` benchmark (`--cache-prefix`) that
+  keeps a shared prefix of `P` tokens (for example, `896` tokens of a `1,024`-token
+  prompt) warm in the KV cache while varying the final `S = N - P` suffix tokens
+  on every request. Report cached-prefix results in their own dedicated section
+  alongside the stateless baseline, never mixed into cold-KV headline numbers.
 
 For each measured request, start a monotonic timer immediately before handing
 the prepared input to the framework and stop when generation finishes. Capture
@@ -126,6 +141,7 @@ Report these metrics using the **actual** number of generated output tokens
 | End-to-end latency | Time from request start to completion, in milliseconds. |
 | Time to first token (TTFT) | Time from request start to first output token available at the API boundary, in milliseconds. Includes prompt processing. |
 | Prefill throughput | Prompt tokens ÷ TTFT, in tokens/second. |
+| Suffix prefill throughput (cached-prefix mode) | Uncached suffix tokens (`N_prompt - N_cached`) ÷ warm TTFT, in tokens/second. |
 | Decode throughput | `(N - 1) / (last-token time - first-token time)`, in tokens/second, for `N >= 2`. The first token is excluded because TTFT includes prefill. |
 | Inter-token latency | Distribution of gaps between consecutive streamed tokens (p50, p99). |
 
@@ -153,6 +169,26 @@ Run the framework in its own process and sample it, not the harness:
   `memory.peak` (which also counts page cache).
 - Record whole-machine CPU busy time during each request to detect background
   load.
+
+## Cached-prefix KV benchmark (`prefix_cache`)
+
+To measure how effectively each runtime reuses KV state across requests that
+share a common prefix (such as a system prompt or document context), suites may
+define a `prefix_cache` section (`prompt_tokens`, `prefix_tokens`, `gen_tokens`,
+`warmup`, `repetitions`, `rounds`):
+
+- The harness constructs a sequence of `warmup + repetitions` distinct prompts
+  of exact token length `prompt_tokens` that share the identical first
+  `prefix_tokens` token IDs (`P`) and differ in the trailing
+  `S = prompt_tokens - prefix_tokens` suffix tokens, so full-response caching
+  cannot short-circuit suffix evaluation or decoding.
+- Each framework driver is started with `--cache-prefix` and reuses or snapshots
+  the KV state for the `P`-token prefix from the warm-up turn, evaluating only
+  the `S` new suffix tokens before decoding `gen_tokens` tokens.
+- Reports compare **Cold TTFT** (from the stateless `perf` run at the same total
+  prompt length) against **Warm TTFT**, **TTFT Speedup (`Cold ÷ Warm`)**,
+  **Effective Prefill Throughput (`prompt_tokens ÷ Warm TTFT`)**,
+  **Suffix Prefill Throughput (`S ÷ Warm TTFT`)**, and **Decode Throughput**.
 
 ## Input-length throughput sweep
 

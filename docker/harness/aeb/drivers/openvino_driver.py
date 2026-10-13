@@ -83,12 +83,19 @@ class Driver:
       ov_kwargs["INFERENCE_PRECISION_HINT"] = "f16"
 
     started = time.monotonic_ns()
+    self._cache_prefix = bool(getattr(args, "cache_prefix", False))
+    self._cached_prefix_text: str | None = None
     if (self.model_dir / "openvino_vision_embeddings_model.xml").is_file() or (
         self.model_dir / "openvino_text_embeddings_per_layer_model.xml"
     ).is_file():
+      scheduler_cfg = ov_genai.SchedulerConfig()
+      scheduler_cfg.enable_prefix_caching = self._cache_prefix
+      scheduler_cfg.max_num_batched_tokens = max(int(args.ctx), 16384)
+      scheduler_cfg.max_num_seqs = 1
       self.pipe = ov_genai.VLMPipeline(
           str(self.model_dir),
           "CPU",
+          scheduler_config=scheduler_cfg,
           **ov_kwargs,
       )
       self._is_vlm = True
@@ -114,6 +121,19 @@ class Driver:
     if max_tokens < 1:
       raise ValueError("max_tokens must be positive")
     ignore_eos = bool(req.get("ignore_eos", False))
+    cache_prefix = bool(req.get("cache_prefix") or self._cache_prefix)
+    prefix_tokens = int(req.get("prefix_tokens", 0)) if cache_prefix else 0
+    prefix_text = req.get("prefix_text")
+
+    if cache_prefix and prefix_text and self._is_vlm and self._cached_prefix_text != prefix_text:
+      bos_str = self.tokenizer.get_bos_token() or "<bos>"
+      vlm_prefix = prefix_text if prefix_text.startswith(bos_str) else (bos_str + prefix_text)
+      warm_cfg = self.ov_genai.GenerationConfig()
+      warm_cfg.max_new_tokens = 1
+      warm_cfg.apply_chat_template = False
+      warm_cfg.do_sample = False
+      self.pipe.generate(vlm_prefix, generation_config=warm_cfg)
+      self._cached_prefix_text = prefix_text
 
     t_req = time.monotonic_ns()
     prompt_ids = self.tokenize(prompt, add_bos=True)
@@ -217,9 +237,18 @@ class Driver:
       except Exception:
         pass
 
+    if 0 < prefix_tokens < len(prompt_ids):
+      n_cached = prefix_tokens
+      n_prefilled = len(prompt_ids) - prefix_tokens
+    else:
+      n_cached = 0
+      n_prefilled = len(prompt_ids)
+
     resp = {
         "ok": True,
         "n_prompt": len(prompt_ids),
+        "n_cached": n_cached,
+        "n_prefilled": n_prefilled,
         "n_gen": len(gen_ids),
         "stopped_on_eos": stopped_on_eos,
         "t_req_ns": t_req,
@@ -247,7 +276,7 @@ class Driver:
             "dtype": getattr(self.args, "dtype", "auto"),
             "model": str(self.model_dir),
             "device": "CPU",
-            "kv_cache": "fresh per request",
+            "kv_cache": "prefix-cached" if self._cache_prefix else "fresh per request",
             "pid": os.getpid(),
         },
     })
@@ -295,6 +324,7 @@ def main(argv=None) -> int:
       choices=["auto", "fp32", "bf16", "fp16", "int8", "int4"],
       help="inference precision hint for OpenVINO CPU plugin",
   )
+  ap.add_argument("--cache-prefix", action="store_true", help="enable cached-prefix mode")
   args = ap.parse_args(argv)
   try:
     driver = Driver(args)

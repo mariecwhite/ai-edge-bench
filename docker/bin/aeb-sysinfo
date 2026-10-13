@@ -42,8 +42,8 @@ jq -n \
   --arg collected_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   --arg machine "${AEB_MACHINE:-unknown-machine}" \
   --arg machine_notes "${AEB_MACHINE_NOTES:-}" \
-  --arg hostname "$(hostname)" \
-  --arg kernel "$(uname -sr)" \
+  --arg hostname "${AEB_MACHINE:-container}" \
+  --arg kernel "$(uname -sr | sed -E 's/-smp-[0-9.]+//')" \
   --arg arch "$(uname -m)" \
   --arg os "$( (. /etc/os-release 2>/dev/null && echo "${PRETTY_NAME:-}") || echo unknown)" \
   --arg cpu_model "${cpu_model}" \

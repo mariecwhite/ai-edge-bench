@@ -95,4 +95,5 @@ def model_arg(driver_args: list[str]) -> str | None:
 
 
 def dump(path: Path, obj) -> None:
+  path.parent.mkdir(parents=True, exist_ok=True)
   path.write_text(json.dumps(obj, indent=1, sort_keys=False) + "\n")

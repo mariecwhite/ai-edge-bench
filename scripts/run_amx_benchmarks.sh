@@ -9,6 +9,7 @@
 #   /data/aeb/repo/scripts/run_amx_benchmarks.sh smoke
 #   /data/aeb/repo/scripts/run_amx_benchmarks.sh sweep
 #   /data/aeb/repo/scripts/run_amx_benchmarks.sh perf
+#   /data/aeb/repo/scripts/run_amx_benchmarks.sh prefix-cache
 #   /data/aeb/repo/scripts/run_amx_benchmarks.sh accuracy
 #   /data/aeb/repo/scripts/run_amx_benchmarks.sh sequence
 #   /data/aeb/repo/scripts/run_amx_benchmarks.sh repro
@@ -19,13 +20,36 @@ set -euo pipefail
 export AEB_DATA_ROOT="${AEB_DATA_ROOT:-/data/aeb}"
 export PATH="${AEB_DATA_ROOT}/bin:${PATH}"
 export AEB_MACHINE="sapphire-rapids"
-export AEB_MACHINE_NOTES="Intel Xeon 6985P-C (Sapphire Rapids; 2x 40C/80T; DDR5) pinned to NUMA node 0 (40 physical cores)"
+if [[ -z "${AEB_MACHINE_NOTES:-}" ]]; then
+  CPU_MODEL="$(awk -F': ' '/^model name/{print $2; exit}' /proc/cpuinfo 2>/dev/null || echo 'Intel Xeon AMX CPU')"
+  SOCKETS="$(lscpu 2>/dev/null | awk -F': +' '/^Socket\(s\):/{print $2; exit}' || echo '1')"
+  CORES_PER_SOCKET="$(lscpu 2>/dev/null | awk -F': +' '/^Core\(s\) per socket:/{print $2; exit}' || echo '40')"
+  export AEB_MACHINE_NOTES="${CPU_MODEL} (${SOCKETS}x ${CORES_PER_SOCKET}C) pinned to NUMA node 0 (${CORES_PER_SOCKET} physical cores)"
+fi
 
 REPO_DIR="${AEB_DATA_ROOT}/repo"
 SUITE="suites/gemma4-e2b-cpu-sapphire-rapids.json"
 PHASE="${1:-all}"
 
 cd "${REPO_DIR}"
+
+# Terminate any prior run_amx_benchmarks.sh / suite.py / dock_shim.py / driver processes
+# so a restarted benchmark run never collides with an older background run:
+SELF_PID="$$"
+PARENT_PID="${PPID:-0}"
+for pid in $(pgrep -f "scripts/run_amx_benchmarks\.sh|scripts/suite\.py|dock_shim\.py|aeb\.(perf|accuracy|repro)|_driver\.py" 2>/dev/null || true); do
+  if [[ "${pid}" != "${SELF_PID}" && "${pid}" != "${PARENT_PID}" ]]; then
+    echo "  [cleanup] stopping previous benchmark process PID ${pid}"
+    kill -TERM "${pid}" 2>/dev/null || true
+  fi
+done
+sleep 1
+for pid in $(pgrep -f "scripts/run_amx_benchmarks\.sh|scripts/suite\.py|dock_shim\.py|aeb\.(perf|accuracy|repro)|_driver\.py" 2>/dev/null || true); do
+  if [[ "${pid}" != "${SELF_PID}" && "${pid}" != "${PARENT_PID}" ]]; then
+    kill -9 "${pid}" 2>/dev/null || true
+  fi
+done
+
 mkdir -p "${AEB_DATA_ROOT}/results" "${AEB_DATA_ROOT}/reports/notes"
 if [[ -d "${REPO_DIR}/reports" && ! -L "${REPO_DIR}/reports" ]]; then
   cp -rn "${REPO_DIR}/reports/." "${AEB_DATA_ROOT}/reports/"
@@ -125,8 +149,6 @@ if run_phase "smoke"; then
     "llama.cpp/matched"
     "litert-lm/fastest"
     "xla/matched-ynnpack"
-    # Disabled: XLA oneDNN custom-call rewriter fails on INT4 weight quantization (--dtype int4 --onednn)
-    # "xla/matched-onednn"
     "openvino/int4"
     "onnxruntime/q4_k_m"
   )
@@ -191,24 +213,17 @@ if run_phase "sweep"; then
         --threads "${t}" --ctx 4096 --ynnpack
     fi
 
-    # 3. OpenXLA without oneDNN (YNNPACK)
+    # 3. OpenXLA (YNNPACK)
     if has_complete_perf "xla" "ynnpack-bf16-t${t}" "sweep-threads" 2; then
       echo "  [skip] existing sweep-threads xla/ynnpack-bf16-t${t}"
     else
       docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml --profile harness run --rm -T \
+        -v "${REPO_DIR}/docker/harness:/opt/aeb/harness:ro" \
         harness-xla aeb.perf --framework xla --label "ynnpack-bf16-t${t}" --track sweep-threads \
         --prompt-tokens 1024 --gen-tokens 64 --warmup 1 --repetitions 2 --cooldown-s 1 -- \
         --model /models/google/gemma-4-E2B-it --threads "${t}" --ctx 4096 --dtype bf16 \
         --cache-dir "/results/_cache/xla-bf16-ynnpack"
     fi
-
-    # Disabled: XLA's experimental oneDNN custom-call rewriter crashes compiling
-    # Tunix Gemma 4's multi-axis Einsum contractions (e.g. BSD,CKDH->CBSKH) on AMX.
-    # docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml --profile harness run --rm -T \
-    #   harness-xla aeb.perf --framework xla --label "onednn-bf16-t${t}" --track sweep-threads \
-    #   --prompt-tokens 1024 --gen-tokens 64 --warmup 1 --repetitions 2 --cooldown-s 1 -- \
-    #   --model /models/google/gemma-4-E2B-it --threads "${t}" --ctx 4096 --dtype bf16 --onednn \
-    #   --cache-dir "/results/_cache/xla-bf16-onednn-t${t}"
 
     # 4. OpenVINO GenAI INT4
     if has_complete_perf "openvino" "int4-t${t}" "sweep-threads" 2; then
@@ -246,7 +261,6 @@ mapping = {
     ("llama.cpp", "q4_0"): "llama.cpp",
     ("litert-lm", "ynnpack"): "litert-lm",
     ("xla", "ynnpack-bf16"): "xla",
-    ("xla", "onednn-bf16"): "xla-onednn",
     ("openvino", "int4"): "openvino",
     ("onnxruntime", "q4_k_m"): "onnxruntime",
 }
@@ -284,44 +298,53 @@ fi
 
 if run_phase "perf"; then
   echo "=================================================================="
-  echo "[Phase 3/7] Full Interleaved Performance Suite (2 rounds x 3 reps)"
+  echo "[Phase 3/8] Full Interleaved Performance Suite (Stateless Cold KV, 2 rounds x 3 reps)"
   echo "=================================================================="
   python3 scripts/suite.py perf --machine sapphire-rapids --suite "${SUITE}" \
-    --cooldown-s 2 --results "${AEB_DATA_ROOT}/results" --skip-existing \
+    --cooldown-s 2 --dev --results "${AEB_DATA_ROOT}/results" --skip-existing \
     || echo "[WARN] Some perf runs exited non-zero; continuing to next phase..."
+fi
+
+if run_phase "prefix-cache"; then
+  echo "=================================================================="
+  echo "[Phase 4/8] Cached-Prefix Performance Suite (Warm KV, 896 cached + 128 suffix -> 128 gen)"
+  echo "=================================================================="
+  python3 scripts/suite.py prefix-cache --machine sapphire-rapids --suite "${SUITE}" \
+    --cooldown-s 2 --dev --results "${AEB_DATA_ROOT}/results" --skip-existing \
+    || echo "[WARN] Some prefix-cache runs exited non-zero; continuing to next phase..."
 fi
 
 if run_phase "accuracy"; then
   echo "=================================================================="
-  echo "[Phase 4/7] Generative Accuracy Suite (Full MMLU-2000 + GSM8K-250 on fastest configs)"
+  echo "[Phase 5/8] Generative Accuracy Suite (Full MMLU-2000 + GSM8K-250 on fastest configs)"
   echo "=================================================================="
   python3 scripts/suite.py accuracy --machine sapphire-rapids --suite "${SUITE}" \
-    --parallel 2 --shards 2 --threads half \
+    --parallel 2 --shards 2 --threads half --dev \
     --results "${AEB_DATA_ROOT}/results" --skip-existing \
     || echo "[WARN] Some accuracy runs exited non-zero; continuing to next phase..."
 fi
 
 if run_phase "sequence"; then
   echo "=================================================================="
-  echo "[Phase 5/7] Input-Length Sequence Sweep (fastest accurate per framework+dtype)"
+  echo "[Phase 6/8] Input-Length Sequence Sweep (fastest accurate per framework+dtype)"
   echo "=================================================================="
   python3 scripts/suite.py sequence --machine sapphire-rapids --suite "${SUITE}" \
-    --cooldown-s 2 --results "${AEB_DATA_ROOT}/results" --skip-existing \
+    --cooldown-s 2 --dev --results "${AEB_DATA_ROOT}/results" --skip-existing \
     || echo "[WARN] Some sequence sweep runs exited non-zero; continuing to next phase..."
 fi
 
 if run_phase "repro"; then
   echo "=================================================================="
-  echo "[Phase 6/7] Output Reproducibility Suite (Greedy + Seeded)"
+  echo "[Phase 7/8] Output Reproducibility Suite (Greedy + Seeded)"
   echo "=================================================================="
   python3 scripts/suite.py repro --machine sapphire-rapids --suite "${SUITE}" \
-    --cooldown-s 2 --results "${AEB_DATA_ROOT}/results" --skip-existing \
+    --cooldown-s 2 --dev --results "${AEB_DATA_ROOT}/results" --skip-existing \
     || echo "[WARN] Some repro runs exited non-zero; continuing to next phase..."
 fi
 
 if run_phase "report"; then
   echo "=================================================================="
-  echo "[Phase 7/7] Generating Standardized Markdown Report & Charts"
+  echo "[Phase 8/8] Generating Standardized Markdown & HTML Report & Charts"
   echo "=================================================================="
   make MACHINE=sapphire-rapids SUITE="${SUITE}" report
   echo "==> Report generated in ${AEB_DATA_ROOT}/reports/ !"

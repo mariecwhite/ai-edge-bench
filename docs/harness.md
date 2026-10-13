@@ -78,6 +78,15 @@ Framework-specific notes:
   at load and writes no cache.
 - **llama.cpp SWA cache.** The driver uses `swa_full = false` (the
   `llama-bench` / `llama-cli` default; the library default is `true`).
+- **OpenXLA (`xla_driver.py`).** Uses the official Google Tunix Gemma 4 model
+  (`tunix.models.gemma4`) on Flax NNX/JAX (`jaxlib`) with either the default
+  **YNNPACK** backend (`__ynn_fusion`) or **Intel oneDNN** (`--onednn`, which
+  sets `--xla_cpu_experimental_onednn_custom_call=true --xla_cpu_experimental_ynn_fusion_type=invalid --xla_disable_hlo_passes=onednn-ops-rewriter`).
+  Quantization is only executed when the checkpoint itself provides pre-quantized
+  weights and scales in `config.json` (`quantization_config`, e.g.
+  `google/gemma-4-E2B-it-qat-mobile-transformers`); `xla_driver.py` refuses to
+  run dynamic activation quantization or on-the-fly channel-wise PTQ on
+  unquantized checkpoints.
 - **ONNX Runtime.** The GenAI E2B model is a directory, not an `.onnx` file.
   The driver loads a temporary config overlay to set CPU thread counts; it
   never changes the staged package. Model hashing covers each package file.
@@ -106,10 +115,11 @@ make MACHINE=apple-m5-max images tools     # framework + tools images
 make MACHINE=apple-m5-max models           # stock GGUF + .litertlm
 make MACHINE=apple-m5-max matched-models   # QAT checkpoint -> matched GGUFs (+ proofs)
 make MACHINE=apple-m5-max datasets         # MMLU + GSM8K, pinned revisions
-make MACHINE=apple-m5-max suite-perf       # prime caches, 3 interleaved rounds
+make MACHINE=apple-m5-max suite-perf       # prime caches, 3 interleaved rounds (stateless cold KV)
+make MACHINE=apple-m5-max suite-prefix-cache # warm KV prefix-caching benchmark (if defined in suite)
 make MACHINE=apple-m5-max suite-accuracy   # validity gate
 make MACHINE=apple-m5-max suite-repro      # output reproducibility
-make MACHINE=apple-m5-max report           # reports/<date>-<suite>-<machine>/
+make MACHINE=apple-m5-max report           # reports/<date>-<suite>-<machine>/ (README.md + README.html)
 ```
 
 ## Optional ARM CPU runtimes
@@ -193,9 +203,9 @@ Intel Xeon Sapphire Rapids (`numactl --physcpubind=0-39 --localalloc` via
 - [scripts/setup_amx_machine.sh](../scripts/setup_amx_machine.sh): Stages images,
   datasets, and all pre-built model artifacts on the remote AMX host.
 - [scripts/run_amx_benchmarks.sh](../scripts/run_amx_benchmarks.sh): Executes the
-  7-phase pipeline (`prime`, `sweep-threads`, `perf`, `accuracy`, `sequence`,
-  `repro`, and `report`) with `--skip-existing` so interrupted runs resume
-  cleanly without repeating finished phases.
+  8-phase pipeline (`smoke`, `sweep`, `perf`, `prefix-cache`, `accuracy`,
+  `sequence`, `repro`, and `report`) with `--skip-existing` so interrupted runs
+  resume cleanly without repeating finished phases.
 - [scripts/fetch_results.sh](../scripts/fetch_results.sh): Pulls the generated
   reports and raw `results/sapphire-rapids` directory back to the local
   workstation.
