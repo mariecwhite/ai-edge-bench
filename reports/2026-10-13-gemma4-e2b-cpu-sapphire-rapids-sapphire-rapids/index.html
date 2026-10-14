@@ -339,7 +339,7 @@
 </ul></li>
 </ol>
 <h2 id="environment">Environment</h2>
-<div class="table-wrap"><table><thead><tr><th>Item</th><th>Value</th></tr></thead><tbody><tr><td>Machine</td><td>sapphire-rapids — Intel(R) Xeon(R) Platinum 8481C (2x 56C) pinned to NUMA node 0 (56 physical cores)</td></tr><tr><td>Container view</td><td>Ubuntu 24.04.5 LTS, kernel Linux 6.18.20, 56 vCPUs, 1007.7 GiB RAM</td></tr><tr><td>litert-lm</td><td><code>v0.17.1</code>, commit <code>5e58e9a0aef7</code>, built 2026-10-04T11:20:00Z</td></tr><tr><td>llama.cpp</td><td><code>b11259</code>, commit <code>d280808f5d82</code>, built 2026-10-04T11:20:00Z</td></tr><tr><td>onnxruntime</td><td><code>onnxruntime-genai==0.17.1</code>, built 2026-10-04T11:21:00Z</td></tr><tr><td>openvino</td><td><code>openvino-genai==2026.4.1.0</code>, commit <code>openvino==20</code>, built 2026-10-04T11:20:20Z</td></tr><tr><td>xla</td><td><code>jax==0.11.2</code>, commit <code>google-tunix</code>, built 2026-10-06T06:40:29Z</td></tr><tr><td>Harness</td><td>digest <code>82db25bdd3d5</code>, repo rev <code>unknown</code></td></tr><tr><td>Workload</td><td>1024-token real-text chat prompt → 128 greedy tokens (fixed length), context 4096, 1 warm-up + 3 measured requests per process, 2 processes per config interleaved A-B-…/…-B-A</td></tr><tr><td>Prompt identity</td><td>identical token ids in every config (sha256 <code>ee559b78b98652bf…</code>)</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Item</th><th>Value</th></tr></thead><tbody><tr><td>Machine</td><td>sapphire-rapids — Intel(R) Xeon(R) Platinum 8481C (2x 56C) pinned to NUMA node 0 (56 physical cores)</td></tr><tr><td>Container view</td><td>Ubuntu 24.04.5 LTS, kernel Linux 6.18.20, 56 vCPUs, 1007.7 GiB RAM</td></tr><tr><td>litert-lm</td><td><code>v0.17.1</code>, commit <code>5e58e9a0aef7</code>, built 2026-10-04T11:20:00Z</td></tr><tr><td>llama.cpp</td><td><code>b11259</code>, commit <code>d280808f5d82</code>, built 2026-10-04T11:20:00Z</td></tr><tr><td>onnxruntime</td><td><code>onnxruntime-genai==0.17.1</code>, built 2026-10-04T11:21:00Z</td></tr><tr><td>openvino</td><td><code>openvino-genai==2026.4.1.0</code>, <code>openvino==2026.4.1.0</code>, built 2026-10-04T11:20:20Z</td></tr><tr><td>xla</td><td><code>jax==0.11.2</code>, <code>google-tunix==0.1.7</code>, built 2026-10-06T06:40:29Z</td></tr><tr><td>Harness</td><td>digest <code>82db25bdd3d5</code>, repo rev <code>unknown</code></td></tr><tr><td>Workload</td><td>1024-token real-text chat prompt → 128 greedy tokens (fixed length), context 4096, 1 warm-up + 3 measured requests per process, 2 processes per config interleaved A-B-…/…-B-A</td></tr><tr><td>Prompt identity</td><td>identical token ids in every config (sha256 <code>ee559b78b98652bf…</code>)</td></tr></tbody></table></div>
 <h2 id="configurations">Configurations</h2>
 <div class="table-wrap"><table><thead><tr><th>Config</th><th>Track</th><th>Model file</th><th>Driver arguments</th></tr></thead><tbody><tr><td><code>litert-lm/matched</code></td><td>matched</td><td><code>gemma-4-E2B-it.litertlm</code> (sha256 <code>181938105e0e</code>)</td><td><code>--model &lt;model&gt; --threads 16 --ctx 4096 --cache-dir /results/_cache/litert-lm-xnnpack --fixed-decode-tokens 128</code></td></tr><tr><td><code>llama.cpp/matched</code></td><td>matched</td><td><code>gemma-4-E2B-it-qat-mobile-matched.gguf</code> (sha256 <code>39ba17e470c0</code>)</td><td><code>--model &lt;model&gt; --threads 16 --ctx 4096 --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0</code></td></tr><tr><td><code>xla/matched-ynnpack</code></td><td>matched</td><td><code>gemma-4-E2B-it-qat-mobile-transformers</code> (sha256 <code>05588362566e</code>)</td><td><code>--model &lt;model&gt; --threads 40 --ctx 4096 --dtype qat-mobile --cache-dir /results/_cache/xla-qat-mobile-ynnpack</code></td></tr><tr><td><code>litert-lm/fastest</code></td><td>fastest</td><td><code>gemma-4-E2B-it.litertlm</code> (sha256 <code>181938105e0e</code>)</td><td><code>--model &lt;model&gt; --threads 16 --ctx 4096 --cache-dir /results/_cache/litert-lm-xnnpack-fastest --fixed-decode-tokens 128</code></td></tr><tr><td><code>llama.cpp/fastest</code></td><td>fastest</td><td><code>gemma-4-E2B-it-qat-mobile-matched-q4.gguf</code> (sha256 <code>ed8fda86a91a</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --flash-attn on --ubatch 1024</code></td></tr><tr><td><code>openvino/int4</code></td><td>fastest</td><td><code>gemma-4-E2B-it-int4-ov</code> (sha256 <code>3428fb6bed88</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --dtype int4</code></td></tr><tr><td><code>litert-lm/ynnpack</code></td><td>reference</td><td><code>gemma-4-E2B-it.litertlm</code> (sha256 <code>181938105e0e</code>)</td><td><code>--model &lt;model&gt; --threads 16 --ctx 4096 --ynnpack --cache-dir /results/_cache/litert-lm-ynnpack --fixed-decode-tokens 128</code></td></tr><tr><td><code>llama.cpp/bf16</code></td><td>reference</td><td><code>gemma-4-E2B-it-BF16.gguf</code> (sha256 <code>246c5fb19e64</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --flash-attn on</code></td></tr><tr><td><code>llama.cpp/int8</code></td><td>reference</td><td><code>gemma-4-E2B-it-Q8_0.gguf</code> (sha256 <code>996d08777aad</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --flash-attn on</code></td></tr><tr><td><code>llama.cpp/stock-q4_0</code></td><td>reference</td><td><code>gemma-4-E2B-it-Q4_0.gguf</code> (sha256 <code>8e30dff3ac4c</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --flash-attn on --ubatch 1024</code></td></tr><tr><td><code>onnxruntime/q4_k_m</code></td><td>reference</td><td><code>default</code> (sha256 <code>79666818bbf8</code>)</td><td><code>--model &lt;model&gt; --threads 16 --ctx 4096</code></td></tr><tr><td><code>openvino/bf16</code></td><td>reference</td><td><code>gemma-4-E2B-it-fp16-ov</code> (sha256 <code>aa8248e647d0</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --dtype bf16</code></td></tr><tr><td><code>openvino/fp32</code></td><td>reference</td><td><code>gemma-4-E2B-it-fp16-ov</code> (sha256 <code>aa8248e647d0</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --dtype fp32</code></td></tr><tr><td><code>openvino/int8</code></td><td>reference</td><td><code>gemma-4-E2B-it-int8-ov</code> (sha256 <code>1d17cb7f73a7</code>)</td><td><code>--model &lt;model&gt; --threads 32 --ctx 4096 --dtype int8</code></td></tr><tr><td><code>xla/bf16-ynnpack</code></td><td>reference</td><td><code>gemma-4-E2B-it</code> (sha256 <code>e1efaee9d9a3</code>)</td><td><code>--model &lt;model&gt; --threads 40 --ctx 4096 --dtype bf16 --cache-dir /results/_cache/xla-bf16-ynnpack</code></td></tr><tr><td><code>xla/fp32-ynnpack</code></td><td>reference</td><td><code>gemma-4-E2B-it</code> (sha256 <code>e1efaee9d9a3</code>)</td><td><code>--model &lt;model&gt; --threads 40 --ctx 4096 --dtype fp32 --cache-dir /results/_cache/xla-fp32-ynnpack</code></td></tr></tbody></table></div>
 <h2 id="quantization-equivalence">Quantization equivalence</h2>
@@ -358,14 +358,72 @@
 <h2 id="caveats">Caveats</h2>
 <p><em>none recorded</em></p>
 <h2 id="reproducing-these-results">Reproducing these results</h2>
-<h3 id="1-machine-setup-full-suite-all-phases">1. Machine setup &amp; full suite (all phases)</h3>
-<pre><code class="language-bash"># Step 0 (from workstation): bootstrap /data/aeb and sync repo, container rootfs bundles,
+<h3 id="1-exact-framework-repository-versions-used-in-this-report">1. Exact framework &amp; repository versions used in this report</h3>
+<div class="table-wrap"><table><thead><tr><th>Framework</th><th>Upstream Repository</th><th>Ref / Tag</th><th>Exact Commit / Package Versions</th><th>Built At</th></tr></thead><tbody><tr><td><code>litert-lm</code></td><td><a href="https://github.com/google-ai-edge/LiteRT-LM"><code>google-ai-edge/LiteRT-LM</code></a></td><td><code>v0.17.1</code></td><td><code>5e58e9a0aef7abf7091207a8b1d1063a1c800f08</code> (<code>--define=litert_enable_ynnpack=true</code>)</td><td><code>2026-10-04T11:20:00Z</code></td></tr><tr><td><code>llama.cpp</code></td><td><a href="https://github.com/ggml-org/llama.cpp"><code>ggml-org/llama.cpp</code></a></td><td><code>b11259</code></td><td><code>d280808f5d82fcc3142b53f94ea5f594250cd765</code></td><td><code>2026-10-04T11:20:00Z</code></td></tr><tr><td><code>onnxruntime</code></td><td><a href="https://github.com/microsoft/onnxruntime-genai"><code>microsoft/onnxruntime-genai</code></a></td><td><code>onnxruntime-genai==0.17.1</code></td><td><code>onnxruntime==1.30.0</code>, <code>onnxruntime-genai==0.17.1</code></td><td><code>2026-10-04T11:21:00Z</code></td></tr><tr><td><code>openvino</code></td><td><a href="https://github.com/openvinotoolkit/openvino.genai"><code>openvinotoolkit/openvino.genai</code></a></td><td><code>openvino-genai==2026.4.1.0</code></td><td><code>openvino==2026.4.1.0</code>, <code>openvino-genai==2026.4.1.0</code></td><td><code>2026-10-04T11:20:20Z</code></td></tr><tr><td><code>xla</code></td><td><a href="https://github.com/openxla/xla"><code>openxla/xla</code></a> / <a href="https://github.com/jax-ml/jax"><code>jax-ml/jax</code></a> / <a href="https://github.com/google/tunix"><code>google/tunix</code></a> / <a href="https://github.com/google/qwix"><code>google/qwix</code></a></td><td><code>jax==0.11.2</code></td><td><code>jaxlib==0.11.2</code>, <code>google-tunix==0.1.7</code>, <code>qwix==0.1.8</code>, <code>flax==0.12.10</code>, <code>tokenizers==0.22.1</code></td><td><code>2026-10-06T06:40:29Z</code></td></tr><tr><td><code>ai-edge-bench</code> (harness)</td><td><a href="https://github.com/mariecwhite/ai-edge-bench"><code>mariecwhite/ai-edge-bench</code></a></td><td><code>unknown</code></td><td>harness sha256 <code>82db25bdd3d5be7ef1e98aadf093d0e94e05f5cb9669861202e935a3066484c9</code></td><td>—</td></tr></tbody></table></div>
+<h3 id="2-building-framework-container-images-pinned-vs-latest-upstream">2. Building framework container images (pinned vs. latest upstream)</h3>
+<p><strong>Option A — Rebuild with the exact pinned versions used in this report:</strong></p>
+<pre><code class="language-bash">COMPOSE=&quot;docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml&quot;
+export AEB_LLAMA_CPP_REF=&quot;b11259&quot;
+export AEB_LITERTLM_REF=&quot;v0.17.1&quot;
+${COMPOSE} --profile base build base
+${COMPOSE} --profile tools build tools
+${COMPOSE} --profile cpu build llama-cpp litert-lm-xnnpack
+${COMPOSE} --profile x86-sota build \
+  --build-arg JAX_VERSION=&quot;0.11.2&quot; --build-arg FLAX_VERSION=&quot;0.12.10&quot; \
+  --build-arg QWIX_VERSION=&quot;0.1.8&quot; --build-arg TUNIX_VERSION=&quot;0.1.7&quot; xla
+${COMPOSE} --profile x86-sota build \
+  --build-arg OPENVINO_VERSION=&quot;2026.4.1.0&quot; --build-arg OPENVINO_GENAI_VERSION=&quot;2026.4.1.0&quot; openvino
+${COMPOSE} --profile x86-sota build \
+  --build-arg ONNXRUNTIME_VERSION=&quot;1.30.0&quot; --build-arg ONNXRUNTIME_GENAI_VERSION=&quot;0.17.1&quot; onnxruntime</code></pre>
+<p><strong>Option B — Pull &amp; build with the latest upstream versions of every framework:</strong></p>
+<pre><code class="language-bash"># Query latest upstream git tags for llama.cpp and LiteRT-LM:
+export AEB_LLAMA_CPP_REF=&quot;$(git ls-remote --tags --sort=&#x27;-v:refname&#x27; https://github.com/ggml-org/llama.cpp.git &#x27;b*&#x27; | head -n1 | sed &#x27;s|.*refs/tags/||&#x27;)&quot;
+export AEB_LITERTLM_REF=&quot;$(git ls-remote --tags --sort=&#x27;-v:refname&#x27; https://github.com/google-ai-edge/LiteRT-LM.git &#x27;v*&#x27; | head -n1 | sed &#x27;s|.*refs/tags/||; s/\^{}//&#x27;)&quot;
+
+# Query latest PyPI versions for OpenXLA (jax/flax/qwix/tunix), OpenVINO, and ONNX Runtime:
+read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER &lt; &lt;(python3 - &lt;&lt; &#x27;PY&#x27;
+import json, urllib.request
+def latest(pkg):
+  with urllib.request.urlopen(f&quot;https://pypi.org/pypi/{pkg}/json&quot;) as r:
+    return json.load(r)[&quot;info&quot;][&quot;version&quot;]
+print(
+    latest(&quot;jax&quot;), latest(&quot;flax&quot;), latest(&quot;qwix&quot;), latest(&quot;google-tunix&quot;),
+    latest(&quot;openvino&quot;), latest(&quot;openvino-genai&quot;),
+    latest(&quot;onnxruntime&quot;), latest(&quot;onnxruntime-genai&quot;)
+)
+PY
+)
+
+COMPOSE=&quot;docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml&quot;
+${COMPOSE} --profile base build --pull base
+${COMPOSE} --profile tools build --no-cache tools
+${COMPOSE} --profile cpu build --no-cache llama-cpp litert-lm-xnnpack
+${COMPOSE} --profile x86-sota build --no-cache \
+  --build-arg JAX_VERSION=&quot;${JAX_VER}&quot; --build-arg FLAX_VERSION=&quot;${FLAX_VER}&quot; \
+  --build-arg QWIX_VERSION=&quot;${QWIX_VER}&quot; --build-arg TUNIX_VERSION=&quot;${TUNIX_VER}&quot; xla
+${COMPOSE} --profile x86-sota build --no-cache \
+  --build-arg OPENVINO_VERSION=&quot;${OV_VER}&quot; --build-arg OPENVINO_GENAI_VERSION=&quot;${OV_GENAI_VER}&quot; openvino
+${COMPOSE} --profile x86-sota build --no-cache \
+  --build-arg ONNXRUNTIME_VERSION=&quot;${ORT_VER}&quot; --build-arg ONNXRUNTIME_GENAI_VERSION=&quot;${ORT_GENAI_VER}&quot; onnxruntime</code></pre>
+<h3 id="3-machine-setup-running-the-full-benchmark-suite">3. Machine setup &amp; running the full benchmark suite</h3>
+<pre><code class="language-bash"># Step 1 (from workstation): bootstrap /data/aeb and sync repo, container rootfs bundles,
 # datasets, and SHA-256 verified models to the target x86 AMX machine:
 ./scripts/setup_amx_machine.sh &lt;user@hostname&gt; --bundles
 
-# Step 1 (on the target machine): run all phases
-# (prep, build, thread-sweep, perf, prefix-cache, accuracy, sequence, repro, report):
-/data/aeb/repo/scripts/run_amx_benchmarks.sh</code></pre>
+# Step 2 (on the target machine): archive any previous results/caches (so --skip-existing
+# does not skip runs) and launch all benchmark phases:
+ssh &lt;user@hostname&gt; &#x27;
+  set -e
+  if [[ -d /data/aeb/results/sapphire-rapids ]]; then
+    mv /data/aeb/results/sapphire-rapids &quot;/data/aeb/results/sapphire-rapids.bak-$(date -u +%Y%m%dT%H%M%SZ)&quot;
+  fi
+  rm -rf /data/aeb/results/_cache
+  nohup /data/aeb/repo/scripts/run_amx_benchmarks.sh &gt; /data/aeb/bench.log 2&gt;&amp;1 &amp;
+  echo &quot;Started PID $! — tail -f /data/aeb/bench.log&quot;
+&#x27;
+
+# Step 3 (from workstation): fetch results and generated report back to workstation:
+./scripts/fetch_results.sh &lt;user@hostname&gt;</code></pre>
 <pre><code class="language-bash"># Step-by-step suite phases on sapphire-rapids:
 python3 scripts/suite.py perf         --machine sapphire-rapids --suite suites/gemma4-e2b-cpu-sapphire-rapids.json
 python3 scripts/suite.py prefix-cache --machine sapphire-rapids --suite suites/gemma4-e2b-cpu-sapphire-rapids.json
@@ -373,7 +431,7 @@ python3 scripts/suite.py accuracy     --machine sapphire-rapids --suite suites/g
 python3 scripts/suite.py sequence     --machine sapphire-rapids --suite suites/gemma4-e2b-cpu-sapphire-rapids.json
 python3 scripts/suite.py repro        --machine sapphire-rapids --suite suites/gemma4-e2b-cpu-sapphire-rapids.json
 make MACHINE=sapphire-rapids SUITE=suites/gemma4-e2b-cpu-sapphire-rapids.json report</code></pre>
-<h3 id="2-single-configuration-performance-commands">2. Single-configuration performance commands</h3>
+<h3 id="4-single-configuration-performance-commands">4. Single-configuration performance commands</h3>
 <pre><code class="language-bash"># litert-lm/matched
 docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml --profile harness run --rm -T \
   harness-litert-lm aeb.perf --framework litert-lm --label matched --track matched \

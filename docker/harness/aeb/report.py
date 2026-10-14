@@ -1755,7 +1755,13 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
            f"{kernel_str}, {cpu.get('nproc', '?')} vCPUs, "
            f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.1f} GiB RAM |")
   for fw, b in sorted(builds.items()):
-    revision = f", commit `{str(b['commit'])[:12]}`" if b.get("commit") else ""
+    commit_val = str(b.get("commit") or "")
+    if commit_val and "==" in commit_val:
+      revision = f", `{commit_val}`"
+    elif commit_val:
+      revision = f", commit `{commit_val[:12]}`"
+    else:
+      revision = ""
     L.append(f"| {fw} | `{b.get('ref')}`{revision}, built {b.get('built_at')} |")
   L.append(f"| Harness | digest `{str(first['build'].get('harness_sha256'))[:12]}`, repo rev "
            f"`{first['build'].get('repo_rev')}` |")
@@ -1807,8 +1813,13 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append("## Caveats\n")
   L.append(caveats.strip() or "_none recorded_")
   L.append("")
+  L.append(reproduction_section(suite, args.machine, args.suite.name, cfg_ids, cfg_runs, builds, first, w))
+  return "\n".join(L)
 
-  suite_rel = f"suites/{args.suite.name}"
+
+def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids: list[str],
+                         cfg_runs: dict, builds: dict, first_meta: dict, w: dict) -> str:
+  suite_rel = f"suites/{suite_filename}"
   service_map = {
       "llama.cpp": "harness-llama-cpp",
       "litert-lm": "harness-litert-lm",
@@ -1816,27 +1827,147 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
       "xla": "harness-xla",
       "openvino": "harness-openvino",
   }
-  L.append("## Reproducing these results\n")
-  L.append("### 1. Machine setup & full suite (all phases)\n")
-  if args.machine == "sapphire-rapids":
-    L.append("```bash\n"
-             "# Step 0 (from workstation): bootstrap /data/aeb and sync repo, container rootfs bundles,\n"
-             "# datasets, and SHA-256 verified models to the target x86 AMX machine:\n"
-             "./scripts/setup_amx_machine.sh <user@hostname> --bundles\n\n"
-             "# Step 1 (on the target machine): run all phases\n"
-             "# (prep, build, thread-sweep, perf, prefix-cache, accuracy, sequence, repro, report):\n"
-             "/data/aeb/repo/scripts/run_amx_benchmarks.sh\n"
-             "```\n")
-  L.append(f"```bash\n"
-           f"# Step-by-step suite phases on {args.machine}:\n"
-           f"python3 scripts/suite.py perf         --machine {args.machine} --suite {suite_rel}\n"
-           f"python3 scripts/suite.py prefix-cache --machine {args.machine} --suite {suite_rel}\n"
-           f"python3 scripts/suite.py accuracy     --machine {args.machine} --suite {suite_rel} --parallel 2 --shards 2 --threads half\n"
-           f"python3 scripts/suite.py sequence     --machine {args.machine} --suite {suite_rel}\n"
-           f"python3 scripts/suite.py repro        --machine {args.machine} --suite {suite_rel}\n"
-           f"make MACHINE={args.machine} SUITE={suite_rel} report\n"
-           f"```\n")
-  L.append("### 2. Single-configuration performance commands\n")
+  repo_urls = {
+      "llama.cpp": "[`ggml-org/llama.cpp`](https://github.com/ggml-org/llama.cpp)",
+      "litert-lm": "[`google-ai-edge/LiteRT-LM`](https://github.com/google-ai-edge/LiteRT-LM)",
+      "xla": "[`openxla/xla`](https://github.com/openxla/xla) / [`jax-ml/jax`](https://github.com/jax-ml/jax) / [`google/tunix`](https://github.com/google/tunix) / [`google/qwix`](https://github.com/google/qwix)",
+      "openvino": "[`openvinotoolkit/openvino.genai`](https://github.com/openvinotoolkit/openvino.genai)",
+      "onnxruntime": "[`microsoft/onnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai)",
+  }
+  L = [
+      "## Reproducing these results\n",
+      "### 1. Exact framework & repository versions used in this report\n",
+      "| Framework | Upstream Repository | Ref / Tag | Exact Commit / Package Versions | Built At |",
+      "| --- | --- | --- | --- | --- |",
+  ]
+  for fw, b in sorted(builds.items()):
+    repo = repo_urls.get(fw, f"`{fw}`")
+    ref = f"`{b.get('ref', '—')}`"
+    if fw == "xla":
+      pkgs = [b.get(k) for k in ("runtime", "tunix", "qwix", "flax", "tokenizers") if b.get(k)]
+      exact_ver = ", ".join(f"`{p}`" for p in pkgs) if pkgs else f"`{b.get('commit', '—')}`"
+    elif fw in ("openvino", "onnxruntime"):
+      pkgs = [b.get(k) for k in ("runtime", "genai") if b.get(k)]
+      exact_ver = ", ".join(f"`{p}`" for p in pkgs) if pkgs else f"`{b.get('commit', '—')}`"
+    else:
+      commit = b.get("commit", "—")
+      extra_flags = b.get("bazel_extra_flags") or b.get("cmake_extra_flags")
+      exact_ver = f"`{commit}`" + (f" (`{extra_flags}`)" if extra_flags else "")
+    L.append(f"| `{fw}` | {repo} | {ref} | {exact_ver} | `{b.get('built_at', '—')}` |")
+  h_info = first_meta.get("build", {})
+  L.append(
+      f"| `ai-edge-bench` (harness) | [`mariecwhite/ai-edge-bench`](https://github.com/mariecwhite/ai-edge-bench) | "
+      f"`{h_info.get('repo_rev', 'unknown')}` | harness sha256 `{h_info.get('harness_sha256', '—')}` | — |\n"
+  )
+
+  # Build commands (exact pinned vs. latest upstream)
+  llama_ref = (builds.get("llama.cpp") or {}).get("ref", "b11259")
+  litert_ref = (builds.get("litert-lm") or {}).get("ref", "v0.17.1")
+  xla_b = builds.get("xla") or {}
+  jax_ver = str(xla_b.get("ref", "jax==0.11.2")).split("==")[-1]
+  tunix_ver = str(xla_b.get("tunix", "google-tunix==0.1.7")).split("==")[-1]
+  qwix_ver = str(xla_b.get("qwix", "qwix==0.1.8")).split("==")[-1]
+  flax_ver = str(xla_b.get("flax", "flax==0.12.10")).split("==")[-1]
+  ov_b = builds.get("openvino") or {}
+  ov_ver = str(ov_b.get("runtime", "openvino==2026.4.1.0")).split("==")[-1]
+  ov_genai_ver = str(ov_b.get("genai", "openvino-genai==2026.4.1.0")).split("==")[-1]
+  ort_b = builds.get("onnxruntime") or {}
+  ort_ver = str(ort_b.get("runtime", "onnxruntime==1.30.0")).split("==")[-1]
+  ort_genai_ver = str(ort_b.get("genai", "onnxruntime-genai==0.17.1")).split("==")[-1]
+
+  L.append("### 2. Building framework container images (pinned vs. latest upstream)\n")
+  L.append("**Option A — Rebuild with the exact pinned versions used in this report:**\n")
+  L.append("```bash")
+  L.append(f"COMPOSE=\"docker compose -f compose.yaml -f compose/machines/{machine}.yaml\"")
+  L.append(f"export AEB_LLAMA_CPP_REF=\"{llama_ref}\"")
+  L.append(f"export AEB_LITERTLM_REF=\"{litert_ref}\"")
+  L.append("${COMPOSE} --profile base build base")
+  L.append("${COMPOSE} --profile tools build tools")
+  L.append("${COMPOSE} --profile cpu build llama-cpp litert-lm-xnnpack")
+  if "xla" in builds:
+    L.append(f"${{COMPOSE}} --profile x86-sota build \\\n"
+             f"  --build-arg JAX_VERSION=\"{jax_ver}\" --build-arg FLAX_VERSION=\"{flax_ver}\" \\\n"
+             f"  --build-arg QWIX_VERSION=\"{qwix_ver}\" --build-arg TUNIX_VERSION=\"{tunix_ver}\" xla")
+  if "openvino" in builds:
+    L.append(f"${{COMPOSE}} --profile x86-sota build \\\n"
+             f"  --build-arg OPENVINO_VERSION=\"{ov_ver}\" --build-arg OPENVINO_GENAI_VERSION=\"{ov_genai_ver}\" openvino")
+  if "onnxruntime" in builds:
+    prof = "x86-sota" if "xla" in builds or "openvino" in builds else "onnxruntime"
+    L.append(f"${{COMPOSE}} --profile {prof} build \\\n"
+             f"  --build-arg ONNXRUNTIME_VERSION=\"{ort_ver}\" --build-arg ONNXRUNTIME_GENAI_VERSION=\"{ort_genai_ver}\" onnxruntime")
+  L.append("```\n")
+
+  L.append("**Option B — Pull & build with the latest upstream versions of every framework:**\n")
+  L.append("```bash")
+  L.append("# Query latest upstream git tags for llama.cpp and LiteRT-LM:")
+  L.append("export AEB_LLAMA_CPP_REF=\"$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')\"")
+  L.append("export AEB_LITERTLM_REF=\"$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\\^{}//')\"")
+  L.append("")
+  L.append("# Query latest PyPI versions for OpenXLA (jax/flax/qwix/tunix), OpenVINO, and ONNX Runtime:")
+  L.append("read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'")
+  L.append("import json, urllib.request")
+  L.append("def latest(pkg):")
+  L.append("  with urllib.request.urlopen(f\"https://pypi.org/pypi/{pkg}/json\") as r:")
+  L.append("    return json.load(r)[\"info\"][\"version\"]")
+  L.append("print(")
+  L.append("    latest(\"jax\"), latest(\"flax\"), latest(\"qwix\"), latest(\"google-tunix\"),")
+  L.append("    latest(\"openvino\"), latest(\"openvino-genai\"),")
+  L.append("    latest(\"onnxruntime\"), latest(\"onnxruntime-genai\")")
+  L.append(")")
+  L.append("PY")
+  L.append(")")
+  L.append("")
+  L.append(f"COMPOSE=\"docker compose -f compose.yaml -f compose/machines/{machine}.yaml\"")
+  L.append("${COMPOSE} --profile base build --pull base")
+  L.append("${COMPOSE} --profile tools build --no-cache tools")
+  L.append("${COMPOSE} --profile cpu build --no-cache llama-cpp litert-lm-xnnpack")
+  if "xla" in builds or "openvino" in builds:
+    L.append("${COMPOSE} --profile x86-sota build --no-cache \\")
+    L.append("  --build-arg JAX_VERSION=\"${JAX_VER}\" --build-arg FLAX_VERSION=\"${FLAX_VER}\" \\")
+    L.append("  --build-arg QWIX_VERSION=\"${QWIX_VER}\" --build-arg TUNIX_VERSION=\"${TUNIX_VER}\" xla")
+    L.append("${COMPOSE} --profile x86-sota build --no-cache \\")
+    L.append("  --build-arg OPENVINO_VERSION=\"${OV_VER}\" --build-arg OPENVINO_GENAI_VERSION=\"${OV_GENAI_VER}\" openvino")
+    L.append("${COMPOSE} --profile x86-sota build --no-cache \\")
+    L.append("  --build-arg ONNXRUNTIME_VERSION=\"${ORT_VER}\" --build-arg ONNXRUNTIME_GENAI_VERSION=\"${ORT_GENAI_VER}\" onnxruntime")
+  elif "onnxruntime" in builds:
+    L.append("${COMPOSE} --profile onnxruntime build --no-cache \\")
+    L.append("  --build-arg ONNXRUNTIME_VERSION=\"${ORT_VER}\" --build-arg ONNXRUNTIME_GENAI_VERSION=\"${ORT_GENAI_VER}\" onnxruntime")
+  L.append("```\n")
+
+  L.append("### 3. Machine setup & running the full benchmark suite\n")
+  if machine == "sapphire-rapids":
+    L.append(
+        "```bash\n"
+        "# Step 1 (from workstation): bootstrap /data/aeb and sync repo, container rootfs bundles,\n"
+        "# datasets, and SHA-256 verified models to the target x86 AMX machine:\n"
+        "./scripts/setup_amx_machine.sh <user@hostname> --bundles\n\n"
+        "# Step 2 (on the target machine): archive any previous results/caches (so --skip-existing\n"
+        "# does not skip runs) and launch all benchmark phases:\n"
+        "ssh <user@hostname> '\n"
+        "  set -e\n"
+        "  if [[ -d /data/aeb/results/sapphire-rapids ]]; then\n"
+        "    mv /data/aeb/results/sapphire-rapids \"/data/aeb/results/sapphire-rapids.bak-$(date -u +%Y%m%dT%H%M%SZ)\"\n"
+        "  fi\n"
+        "  rm -rf /data/aeb/results/_cache\n"
+        "  nohup /data/aeb/repo/scripts/run_amx_benchmarks.sh > /data/aeb/bench.log 2>&1 &\n"
+        "  echo \"Started PID $! — tail -f /data/aeb/bench.log\"\n"
+        "'\n\n"
+        "# Step 3 (from workstation): fetch results and generated report back to workstation:\n"
+        "./scripts/fetch_results.sh <user@hostname>\n"
+        "```\n"
+    )
+  L.append(
+      f"```bash\n"
+      f"# Step-by-step suite phases on {machine}:\n"
+      f"python3 scripts/suite.py perf         --machine {machine} --suite {suite_rel}\n"
+      f"python3 scripts/suite.py prefix-cache --machine {machine} --suite {suite_rel}\n"
+      f"python3 scripts/suite.py accuracy     --machine {machine} --suite {suite_rel} --parallel 2 --shards 2 --threads half\n"
+      f"python3 scripts/suite.py sequence     --machine {machine} --suite {suite_rel}\n"
+      f"python3 scripts/suite.py repro        --machine {machine} --suite {suite_rel}\n"
+      f"make MACHINE={machine} SUITE={suite_rel} report\n"
+      f"```\n"
+  )
+  L.append("### 4. Single-configuration performance commands\n")
   L.append("```bash")
   for cid in cfg_ids:
     m = cfg_runs[cid][0]["meta"]
@@ -1845,7 +1976,7 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
     drv_args = " ".join(m["driver_cmd"][1:] if fw == "llama.cpp" else m["driver_cmd"][3:])
     L.append(
         f"# {cid}\n"
-        f"docker compose -f compose.yaml -f compose/machines/{args.machine}.yaml --profile harness run --rm -T \\\n"
+        f"docker compose -f compose.yaml -f compose/machines/{machine}.yaml --profile harness run --rm -T \\\n"
         f"  {svc} aeb.perf --framework {fw} --label {m['label']} --track {_track(suite, cid)} \\\n"
         f"  --prompt-tokens {w['prompt_tokens']} --gen-tokens {w['gen_tokens']} "
         f"--warmup {w['warmup']} --repetitions {w['repetitions']} -- \\\n"

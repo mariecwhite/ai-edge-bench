@@ -379,3 +379,95 @@ The harness's llama.cpp decode also includes greedy arg-max over the
 **History**
 - This is the first report, so the history has one point per configuration.
   Trend detection starts with the next run.
+
+## Reproducing these results
+
+### 1. Exact framework & repository versions used in this report
+
+| Framework | Upstream Repository | Ref / Tag | Exact Commit / Package Versions | Built At |
+| --- | --- | --- | --- | --- |
+| `litert-lm` | [`google-ai-edge/LiteRT-LM`](https://github.com/google-ai-edge/LiteRT-LM) | `v0.17.1` | `5e58e9a0aef7abf7091207a8b1d1063a1c800f08` (`--define=litert_enable_ynnpack=true`) | `2026-10-01T09:30:54Z` |
+| `llama.cpp` | [`ggml-org/llama.cpp`](https://github.com/ggml-org/llama.cpp) | `b11259` | `d280808f5d82fcc3142b53f94ea5f594250cd765` | `2026-10-01T09:30:51Z` |
+| `ai-edge-bench` (harness) | [`mariecwhite/ai-edge-bench`](https://github.com/mariecwhite/ai-edge-bench) | `a94bf71bcf4b-dirty` | harness sha256 `4f3a791c14236629288ca4b2cf1077930bcb51e7c8008bdb13baaf9ae98fd35f` | — |
+
+### 2. Building framework container images (pinned vs. latest upstream)
+
+**Option A — Rebuild with the exact pinned versions used in this report:**
+
+```bash
+COMPOSE="docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml"
+export AEB_LLAMA_CPP_REF="b11259"
+export AEB_LITERTLM_REF="v0.17.1"
+${COMPOSE} --profile base build base
+${COMPOSE} --profile tools build tools
+${COMPOSE} --profile cpu build llama-cpp litert-lm-xnnpack
+```
+
+**Option B — Pull & build with the latest upstream versions of every framework:**
+
+```bash
+# Query latest upstream git tags for llama.cpp and LiteRT-LM:
+export AEB_LLAMA_CPP_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')"
+export AEB_LITERTLM_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\^{}//')"
+
+# Query latest PyPI versions for OpenXLA (jax/flax/qwix/tunix), OpenVINO, and ONNX Runtime:
+read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'
+import json, urllib.request
+def latest(pkg):
+  with urllib.request.urlopen(f"https://pypi.org/pypi/{pkg}/json") as r:
+    return json.load(r)["info"]["version"]
+print(
+    latest("jax"), latest("flax"), latest("qwix"), latest("google-tunix"),
+    latest("openvino"), latest("openvino-genai"),
+    latest("onnxruntime"), latest("onnxruntime-genai")
+)
+PY
+)
+
+COMPOSE="docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml"
+${COMPOSE} --profile base build --pull base
+${COMPOSE} --profile tools build --no-cache tools
+${COMPOSE} --profile cpu build --no-cache llama-cpp litert-lm-xnnpack
+```
+
+### 3. Machine setup & running the full benchmark suite
+
+```bash
+# Step-by-step suite phases on apple-m5-max:
+python3 scripts/suite.py perf         --machine apple-m5-max --suite suites/gemma4-e2b-cpu.json
+python3 scripts/suite.py prefix-cache --machine apple-m5-max --suite suites/gemma4-e2b-cpu.json
+python3 scripts/suite.py accuracy     --machine apple-m5-max --suite suites/gemma4-e2b-cpu.json --parallel 2 --shards 2 --threads half
+python3 scripts/suite.py sequence     --machine apple-m5-max --suite suites/gemma4-e2b-cpu.json
+python3 scripts/suite.py repro        --machine apple-m5-max --suite suites/gemma4-e2b-cpu.json
+make MACHINE=apple-m5-max SUITE=suites/gemma4-e2b-cpu.json report
+```
+
+### 4. Single-configuration performance commands
+
+```bash
+# litert-lm/matched
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-litert-lm aeb.perf --framework litert-lm --label matched --track matched \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm --threads 12 --ctx 4096 --cache-dir /results/_cache/litert-lm-xnnpack --fixed-decode-tokens 256
+# llama.cpp/matched
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-llama-cpp aeb.perf --framework llama.cpp --label matched --track matched \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/aeb/gemma-4-E2B-it-qat-mobile-matched.gguf --threads 12 --ctx 4096 --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0
+# litert-lm/fastest
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-litert-lm aeb.perf --framework litert-lm --label fastest --track fastest \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm --threads 8 --ctx 4096 --ynnpack --cache-dir /results/_cache/litert-lm-ynnpack --fixed-decode-tokens 256
+# llama.cpp/fastest
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-llama-cpp aeb.perf --framework llama.cpp --label fastest --track fastest \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/aeb/gemma-4-E2B-it-qat-mobile-matched-q4.gguf --threads 12 --ctx 4096 --flash-attn on --ubatch 1024
+# llama.cpp/stock-q4_0
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-llama-cpp aeb.perf --framework llama.cpp --label stock-q4_0 --track reference \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/ggml-org/gemma-4-E2B-it-GGUF/gemma-4-E2B-it-Q4_0.gguf --threads 12 --ctx 4096
+```
