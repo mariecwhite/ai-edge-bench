@@ -369,8 +369,8 @@ Cross-framework (informational, greedy): `llama.cpp/matched` and `litert-lm/matc
 | litert-lm | `v0.17.1`, commit `5e58e9a0aef7`, built 2026-10-04T11:20:00Z |
 | llama.cpp | `b11259`, commit `d280808f5d82`, built 2026-10-04T11:20:00Z |
 | onnxruntime | `onnxruntime-genai==0.17.1`, built 2026-10-04T11:21:00Z |
-| openvino | `openvino-genai==2026.4.1.0`, commit `openvino==20`, built 2026-10-04T11:20:20Z |
-| xla | `jax==0.11.2`, commit `google-tunix`, built 2026-10-06T06:40:29Z |
+| openvino | `openvino-genai==2026.4.1.0`, `openvino==2026.4.1.0`, built 2026-10-04T11:20:20Z |
+| xla | `jax==0.11.2`, `google-tunix==0.1.7`, built 2026-10-06T06:40:29Z |
 | Harness | digest `82db25bdd3d5`, repo rev `unknown` |
 | Workload | 1024-token real-text chat prompt → 128 greedy tokens (fixed length), context 4096, 1 warm-up + 3 measured requests per process, 2 processes per config interleaved A-B-…/…-B-A |
 | Prompt identity | identical token ids in every config (sha256 `ee559b78b98652bf…`) |
@@ -427,16 +427,92 @@ _none recorded_
 
 ## Reproducing these results
 
-### 1. Machine setup & full suite (all phases)
+### 1. Exact framework & repository versions used in this report
+
+| Framework | Upstream Repository | Ref / Tag | Exact Commit / Package Versions | Built At |
+| --- | --- | --- | --- | --- |
+| `litert-lm` | [`google-ai-edge/LiteRT-LM`](https://github.com/google-ai-edge/LiteRT-LM) | `v0.17.1` | `5e58e9a0aef7abf7091207a8b1d1063a1c800f08` (`--define=litert_enable_ynnpack=true`) | `2026-10-04T11:20:00Z` |
+| `llama.cpp` | [`ggml-org/llama.cpp`](https://github.com/ggml-org/llama.cpp) | `b11259` | `d280808f5d82fcc3142b53f94ea5f594250cd765` | `2026-10-04T11:20:00Z` |
+| `onnxruntime` | [`microsoft/onnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai) | `onnxruntime-genai==0.17.1` | `onnxruntime==1.30.0`, `onnxruntime-genai==0.17.1` | `2026-10-04T11:21:00Z` |
+| `openvino` | [`openvinotoolkit/openvino.genai`](https://github.com/openvinotoolkit/openvino.genai) | `openvino-genai==2026.4.1.0` | `openvino==2026.4.1.0`, `openvino-genai==2026.4.1.0` | `2026-10-04T11:20:20Z` |
+| `xla` | [`openxla/xla`](https://github.com/openxla/xla) / [`jax-ml/jax`](https://github.com/jax-ml/jax) / [`google/tunix`](https://github.com/google/tunix) / [`google/qwix`](https://github.com/google/qwix) | `jax==0.11.2` | `jaxlib==0.11.2`, `google-tunix==0.1.7`, `qwix==0.1.8`, `flax==0.12.10`, `tokenizers==0.22.1` | `2026-10-06T06:40:29Z` |
+| `ai-edge-bench` (harness) | [`mariecwhite/ai-edge-bench`](https://github.com/mariecwhite/ai-edge-bench) | `unknown` | harness sha256 `82db25bdd3d5be7ef1e98aadf093d0e94e05f5cb9669861202e935a3066484c9` | — |
+
+### 2. Building framework container images (pinned vs. latest upstream)
+
+**Option A — Rebuild with the exact pinned versions used in this report:**
 
 ```bash
-# Step 0 (from workstation): bootstrap /data/aeb and sync repo, container rootfs bundles,
+COMPOSE="docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml"
+export AEB_LLAMA_CPP_REF="b11259"
+export AEB_LITERTLM_REF="v0.17.1"
+${COMPOSE} --profile base build base
+${COMPOSE} --profile tools build tools
+${COMPOSE} --profile cpu build llama-cpp litert-lm-xnnpack
+${COMPOSE} --profile x86-sota build \
+  --build-arg JAX_VERSION="0.11.2" --build-arg FLAX_VERSION="0.12.10" \
+  --build-arg QWIX_VERSION="0.1.8" --build-arg TUNIX_VERSION="0.1.7" xla
+${COMPOSE} --profile x86-sota build \
+  --build-arg OPENVINO_VERSION="2026.4.1.0" --build-arg OPENVINO_GENAI_VERSION="2026.4.1.0" openvino
+${COMPOSE} --profile x86-sota build \
+  --build-arg ONNXRUNTIME_VERSION="1.30.0" --build-arg ONNXRUNTIME_GENAI_VERSION="0.17.1" onnxruntime
+```
+
+**Option B — Pull & build with the latest upstream versions of every framework:**
+
+```bash
+# Query latest upstream git tags for llama.cpp and LiteRT-LM:
+export AEB_LLAMA_CPP_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')"
+export AEB_LITERTLM_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\^{}//')"
+
+# Query latest PyPI versions for OpenXLA (jax/flax/qwix/tunix), OpenVINO, and ONNX Runtime:
+read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'
+import json, urllib.request
+def latest(pkg):
+  with urllib.request.urlopen(f"https://pypi.org/pypi/{pkg}/json") as r:
+    return json.load(r)["info"]["version"]
+print(
+    latest("jax"), latest("flax"), latest("qwix"), latest("google-tunix"),
+    latest("openvino"), latest("openvino-genai"),
+    latest("onnxruntime"), latest("onnxruntime-genai")
+)
+PY
+)
+
+COMPOSE="docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml"
+${COMPOSE} --profile base build --pull base
+${COMPOSE} --profile tools build --no-cache tools
+${COMPOSE} --profile cpu build --no-cache llama-cpp litert-lm-xnnpack
+${COMPOSE} --profile x86-sota build --no-cache \
+  --build-arg JAX_VERSION="${JAX_VER}" --build-arg FLAX_VERSION="${FLAX_VER}" \
+  --build-arg QWIX_VERSION="${QWIX_VER}" --build-arg TUNIX_VERSION="${TUNIX_VER}" xla
+${COMPOSE} --profile x86-sota build --no-cache \
+  --build-arg OPENVINO_VERSION="${OV_VER}" --build-arg OPENVINO_GENAI_VERSION="${OV_GENAI_VER}" openvino
+${COMPOSE} --profile x86-sota build --no-cache \
+  --build-arg ONNXRUNTIME_VERSION="${ORT_VER}" --build-arg ONNXRUNTIME_GENAI_VERSION="${ORT_GENAI_VER}" onnxruntime
+```
+
+### 3. Machine setup & running the full benchmark suite
+
+```bash
+# Step 1 (from workstation): bootstrap /data/aeb and sync repo, container rootfs bundles,
 # datasets, and SHA-256 verified models to the target x86 AMX machine:
 ./scripts/setup_amx_machine.sh <user@hostname> --bundles
 
-# Step 1 (on the target machine): run all phases
-# (prep, build, thread-sweep, perf, prefix-cache, accuracy, sequence, repro, report):
-/data/aeb/repo/scripts/run_amx_benchmarks.sh
+# Step 2 (on the target machine): archive any previous results/caches (so --skip-existing
+# does not skip runs) and launch all benchmark phases:
+ssh <user@hostname> '
+  set -e
+  if [[ -d /data/aeb/results/sapphire-rapids ]]; then
+    mv /data/aeb/results/sapphire-rapids "/data/aeb/results/sapphire-rapids.bak-$(date -u +%Y%m%dT%H%M%SZ)"
+  fi
+  rm -rf /data/aeb/results/_cache
+  nohup /data/aeb/repo/scripts/run_amx_benchmarks.sh > /data/aeb/bench.log 2>&1 &
+  echo "Started PID $! — tail -f /data/aeb/bench.log"
+'
+
+# Step 3 (from workstation): fetch results and generated report back to workstation:
+./scripts/fetch_results.sh <user@hostname>
 ```
 
 ```bash
@@ -449,7 +525,7 @@ python3 scripts/suite.py repro        --machine sapphire-rapids --suite suites/g
 make MACHINE=sapphire-rapids SUITE=suites/gemma4-e2b-cpu-sapphire-rapids.json report
 ```
 
-### 2. Single-configuration performance commands
+### 4. Single-configuration performance commands
 
 ```bash
 # litert-lm/matched

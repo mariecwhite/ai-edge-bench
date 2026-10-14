@@ -295,3 +295,90 @@ Every report appends one line per configuration to [`history/gemma4-e2b-cpu-arm-
 - LiteRT-LM v0.17.1 initializes its sampler once per engine and reuses its RNG
   across requests. Seeded output reproducibility must be interpreted per
   process, not assumed per request.
+
+## Reproducing these results
+
+### 1. Exact framework & repository versions used in this report
+
+| Framework | Upstream Repository | Ref / Tag | Exact Commit / Package Versions | Built At |
+| --- | --- | --- | --- | --- |
+| `litert-lm` | [`google-ai-edge/LiteRT-LM`](https://github.com/google-ai-edge/LiteRT-LM) | `v0.17.1` | `5e58e9a0aef7abf7091207a8b1d1063a1c800f08` (`--define=litert_enable_ynnpack=true`) | `2026-10-01T13:43:57Z` |
+| `llama.cpp` | [`ggml-org/llama.cpp`](https://github.com/ggml-org/llama.cpp) | `b11259` | `d280808f5d82fcc3142b53f94ea5f594250cd765` | `2026-10-02T08:42:26Z` |
+| `onnxruntime` | [`microsoft/onnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai) | `onnxruntime-genai==0.17.1` | `onnxruntime==1.30.0`, `onnxruntime-genai==0.17.1` | `2026-10-02T08:34:37Z` |
+| `ai-edge-bench` (harness) | [`mariecwhite/ai-edge-bench`](https://github.com/mariecwhite/ai-edge-bench) | `fe5a70c17b54-dirty` | harness sha256 `63d0862b3a4cc7b4fd810c62e5693d4c51c3bb6b5a24f11db361d17dad952ca0` | — |
+
+### 2. Building framework container images (pinned vs. latest upstream)
+
+**Option A — Rebuild with the exact pinned versions used in this report:**
+
+```bash
+COMPOSE="docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml"
+export AEB_LLAMA_CPP_REF="b11259"
+export AEB_LITERTLM_REF="v0.17.1"
+${COMPOSE} --profile base build base
+${COMPOSE} --profile tools build tools
+${COMPOSE} --profile cpu build llama-cpp litert-lm-xnnpack
+${COMPOSE} --profile onnxruntime build \
+  --build-arg ONNXRUNTIME_VERSION="1.30.0" --build-arg ONNXRUNTIME_GENAI_VERSION="0.17.1" onnxruntime
+```
+
+**Option B — Pull & build with the latest upstream versions of every framework:**
+
+```bash
+# Query latest upstream git tags for llama.cpp and LiteRT-LM:
+export AEB_LLAMA_CPP_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')"
+export AEB_LITERTLM_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\^{}//')"
+
+# Query latest PyPI versions for OpenXLA (jax/flax/qwix/tunix), OpenVINO, and ONNX Runtime:
+read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'
+import json, urllib.request
+def latest(pkg):
+  with urllib.request.urlopen(f"https://pypi.org/pypi/{pkg}/json") as r:
+    return json.load(r)["info"]["version"]
+print(
+    latest("jax"), latest("flax"), latest("qwix"), latest("google-tunix"),
+    latest("openvino"), latest("openvino-genai"),
+    latest("onnxruntime"), latest("onnxruntime-genai")
+)
+PY
+)
+
+COMPOSE="docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml"
+${COMPOSE} --profile base build --pull base
+${COMPOSE} --profile tools build --no-cache tools
+${COMPOSE} --profile cpu build --no-cache llama-cpp litert-lm-xnnpack
+${COMPOSE} --profile onnxruntime build --no-cache \
+  --build-arg ONNXRUNTIME_VERSION="${ORT_VER}" --build-arg ONNXRUNTIME_GENAI_VERSION="${ORT_GENAI_VER}" onnxruntime
+```
+
+### 3. Machine setup & running the full benchmark suite
+
+```bash
+# Step-by-step suite phases on apple-m5-max:
+python3 scripts/suite.py perf         --machine apple-m5-max --suite suites/gemma4-e2b-cpu-arm-runtimes.json
+python3 scripts/suite.py prefix-cache --machine apple-m5-max --suite suites/gemma4-e2b-cpu-arm-runtimes.json
+python3 scripts/suite.py accuracy     --machine apple-m5-max --suite suites/gemma4-e2b-cpu-arm-runtimes.json --parallel 2 --shards 2 --threads half
+python3 scripts/suite.py sequence     --machine apple-m5-max --suite suites/gemma4-e2b-cpu-arm-runtimes.json
+python3 scripts/suite.py repro        --machine apple-m5-max --suite suites/gemma4-e2b-cpu-arm-runtimes.json
+make MACHINE=apple-m5-max SUITE=suites/gemma4-e2b-cpu-arm-runtimes.json report
+```
+
+### 4. Single-configuration performance commands
+
+```bash
+# litert-lm/ynnpack
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-litert-lm aeb.perf --framework litert-lm --label ynnpack --track reference \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm --threads 8 --ctx 4096 --ynnpack --cache-dir /results/_cache/litert-lm-ynnpack --fixed-decode-tokens 256
+# llama.cpp/stock-q4_0
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-llama-cpp aeb.perf --framework llama.cpp --label stock-q4_0 --track reference \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/ggml-org/gemma-4-E2B-it-GGUF/gemma-4-E2B-it-Q4_0.gguf --threads 12 --ctx 4096
+# onnxruntime/q4_k_m
+docker compose -f compose.yaml -f compose/machines/apple-m5-max.yaml --profile harness run --rm -T \
+  harness-onnxruntime aeb.perf --framework onnxruntime --label q4_k_m --track reference \
+  --prompt-tokens 1024 --gen-tokens 256 --warmup 2 --repetitions 5 -- \
+  --model /models/aeb/gemma-4-e2b-onnx/Q4_K_M/default --threads 12 --ctx 4096
+```
