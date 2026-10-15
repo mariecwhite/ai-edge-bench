@@ -461,6 +461,13 @@ ${COMPOSE} --profile x86-sota build \
 **Option B — Pull & build with the latest upstream versions of every framework:**
 
 ```bash
+# One-command helper script (resolves latest git tags & PyPI releases and builds all images):
+./scripts/build_latest.sh sapphire-rapids
+```
+
+Or run the underlying version resolution and build commands directly:
+
+```bash
 # Query latest upstream git tags for llama.cpp and LiteRT-LM:
 export AEB_LLAMA_CPP_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')"
 export AEB_LITERTLM_REF="$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\^{}//')"

@@ -1899,6 +1899,11 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
 
   L.append("**Option B — Pull & build with the latest upstream versions of every framework:**\n")
   L.append("```bash")
+  L.append(f"# One-command helper script (resolves latest git tags & PyPI releases and builds all images):")
+  L.append(f"./scripts/build_latest.sh {machine}")
+  L.append("```\n")
+  L.append("Or run the underlying version resolution and build commands directly:\n")
+  L.append("```bash")
   L.append("# Query latest upstream git tags for llama.cpp and LiteRT-LM:")
   L.append("export AEB_LLAMA_CPP_REF=\"$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')\"")
   L.append("export AEB_LITERTLM_REF=\"$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\\^{}//')\"")
