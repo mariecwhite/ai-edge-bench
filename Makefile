@@ -17,7 +17,7 @@ SINCE ?=
 .DEFAULT_GOAL := help
 .PHONY: help base images models bench bench-llama-cpp bench-litert-lm \
         bench-gpu sysinfo config machines clean-results tools matched-models \
-        datasets suite-perf suite-accuracy suite-repro report test diagnose-activations \
+        datasets suite-perf suite-accuracy suite-repro report dashboard test diagnose-activations \
         arm-images arm-models suite-sequence
 
 help:
@@ -42,7 +42,8 @@ help:
 	@echo "  make MACHINE=<m> suite-sequence input-length sweep (suite must define sequence_sweep)"
 	@echo "  make MACHINE=<m> suite-accuracy accuracy gate for every suite config"
 	@echo "  make MACHINE=<m> suite-repro    output reproducibility (greedy + seeded)"
-	@echo "  make MACHINE=<m> report         reports/<date>-<suite>-<machine>/ + history"
+	@echo "  make MACHINE=<m> report         reports/<date>-<suite>-<machine>/ + history + dashboard"
+	@echo "  make dashboard                  update dashboards/index.html from reports & results"
 	@echo "  make test                       harness unit tests (no models needed)"
 	@echo "  make MACHINE=<m> diagnose-activations  PyTorch reference with/without activation quantization"
 
@@ -130,6 +131,10 @@ report:
 	  --machine $(MACHINE) --suite /suites/$(notdir $(SUITE)) --date $(DATE) \
 	  $(if $(SINCE),--since $(SINCE),) \
 	  $(if $(wildcard reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md,$(if $(wildcard reports/notes/$(notdir $(basename $(SUITE))).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE))).md,))
+	python3 scripts/update_dashboard.py
+
+dashboard:
+	python3 scripts/update_dashboard.py
 
 test:
 	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/docker/harness:/opt/aeb/harness:ro \

@@ -1,4 +1,4 @@
-# Intel Xeon Platinum 8481C (Sapphire Rapids) - x86-64, 2x 48C/96T (4 SNC NUMA nodes x 24C).
+# Intel Xeon Sapphire Rapids - x86-64, 2x 48C/96T (4 SNC NUMA nodes x 24C).
 #
 #   docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml \
 #     --profile cpu run --rm llama-cpp
@@ -9,7 +9,7 @@
 
 x-machine: &machine
   AEB_MACHINE: sapphire-rapids
-  AEB_MACHINE_NOTES: "Intel Xeon Platinum 8481C (Sapphire Rapids), 2x48C/96T, pinned to Socket 0 physical cores (AVX-512 + AMX)"
+  AEB_MACHINE_NOTES: "Intel Xeon Sapphire Rapids, 2x48C/96T, pinned to Socket 0 physical cores (AVX-512 + AMX)"
   AEB_THREADS: ${AEB_THREADS:-32}
 
 services:

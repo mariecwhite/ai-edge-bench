@@ -294,6 +294,9 @@ ${COMPOSE} --profile cpu build llama-cpp litert-lm-xnnpack
 ${COMPOSE} --profile onnxruntime build \
   --build-arg ONNXRUNTIME_VERSION=&quot;1.30.0&quot; --build-arg ONNXRUNTIME_GENAI_VERSION=&quot;0.17.1&quot; onnxruntime</code></pre>
 <p><strong>Option B — Pull &amp; build with the latest upstream versions of every framework:</strong></p>
+<pre><code class="language-bash"># One-command helper script (resolves latest git tags &amp; PyPI releases and builds all images):
+./scripts/build_latest.sh apple-m5-max</code></pre>
+<p>Or run the underlying version resolution and build commands directly:</p>
 <pre><code class="language-bash"># Query latest upstream git tags for llama.cpp and LiteRT-LM:
 export AEB_LLAMA_CPP_REF=&quot;$(git ls-remote --tags --sort=&#x27;-v:refname&#x27; https://github.com/ggml-org/llama.cpp.git &#x27;b*&#x27; | head -n1 | sed &#x27;s|.*refs/tags/||&#x27;)&quot;
 export AEB_LITERTLM_REF=&quot;$(git ls-remote --tags --sort=&#x27;-v:refname&#x27; https://github.com/google-ai-edge/LiteRT-LM.git &#x27;v*&#x27; | head -n1 | sed &#x27;s|.*refs/tags/||; s/\^{}//&#x27;)&quot;

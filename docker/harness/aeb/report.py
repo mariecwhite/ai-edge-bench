@@ -1069,8 +1069,14 @@ def _slim(d):
   return {k: d[k] for k in ("n", "median", "min", "max", "cv")}
 
 
+def _sanitize_machine_notes(notes: str) -> str:
+  return re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(notes or ""))
+
+
 def _meta_slim(m):
   m = dict(m)
+  if "machine_notes" in m:
+    m["machine_notes"] = _sanitize_machine_notes(m["machine_notes"])
   ready = dict(m.get("driver_ready") or {})
   if "info" in ready:
     ready["info"] = {k: v for k, v in ready["info"].items() if k != "system_info"}
@@ -1748,7 +1754,7 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
     m = cfg_runs[cid][0]["meta"]
     builds[m["framework"]] = m["build"]
   L.append("| Item | Value |\n| --- | --- |")
-  L.append(f"| Machine | {args.machine} — {first.get('machine_notes', '')} |")
+  L.append(f"| Machine | {args.machine} — {_sanitize_machine_notes(first.get('machine_notes', ''))} |")
   cpu = sysinfo.get("cpu", {})
   kernel_str = re.sub(r"-smp-[0-9.]+", "", str(sysinfo.get("container", {}).get("kernel", "?")))
   L.append(f"| Container view | {sysinfo.get('container', {}).get('os', '?')}, kernel "
@@ -1898,6 +1904,11 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
   L.append("```\n")
 
   L.append("**Option B — Pull & build with the latest upstream versions of every framework:**\n")
+  L.append("```bash")
+  L.append(f"# One-command helper script (resolves latest git tags & PyPI releases and builds all images):")
+  L.append(f"./scripts/build_latest.sh {machine}")
+  L.append("```\n")
+  L.append("Or run the underlying version resolution and build commands directly:\n")
   L.append("```bash")
   L.append("# Query latest upstream git tags for llama.cpp and LiteRT-LM:")
   L.append("export AEB_LLAMA_CPP_REF=\"$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')\"")
