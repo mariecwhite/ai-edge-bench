@@ -88,7 +88,7 @@
        repacked AVX-512/AMX kernels at the cost of +0.4 GB of storage (`2.7 GB` vs `2.3 GB`).
 
 3. **Hardware & NUMA pinning (`Sapphire Rapids`).**
-   - Dual-socket **Intel Xeon Platinum 8481C (Sapphire Rapids)** server (2× 56 physical cores, ~1,008 GiB DDR5 RAM across 2 NUMA nodes).
+   - Dual-socket **4th Gen Intel Xeon Scalable (Sapphire Rapids)** server (2× 56 physical cores, ~1,008 GiB DDR5 RAM across 2 NUMA nodes).
    - ISA extensions present: `avx512f`, `avx512bw`, `avx512dq`, `avx512vl`, `avx512_vnni`, `avx512_bf16`, `avx512_fp16`, `amx_tile`, `amx_int8`, `amx_bf16`.
    - All single-stream performance and reproducibility runs are strictly pinned to **NUMA node 0 physical cores** via `numactl` inside `scripts/dock_shim.py`, avoiding cross-socket UPI traffic and SMT sibling contention.
    - During the 2-shard parallel accuracy runs (`--parallel 2 --shards 2`), shard 0 is pinned to Socket 0 physical cores and shard 1 is pinned to Socket 1 physical cores.

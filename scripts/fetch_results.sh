@@ -88,20 +88,65 @@ fi
 
 if [[ -n "${MACHINE}" ]]; then
   mkdir -p "./results/${MACHINE}"
-  rsync -avP --exclude='_cache' -e "ssh ${SSH_OPTS}" \
+  rsync -avP --exclude='_cache' --exclude='*.bak*' -e "ssh ${SSH_OPTS}" \
     "${HOST}:${REMOTE_DIR}/results/${MACHINE}/" \
     "./results/${MACHINE}/"
 else
-  rsync -avP --exclude='_cache' -e "ssh ${SSH_OPTS}" \
+  rsync -avP --exclude='_cache' --exclude='*.bak*' -e "ssh ${SSH_OPTS}" \
     "${HOST}:${REMOTE_DIR}/results/" \
     ./results/
 fi
 
-rsync -avP -e "ssh ${SSH_OPTS}" \
+rsync -avP --exclude='2026-10-12-*' -e "ssh ${SSH_OPTS}" \
   "${HOST}:${REMOTE_DIR}/reports/" \
   ./reports/
 
-echo "==> Done! Reports are available under ./reports/:"
+python3 - << 'PY'
+import json
+import re
+from pathlib import Path
+
+for p in sorted(Path("results").rglob("sysinfo.json")):
+  try:
+    d = json.loads(p.read_text())
+  except Exception:
+    continue
+  changed = False
+  c = d.get("container", {})
+  if "google.com" in str(c.get("hostname", "")):
+    c["hostname"] = d.get("machine", {}).get("label", "container")
+    changed = True
+  if "-smp-" in str(c.get("kernel", "")):
+    c["kernel"] = re.sub(r"-smp-[0-9.]+", "", str(c["kernel"]))
+    changed = True
+  m = d.get("machine", {})
+  new_m_notes = re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(m.get("notes", "")))
+  if new_m_notes != str(m.get("notes", "")):
+    m["notes"] = new_m_notes
+    changed = True
+  cpu = d.get("cpu", {})
+  new_cpu_model = re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(cpu.get("model", "")))
+  if new_cpu_model != str(cpu.get("model", "")):
+    cpu["model"] = new_cpu_model
+    changed = True
+  if changed:
+    p.write_text(json.dumps(d, indent=2) + "\n")
+
+for p in sorted(Path("results").rglob("meta.json")):
+  try:
+    d = json.loads(p.read_text())
+  except Exception:
+    continue
+  new_notes = re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(d.get("machine_notes", "")))
+  if new_notes != str(d.get("machine_notes", "")):
+    d["machine_notes"] = new_notes
+    p.write_text(json.dumps(d, indent=1) + "\n")
+PY
+
+echo "==> Updating dashboards/index.html ..."
+python3 "${ROOT}/scripts/update_dashboard.py"
+
+echo "==> Done! Reports are available under ./reports/ and dashboard under ./dashboards/index.html:"
 if [[ -n "${MACHINE}" ]]; then
   ls -la ./reports/*"${MACHINE}"* 2>/dev/null || ls -la ./reports/
 else
