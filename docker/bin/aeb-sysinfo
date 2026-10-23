@@ -11,7 +11,7 @@ source /opt/aeb/bin/aeb-common.sh
 
 out="${1:-/dev/stdout}"
 
-cpu_model="$(awk -F': ' '/^model name/{print $2; exit}' /proc/cpuinfo 2>/dev/null || true)"
+cpu_model="$(awk -F': ' '/^model name/{print $2; exit}' /proc/cpuinfo 2>/dev/null | sed -E 's/Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C/Sapphire Rapids/g' || true)"
 if [[ -z "${cpu_model}" ]]; then
   # aarch64 has no "model name"; fall back to the implementer/part identifiers.
   cpu_impl="$(awk -F': ' '/^CPU implementer/{print $2; exit}' /proc/cpuinfo 2>/dev/null || true)"
@@ -42,8 +42,8 @@ jq -n \
   --arg collected_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   --arg machine "${AEB_MACHINE:-unknown-machine}" \
   --arg machine_notes "${AEB_MACHINE_NOTES:-}" \
-  --arg hostname "$(hostname)" \
-  --arg kernel "$(uname -sr)" \
+  --arg hostname "${AEB_MACHINE:-container}" \
+  --arg kernel "$(uname -sr | sed -E 's/-smp-[0-9.]+//')" \
   --arg arch "$(uname -m)" \
   --arg os "$( (. /etc/os-release 2>/dev/null && echo "${PRETTY_NAME:-}") || echo unknown)" \
   --arg cpu_model "${cpu_model}" \

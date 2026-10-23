@@ -1,0 +1,473 @@
+{
+  "name": "gemma4-e2b-cpu-sapphire-rapids",
+  "description": "Gemma 4 E2B on x86 Intel Xeon AMX CPU (NUMA node 0 physical cores) across FP32, BF16, INT8, and INT4/INT2 model precisions:\n\n- **OpenXLA** (with YNNPACK)\n- **LiteRT-LM** (with XNNPACK and YNNPACK)\n- **llama.cpp** (AVX-512 + AMX)\n- **OpenVINO GenAI**\n- **ONNX Runtime GenAI**\n\nFrameworks are only benchmarked on data types where pre-built model artifacts exist (e.g., `llama.cpp` is omitted from FP32 because no pre-built F32 GGUF is published in `ggml-org/gemma-4-E2B-it-GGUF`).",
+  "references": "references/gemma-4-E2B-it.json",
+  "models": {
+    "litertlm": "/models/litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm",
+    "gguf_matched": "/models/aeb/gemma-4-E2B-it-qat-mobile-matched.gguf",
+    "gguf_matched_q4": "/models/aeb/gemma-4-E2B-it-qat-mobile-matched-q4.gguf",
+    "gguf_stock_q4_0": "/models/ggml-org/gemma-4-E2B-it-GGUF/gemma-4-E2B-it-Q4_0.gguf",
+    "gguf_q8_0": "/models/ggml-org/gemma-4-E2B-it-GGUF/gemma-4-E2B-it-Q8_0.gguf",
+    "gguf_bf16": "/models/ggml-org/gemma-4-E2B-it-GGUF/gemma-4-E2B-it-BF16.gguf",
+    "hf_bf16": "/models/google/gemma-4-E2B-it",
+    "hf_qat_mobile": "/models/google/gemma-4-E2B-it-qat-mobile-transformers",
+    "ov_int4": "/models/OpenVINO/gemma-4-E2B-it-int4-ov",
+    "ov_int8": "/models/OpenVINO/gemma-4-E2B-it-int8-ov",
+    "ov_fp16": "/models/OpenVINO/gemma-4-E2B-it-fp16-ov",
+    "onnx_q4_k_m": "/models/aeb/gemma-4-e2b-onnx/Q4_K_M/default"
+  },
+  "workload": {
+    "prompt_tokens": 1024,
+    "gen_tokens": 128,
+    "warmup": 1,
+    "repetitions": 3,
+    "cooldown_s": 1,
+    "ctx": 4096
+  },
+  "rounds": 2,
+  "accuracy_select_fastest_by_dtype": true,
+  "sequence_sweep": {
+    "prompt_tokens": [
+      64,
+      256,
+      1024,
+      4096
+    ],
+    "gen_tokens": 128,
+    "ctx": 8192,
+    "rounds": 1,
+    "warmup": 1,
+    "repetitions": 2,
+    "cooldown_s": 1,
+    "select_fastest_by_dtype": true,
+    "min_accuracy": {
+      "mmlu": 0.4,
+      "gsm8k": 0.4
+    }
+  },
+  "prefix_cache": {
+    "prompt_tokens": 1024,
+    "prefix_tokens": 896,
+    "gen_tokens": 128,
+    "ctx": 4096,
+    "rounds": 1,
+    "warmup": 1,
+    "repetitions": 3,
+    "cooldown_s": 1,
+    "only": [
+      "llama.cpp/matched",
+      "llama.cpp/fastest",
+      "llama.cpp/stock-q4_0",
+      "litert-lm/matched",
+      "litert-lm/fastest",
+      "xla/matched-ynnpack",
+      "openvino/int4",
+      "onnxruntime/q4_k_m"
+    ]
+  },
+  "repro": {
+    "repeats": 2,
+    "max_tokens": 64,
+    "slots": [
+      [
+        "greedy",
+        null,
+        1.0,
+        0
+      ],
+      [
+        "greedy",
+        null,
+        1.0,
+        1
+      ],
+      [
+        "seeded",
+        1234,
+        1.0,
+        0
+      ],
+      [
+        "seeded",
+        1234,
+        1.0,
+        1
+      ],
+      [
+        "seeded",
+        1235,
+        1.0,
+        3
+      ]
+    ],
+    "only": [
+      "llama.cpp/matched",
+      "llama.cpp/fastest",
+      "llama.cpp/stock-q4_0",
+      "litert-lm/matched",
+      "litert-lm/fastest",
+      "xla/matched-ynnpack",
+      "openvino/int4",
+      "onnxruntime/q4_k_m"
+    ]
+  },
+  "configs": [
+    {
+      "id": "llama.cpp/matched",
+      "framework": "llama.cpp",
+      "dtype": "int4",
+      "track": "matched",
+      "args": [
+        "--model",
+        "{gguf_matched}",
+        "--threads",
+        "{threads}",
+        "--ctx",
+        "{ctx}",
+        "--flash-attn",
+        "on",
+        "--cache-type-k",
+        "q8_0",
+        "--cache-type-v",
+        "q8_0"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "litert-lm/matched",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "matched",
+      "args": [
+        "--model",
+        "{litertlm}",
+        "--threads",
+        "{threads}",
+        "--ctx",
+        "{ctx}",
+        "--cache-dir",
+        "/results/_cache/litert-lm-xnnpack"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "xla/matched-ynnpack",
+      "framework": "xla",
+      "dtype": "int4",
+      "track": "matched",
+      "args": [
+        "--model",
+        "{hf_qat_mobile}",
+        "--threads",
+        "{fastest.xla.threads}",
+        "--ctx",
+        "{ctx}",
+        "--dtype",
+        "qat-mobile",
+        "--cache-dir",
+        "/results/_cache/xla-qat-mobile-ynnpack"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "llama.cpp/fastest",
+      "framework": "llama.cpp",
+      "dtype": "int4",
+      "track": "fastest",
+      "args": [
+        "--model",
+        "{gguf_matched_q4}",
+        "--threads",
+        "{fastest.llama.cpp.threads}",
+        "--ctx",
+        "{ctx}",
+        "--flash-attn",
+        "on",
+        "--ubatch",
+        "{fastest.llama.cpp.ubatch}"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "litert-lm/fastest",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "fastest",
+      "args": [
+        "--model",
+        "{litertlm}",
+        "--threads",
+        "{fastest.litert-lm.threads}",
+        "--ctx",
+        "{ctx}",
+        "--cache-dir",
+        "/results/_cache/litert-lm-xnnpack-fastest"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "litert-lm/ynnpack",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{litertlm}",
+        "--threads",
+        "{fastest.litert-lm-ynnpack.threads}",
+        "--ctx",
+        "{ctx}",
+        "--ynnpack",
+        "--cache-dir",
+        "/results/_cache/litert-lm-ynnpack"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "openvino/int4",
+      "framework": "openvino",
+      "dtype": "int4",
+      "track": "fastest",
+      "args": [
+        "--model",
+        "{ov_int4}",
+        "--threads",
+        "{fastest.openvino.threads}",
+        "--ctx",
+        "{ctx}",
+        "--dtype",
+        "int4"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "openvino/int8",
+      "framework": "openvino",
+      "dtype": "int8",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{ov_int8}",
+        "--threads",
+        "{fastest.openvino.threads}",
+        "--ctx",
+        "{ctx}",
+        "--dtype",
+        "int8"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "llama.cpp/int8",
+      "framework": "llama.cpp",
+      "dtype": "int8",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{gguf_q8_0}",
+        "--threads",
+        "{fastest.llama.cpp.threads}",
+        "--ctx",
+        "{ctx}",
+        "--flash-attn",
+        "on"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "llama.cpp/stock-q4_0",
+      "framework": "llama.cpp",
+      "dtype": "q4_0",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{gguf_stock_q4_0}",
+        "--threads",
+        "{fastest.llama.cpp.threads}",
+        "--ctx",
+        "{ctx}",
+        "--flash-attn",
+        "on",
+        "--ubatch",
+        "{fastest.llama.cpp.ubatch}"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "onnxruntime/q4_k_m",
+      "framework": "onnxruntime",
+      "dtype": "int4",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{onnx_q4_k_m}",
+        "--threads",
+        "{fastest.onnxruntime.threads}",
+        "--ctx",
+        "{ctx}"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000,
+        "gsm8k_limit": 250
+      }
+    },
+    {
+      "id": "xla/bf16-ynnpack",
+      "framework": "xla",
+      "dtype": "bf16",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{hf_bf16}",
+        "--threads",
+        "{fastest.xla.threads}",
+        "--ctx",
+        "{ctx}",
+        "--dtype",
+        "bf16",
+        "--cache-dir",
+        "/results/_cache/xla-bf16-ynnpack"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "openvino/bf16",
+      "framework": "openvino",
+      "dtype": "bf16",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{ov_fp16}",
+        "--threads",
+        "{fastest.openvino.threads}",
+        "--ctx",
+        "{ctx}",
+        "--dtype",
+        "bf16"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "llama.cpp/bf16",
+      "framework": "llama.cpp",
+      "dtype": "bf16",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{gguf_bf16}",
+        "--threads",
+        "{fastest.llama.cpp.threads}",
+        "--ctx",
+        "{ctx}",
+        "--flash-attn",
+        "on"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "xla/fp32-ynnpack",
+      "framework": "xla",
+      "dtype": "fp32",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{hf_bf16}",
+        "--threads",
+        "{fastest.xla.threads}",
+        "--ctx",
+        "{ctx}",
+        "--dtype",
+        "fp32",
+        "--cache-dir",
+        "/results/_cache/xla-fp32-ynnpack"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    },
+    {
+      "id": "openvino/fp32",
+      "framework": "openvino",
+      "dtype": "fp32",
+      "track": "reference",
+      "args": [
+        "--model",
+        "{ov_fp16}",
+        "--threads",
+        "{fastest.openvino.threads}",
+        "--ctx",
+        "{ctx}",
+        "--dtype",
+        "fp32"
+      ],
+      "accuracy": {
+        "mmlu_limit": 2000
+      }
+    }
+  ],
+  "machines": {
+    "sapphire-rapids": {
+      "threads": 16,
+      "fastest": {
+        "llama.cpp": {
+          "threads": 32,
+          "ubatch": 1024,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
+        },
+        "litert-lm": {
+          "threads": 16,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} x {XNNPACK, YNNPACK} (XNNPACK t=32 E2E winner)"
+        },
+        "litert-lm-ynnpack": {
+          "threads": 16,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (YNNPACK)"
+        },
+        "xla": {
+          "threads": 32,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (YNNPACK)"
+        },
+        "openvino": {
+          "threads": 40,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
+        },
+        "onnxruntime": {
+          "threads": 16,
+          "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
+        }
+      }
+    }
+  }
+}

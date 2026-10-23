@@ -17,7 +17,7 @@ SINCE ?=
 .DEFAULT_GOAL := help
 .PHONY: help base images models bench bench-llama-cpp bench-litert-lm \
         bench-gpu sysinfo config machines clean-results tools matched-models \
-        datasets suite-perf suite-accuracy suite-repro report test diagnose-activations \
+        datasets suite-perf suite-accuracy suite-repro report dashboard test diagnose-activations \
         arm-images arm-models suite-sequence
 
 help:
@@ -42,7 +42,8 @@ help:
 	@echo "  make MACHINE=<m> suite-sequence input-length sweep (suite must define sequence_sweep)"
 	@echo "  make MACHINE=<m> suite-accuracy accuracy gate for every suite config"
 	@echo "  make MACHINE=<m> suite-repro    output reproducibility (greedy + seeded)"
-	@echo "  make MACHINE=<m> report         reports/<date>-<suite>-<machine>/ + history"
+	@echo "  make MACHINE=<m> report         reports/<date>-<suite>-<machine>/ + history + dashboard"
+	@echo "  make dashboard                  update dashboards/index.html from reports & results"
 	@echo "  make test                       harness unit tests (no models needed)"
 	@echo "  make MACHINE=<m> diagnose-activations  PyTorch reference with/without activation quantization"
 
@@ -61,6 +62,12 @@ arm-images: base
 
 arm-models: tools
 	$(COMPOSE) --profile tools run --rm tools aeb.prep.fetch_arm_models
+
+x86-images: base
+	$(COMPOSE) --profile x86-sota build xla openvino onnxruntime
+
+x86-models: tools
+	$(COMPOSE) --profile tools run --rm tools aeb.prep.fetch_x86_models
 
 models: base
 	$(COMPOSE) --profile models run --rm fetch-models
@@ -103,6 +110,9 @@ datasets: tools
 suite-perf:
 	python3 scripts/suite.py perf --machine $(MACHINE) --suite $(SUITE)
 
+suite-prefix-cache:
+	python3 scripts/suite.py prefix-cache --machine $(MACHINE) --suite $(SUITE)
+
 suite-sequence:
 	python3 scripts/suite.py sequence --machine $(MACHINE) --suite $(SUITE)
 
@@ -116,13 +126,19 @@ suite-repro:
 	python3 scripts/suite.py repro --machine $(MACHINE) --suite $(SUITE) --cooldown-s 2
 
 report:
-	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/suites:/suites:ro tools aeb.report \
+	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/docker/harness:/opt/aeb/harness:ro \
+	  -v $(CURDIR)/suites:/suites:ro tools aeb.report \
 	  --machine $(MACHINE) --suite /suites/$(notdir $(SUITE)) --date $(DATE) \
 	  $(if $(SINCE),--since $(SINCE),) \
-	  $(if $(wildcard reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md,)
+	  $(if $(wildcard reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md,$(if $(wildcard reports/notes/$(notdir $(basename $(SUITE))).md),--extra-notes /reports/notes/$(notdir $(basename $(SUITE))).md,))
+	python3 scripts/update_dashboard.py
+
+dashboard:
+	python3 scripts/update_dashboard.py
 
 test:
-	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/scripts:/opt/scripts:ro \
+	$(COMPOSE) --profile tools run --rm -v $(CURDIR)/docker/harness:/opt/aeb/harness:ro \
+	  -v $(CURDIR)/scripts:/opt/scripts:ro \
 	  -v $(CURDIR)/suites:/opt/suites:ro --entrypoint python3 tools \
 	  -m unittest discover -s /opt/aeb/harness/tests -p 'test*.py'
 

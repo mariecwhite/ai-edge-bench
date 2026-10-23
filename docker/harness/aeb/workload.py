@@ -65,3 +65,84 @@ def build_perf_prompt(tokenize, prompt_tokens: int) -> tuple[str, list[int]]:
     if len(ids) == prompt_tokens:
       return render(n), ids
   raise ValueError(f"could not hit exactly {prompt_tokens} tokens")
+
+
+def build_prefix_cache_prompt(
+    tokenize,
+    prompt_tokens: int,
+    prefix_tokens: int,
+    variant: int = 0,
+) -> tuple[str, str, str, list[int], list[int]]:
+  """Build a prompt of `prompt_tokens` tokens split into a shared prefix of
+  `prefix_tokens` tokens (including <bos>) and a request-specific suffix of
+  `prompt_tokens - prefix_tokens` tokens ending with `TURN_SUFFIX`.
+
+  Returns `(full_prompt, prefix_text, suffix_text, full_ids, prefix_ids)`.
+  Varying `variant` (0, 1, 2, ...) changes the suffix text while keeping
+  `prefix_text` and `prefix_ids` identical across requests.
+  """
+  if prefix_tokens < 8 or prefix_tokens >= prompt_tokens:
+    raise ValueError(
+        f"prefix_tokens ({prefix_tokens}) must be in [8, prompt_tokens ({prompt_tokens}) - 1]"
+    )
+  base_text = passage()
+  while len(tokenize(f"{USER_PREFIX}{PERF_INSTRUCTION}{base_text}")) < prompt_tokens * 2:
+    base_text = base_text + "\n\n" + base_text
+
+  def render_prefix(n_chars: int) -> str:
+    return f"{USER_PREFIX}{PERF_INSTRUCTION}{base_text[:n_chars]}"
+
+  lo, hi = 0, len(base_text)
+  while lo < hi:
+    mid = (lo + hi) // 2
+    if len(tokenize(render_prefix(mid))) >= prefix_tokens:
+      hi = mid
+    else:
+      lo = mid + 1
+  prefix_text = None
+  prefix_ids = None
+  prefix_char_end = lo
+  for n in range(min(lo + 32, len(base_text)), max(lo - 128, 0), -1):
+    cand = render_prefix(n)
+    ids = tokenize(cand)
+    if len(ids) == prefix_tokens:
+      # Verify that appending text after `cand` does not alter `ids` via BPE merge.
+      probe_ids = tokenize(cand + " The")
+      if probe_ids[:prefix_tokens] == ids:
+        prefix_text = cand
+        prefix_ids = ids
+        prefix_char_end = n
+        break
+  if prefix_text is None or prefix_ids is None:
+    raise ValueError(f"could not hit exact prefix_tokens={prefix_tokens}")
+
+  # Select a distinct slice of the corpus for each variant so consecutive
+  # requests do not share suffix tokens beyond prefix_tokens.
+  rem_corpus = base_text[prefix_char_end:] + "\n\n" + base_text
+  stride = max(256, (prompt_tokens - prefix_tokens) * 6)
+  offset = (variant * stride) % max(1, len(base_text) // 2)
+  suffix_corpus = " " + rem_corpus[offset:].lstrip()
+  while len(tokenize(prefix_text + suffix_corpus + TURN_SUFFIX)) < prompt_tokens + 64:
+    suffix_corpus = suffix_corpus + "\n\n" + base_text
+
+  def render_full(n_chars: int) -> tuple[str, str]:
+    suf = suffix_corpus[:n_chars] + TURN_SUFFIX
+    return prefix_text + suf, suf
+
+  lo, hi = 1, len(suffix_corpus)
+  while lo < hi:
+    mid = (lo + hi) // 2
+    full_cand, _ = render_full(mid)
+    if len(tokenize(full_cand)) >= prompt_tokens:
+      hi = mid
+    else:
+      lo = mid + 1
+  for n in range(min(lo + 32, len(suffix_corpus)), max(lo - 128, 1), -1):
+    full_cand, suf_cand = render_full(n)
+    ids = tokenize(full_cand)
+    if len(ids) == prompt_tokens and ids[:prefix_tokens] == prefix_ids:
+      return full_cand, prefix_text, suf_cand, ids, prefix_ids
+  raise ValueError(
+      f"could not hit exact prompt_tokens={prompt_tokens} with prefix_tokens={prefix_tokens}"
+  )
+

@@ -14,7 +14,9 @@ implements [benchmark_methodology.md](benchmark_methodology.md).
 | --- | --- | --- |
 | [aeb-llama-driver.cpp](../docker/llama-cpp/aeb-llama-driver.cpp) | llama.cpp image | In-process llama.cpp driver (links the image's `libllama`). |
 | [drivers/litert_lm_driver.py](../docker/harness/aeb/drivers/litert_lm_driver.py) | LiteRT-LM image | In-process LiteRT-LM driver over the C API (`liblitert-lm.so`, built from the pinned source with the same Bazel flags as the CLI). |
-| [drivers/onnxruntime_driver.py](../docker/harness/aeb/drivers/onnxruntime_driver.py) | ONNX Runtime image | ONNX Runtime GenAI CPU driver; separate E2B GenAI package. |
+| [drivers/xla_driver.py](../docker/harness/aeb/drivers/xla_driver.py) | OpenXLA image | OpenXLA (JAX / XLA:CPU) driver using the official Google Tunix (`tunix.models.gemma4`) and `qwix` model implementation on Flax NNX. |
+| [drivers/openvino_driver.py](../docker/harness/aeb/drivers/openvino_driver.py) | OpenVINO image | OpenVINO GenAI CPU driver (`openvino_genai`) using models exported via Hugging Face `optimum-intel`. |
+| [drivers/onnxruntime_driver.py](../docker/harness/aeb/drivers/onnxruntime_driver.py) | ONNX Runtime image | ONNX Runtime GenAI CPU driver (`onnxruntime_genai`); separate E2B GenAI package. |
 | [perf.py](../docker/harness/aeb/perf.py) | framework images | One timed process: load, warm-up, measured requests, resource sampling. |
 | [monitor.py](../docker/harness/aeb/monitor.py) | framework images | 50 ms `/proc` + cgroup sampler for the driver process. |
 | [accuracy.py](../docker/harness/aeb/accuracy.py) | framework images | MMLU / GSM8K validity gate through the same drivers. |
@@ -23,7 +25,7 @@ implements [benchmark_methodology.md](benchmark_methodology.md).
 | [prep/](../docker/harness/aeb/prep) | tools image | Matched-weights GGUF conversion and `.litertlm` parity proof; `hf_reference.py` is an optional diagnostic that reruns the PyTorch reference of the QAT checkpoint with/without its activation quantization (`make diagnose-activations`, image `docker/tools/hf.Dockerfile`). |
 | [datasets.py](../docker/harness/aeb/datasets.py) | tools image | Pinned MMLU / GSM8K staging into `./datasets`. |
 | [report.py](../docker/harness/aeb/report.py) | tools image | Report, charts and performance history. |
-| [scripts/suite.py](../scripts/suite.py) | host | Runs a [suite](../suites) one container at a time, interleaved. |
+| [scripts/suite.py](../scripts/suite.py) | host | Runs a [suite](../suites) one container at a time, interleaved; supports `--skip-existing` (idempotent resumption and automatic accuracy `--resume`) and data-type-aware selection (`accuracy_select_fastest_by_dtype` and `sequence_sweep.select_fastest_by_dtype`). |
 
 Runtime modules use only the Python standard library, so the framework images
 use their own inference libraries; the shared orchestration modules use only
@@ -43,6 +45,11 @@ stdout (logs go to stderr). On start a driver loads the model and prints
 
 Rules every driver follows:
 
+- Always use the official model weights and the official model implementation
+  available in the target inference framework or open-source library (for
+  example, `libllama`, `liblitert-lm`, `tunix.models.gemma4` + `qwix`,
+  `openvino_genai`, `onnxruntime_genai`, or Hugging Face `transformers`); never
+  implement custom model architectures inside a driver.
 - The prompt is sent without `<bos>`; the framework adds it. No chat template
   is applied by the framework (the harness renders it), so both frameworks
   receive the same token ids.
@@ -71,6 +78,15 @@ Framework-specific notes:
   at load and writes no cache.
 - **llama.cpp SWA cache.** The driver uses `swa_full = false` (the
   `llama-bench` / `llama-cli` default; the library default is `true`).
+- **OpenXLA (`xla_driver.py`).** Uses the official Google Tunix Gemma 4 model
+  (`tunix.models.gemma4`) on Flax NNX/JAX (`jaxlib`) with either the default
+  **YNNPACK** backend (`__ynn_fusion`) or **Intel oneDNN** (`--onednn`, which
+  sets `--xla_cpu_experimental_onednn_custom_call=true --xla_cpu_experimental_ynn_fusion_type=invalid --xla_disable_hlo_passes=onednn-ops-rewriter`).
+  Quantization is only executed when the checkpoint itself provides pre-quantized
+  weights and scales in `config.json` (`quantization_config`, e.g.
+  `google/gemma-4-E2B-it-qat-mobile-transformers`); `xla_driver.py` refuses to
+  run dynamic activation quantization or on-the-fly channel-wise PTQ on
+  unquantized checkpoints.
 - **ONNX Runtime.** The GenAI E2B model is a directory, not an `.onnx` file.
   The driver loads a temporary config overlay to set CPU thread counts; it
   never changes the staged package. Model hashing covers each package file.
@@ -99,40 +115,46 @@ make MACHINE=apple-m5-max images tools     # framework + tools images
 make MACHINE=apple-m5-max models           # stock GGUF + .litertlm
 make MACHINE=apple-m5-max matched-models   # QAT checkpoint -> matched GGUFs (+ proofs)
 make MACHINE=apple-m5-max datasets         # MMLU + GSM8K, pinned revisions
-make MACHINE=apple-m5-max suite-perf       # prime caches, 3 interleaved rounds
+make MACHINE=apple-m5-max suite-perf       # prime caches, 3 interleaved rounds (stateless cold KV)
+make MACHINE=apple-m5-max suite-prefix-cache # warm KV prefix-caching benchmark (if defined in suite)
 make MACHINE=apple-m5-max suite-accuracy   # validity gate
 make MACHINE=apple-m5-max suite-repro      # output reproducibility
-make MACHINE=apple-m5-max report           # reports/<date>-<suite>-<machine>/
+make MACHINE=apple-m5-max report           # reports/<date>-<suite>-<machine>/ (README.md + README.html)
 ```
 
 ## Optional ARM CPU runtimes
 
 ### Input-length throughput sweep
 
-The exploratory ARM suite defines `sequence_sweep`: N = 64, 128, 256, 512,
-1,024, 2,048, 4,096, 8,192 and 16,384 prompt tokens, with exactly 512 generated
-tokens. Run it separately from the original headline measurements:
+Suites may define `sequence_sweep` (for example, N = 64, 128, 256, 512, 1,024,
+2,048, 4,096, 8,192 and 16,384 prompt tokens with 512 generated tokens in the
+exploratory ARM suite, or N = 64, 256, 1,024, 4,096 prompt tokens with 128
+generated tokens in the x86 Sapphire Rapids suite). Run it separately from the
+headline measurements:
 
 ```bash
 python3 scripts/suite.py sequence --machine apple-m5-max \
-  --suite suites/gemma4-e2b-cpu-arm-runtimes.json --dev
+  --suite suites/gemma4-e2b-cpu-arm-runtimes.json --dev --skip-existing
 make tools
 make MACHINE=apple-m5-max SUITE=suites/gemma4-e2b-cpu-arm-runtimes.json report
 ```
 
 `make suite-sequence` is the equivalent runner target for images containing
-the updated harness. Each length uses the suite's warm-up/repetition counts
-and interleaved rounds, with one container at a time. Context capacity stays
-at 16,896 for every point; model artifacts and thread counts stay unchanged.
-The prompt includes BOS and chat-template tokens. Beyond the passage's
-length, the harness repeats it deterministically; shorter existing prompts
-are unchanged.
+the updated harness. Each length uses the suite's or `sequence_sweep`'s
+warm-up/repetition counts and interleaved rounds, with one container at a time.
+When `sequence_sweep.select_fastest_by_dtype` is `true`, `scripts/suite.py`
+selects the empirically fastest configuration per `(framework, dtype)` pair
+from the `perf` phase that also clears `sequence_sweep.min_accuracy`.
+Context capacity stays at 16,896 for every point; model artifacts and thread
+counts stay unchanged. The prompt includes BOS and chat-template tokens. Beyond
+the passage's length, the harness repeats it deterministically; shorter
+existing prompts are unchanged.
 
 Reports retain the original 1,024 -> 256 headline and history and add separate
 prefill/decode charts, tables and per-request data for the sweep. Prefill
 throughput is N divided by TTFT (including tokenization and first-token
-generation); decode throughput is 511 divided by first-to-last-token time.
-Token-ID identity is checked separately at each N. Failed or wrong-length
+generation); decode throughput is `(N_gen - 1)` divided by first-to-last-token
+time. Token-ID identity is checked separately at each N. Failed or wrong-length
 processes are excluded with explicit diagnostics; unavailable points are
 gaps, not extrapolated values.
 
@@ -169,6 +191,24 @@ the `perf`, `accuracy`, and `repro` actions; perform accuracy before publishing
 or interpreting speed. Run `make MACHINE=apple-m5-max SUITE=suites/gemma4-e2b-cpu-arm-runtimes.json report`
 only after the runs and their quality checks complete. Use `--only` to smoke
 test one new configuration without rerunning the original engines.
+
+## x86 Sapphire Rapids (Intel AMX) multi-precision suite
+
+The [Sapphire Rapids suite](../suites/gemma4-e2b-cpu-sapphire-rapids.json)
+evaluates five CPU runtimes (`litert-lm`, `llama.cpp`, `xla`, `openvino`, and
+`onnxruntime`) across `fp32`, `bf16`, `int8`, and `int4` precision tiers on
+Intel Xeon Sapphire Rapids (`numactl --physcpubind=0-39 --localalloc` via
+[scripts/dock_shim.py](../scripts/dock_shim.py)):
+
+- [scripts/setup_amx_machine.sh](../scripts/setup_amx_machine.sh): Stages images,
+  datasets, and all pre-built model artifacts on the remote AMX host.
+- [scripts/run_amx_benchmarks.sh](../scripts/run_amx_benchmarks.sh): Executes the
+  8-phase pipeline (`smoke`, `sweep`, `perf`, `prefix-cache`, `accuracy`,
+  `sequence`, `repro`, and `report`) with `--skip-existing` so interrupted runs
+  resume cleanly without repeating finished phases.
+- [scripts/fetch_results.sh](../scripts/fetch_results.sh): Pulls the generated
+  reports and raw `results/sapphire-rapids` directory back to the local
+  workstation.
 
 `suites/<suite>.json` defines the configurations. The `machines.<machine>`
 section holds the per-machine thread count and the tuned "fastest" settings

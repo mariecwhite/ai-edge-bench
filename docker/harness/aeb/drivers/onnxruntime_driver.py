@@ -44,7 +44,7 @@ def _normalize_bos(ids, add_bos: bool, bos_token_id: int = BOS_TOKEN_ID) -> list
   return tokens
 
 
-def _prepare_runtime_model(model_dir: Path, threads: int):
+def _prepare_runtime_model(model_dir: Path, threads: int, ctx: int | None = None):
   """Create a disposable model directory with just its config customized."""
   source_config = model_dir / "genai_config.json"
   if not model_dir.is_dir() or not source_config.is_file():
@@ -60,6 +60,16 @@ def _prepare_runtime_model(model_dir: Path, threads: int):
   if not isinstance(model_config.get("decoder"), dict):
     raise ValueError(f"{source_config} has no Gemma 4 decoder configuration")
 
+  if ctx is not None and ctx > 0:
+    orig_ctx = model_config.get("context_length")
+    if not isinstance(orig_ctx, int) or orig_ctx > ctx:
+      model_config["context_length"] = int(ctx)
+    search_cfg = config.get("search")
+    if isinstance(search_cfg, dict):
+      orig_max = search_cfg.get("max_length")
+      if not isinstance(orig_max, int) or orig_max > ctx:
+        search_cfg["max_length"] = int(ctx)
+
   for component in ("decoder", "embedding", "vision", "speech"):
     component_config = model_config.get(component)
     if not isinstance(component_config, dict):
@@ -69,6 +79,7 @@ def _prepare_runtime_model(model_dir: Path, threads: int):
       raise ValueError(f"invalid {component}.session_options in {source_config}")
     session_options["intra_op_num_threads"] = threads
     session_options["inter_op_num_threads"] = 1
+    session_options["execution_mode"] = "sequential"
     session_options["provider_options"] = []
 
   workspace = tempfile.TemporaryDirectory(prefix="aeb-onnxruntime-")
@@ -99,7 +110,9 @@ class Driver:
     self.args = args
     self.model_dir = Path(args.model).expanduser().resolve()
     started = time.monotonic_ns()
-    self._workspace, runtime_dir, config = _prepare_runtime_model(self.model_dir, args.threads)
+    self._workspace, runtime_dir, config = _prepare_runtime_model(
+        self.model_dir, args.threads, args.ctx
+    )
     try:
       model_config = config["model"]
       bos_token_id = model_config.get("bos_token_id")
@@ -132,6 +145,9 @@ class Driver:
     if max_tokens < 1:
       raise ValueError("max_tokens must be positive")
     ignore_eos = bool(req.get("ignore_eos", False))
+    cache_prefix = bool(req.get("cache_prefix") or getattr(self.args, "cache_prefix", False))
+    prefix_tokens = int(req.get("prefix_tokens", 0)) if cache_prefix else 0
+
     t_req = time.monotonic_ns()
     prompt_ids = self.tokenize(prompt, add_bos=True)
     if len(prompt_ids) + max_tokens > self.args.ctx:
@@ -158,7 +174,16 @@ class Driver:
     params.set_search_options(**search_options)
 
     generator = self.og.Generator(self.model, params)
-    generator.append_tokens(np.asarray(prompt_ids, dtype=np.int32))
+    if 0 < prefix_tokens < len(prompt_ids):
+      generator.append_tokens(np.asarray(prompt_ids[:prefix_tokens], dtype=np.int32))
+      t_req = time.monotonic_ns()
+      generator.append_tokens(np.asarray(prompt_ids[prefix_tokens:], dtype=np.int32))
+      n_cached = prefix_tokens
+      n_prefilled = len(prompt_ids) - prefix_tokens
+    else:
+      generator.append_tokens(np.asarray(prompt_ids, dtype=np.int32))
+      n_cached = 0
+      n_prefilled = len(prompt_ids)
     t_prefill_done = time.monotonic_ns()
 
     stop_ids = set(int(token) for token in req.get("stop_ids", STOP_IDS))
@@ -185,6 +210,8 @@ class Driver:
     resp = {
         "ok": True,
         "n_prompt": len(prompt_ids),
+        "n_cached": n_cached,
+        "n_prefilled": n_prefilled,
         "n_gen": len(gen_ids),
         "stopped_on_eos": stopped_on_eos,
         "t_req_ns": t_req,
@@ -202,10 +229,11 @@ class Driver:
     return resp
 
   def serve(self) -> None:
+    kv_mode = "prefix-cached" if getattr(self.args, "cache_prefix", False) else "fresh per request"
     emit({"event": "ready", "framework": "onnxruntime", "load_ns": self.load_ns,
           "info": {"threads": self.args.threads, "ctx": self.args.ctx,
                    "model": str(self.model_dir), "device": "CPUExecutionProvider",
-                   "kv_cache": "fresh per request", "pid": os.getpid()}})
+                   "kv_cache": kv_mode, "pid": os.getpid()}})
     try:
       for line in sys.stdin:
         line = line.strip()
@@ -245,6 +273,7 @@ def main(argv=None) -> int:
   ap.add_argument("--model", required=True, help="path to a GenAI model directory")
   ap.add_argument("--threads", type=int, default=4)
   ap.add_argument("--ctx", type=int, default=4096, help="maximum prompt + generated tokens")
+  ap.add_argument("--cache-prefix", action="store_true", help="enable cached-prefix mode")
   args = ap.parse_args(argv)
   try:
     driver = Driver(args)

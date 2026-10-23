@@ -55,6 +55,9 @@ defaults). See [docs/harness.md](docs/harness.md).
 
 ## Benchmark goals
 
+- Always use the official model weights and official model implementations (e.g.
+  Hugging Face libraries, Google Tunix/Flax, native framework runtimes)
+  available in each inference framework.
 - Compare the same model, quantization, input, generation settings, and hardware
   where each framework supports them.
 - Report latency and throughput with consistent measurement boundaries.

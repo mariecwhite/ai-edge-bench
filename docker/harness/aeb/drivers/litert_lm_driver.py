@@ -138,6 +138,11 @@ class Driver:
     if req.get("ignore_eos") and self.args.fixed_decode_tokens != max_tokens:
       raise RuntimeError("ignore_eos requires a driver started with "
                          f"--fixed-decode-tokens {max_tokens}")
+    cache_prefix = bool(req.get("cache_prefix") or getattr(self.args, "cache_prefix", False))
+    prefix_text = req.get("prefix_text")
+    suffix_text = req.get("suffix_text")
+    use_split_prefill = cache_prefix and bool(prefix_text) and bool(suffix_text)
+
     sess = self._session(max_tokens, req.get("sampling"))
     events: queue.Queue = queue.Queue()
 
@@ -153,8 +158,17 @@ class Driver:
                   text.decode("utf-8", "replace") if text else ""))
 
     cb = STREAM_CALLBACK_TYPE(on_chunk)
-    encoded = prompt.encode("utf-8")
     try:
+      if use_split_prefill:
+        enc_prefix = prefix_text.encode("utf-8")
+        inp_prefix = lib.litert_lm_input_data_create(InputDataType.TEXT, enc_prefix, len(enc_prefix))
+        rc_pre = lib.litert_lm_session_run_prefill(sess, (ctypes.c_void_p * 1)(inp_prefix), 1)
+        lib.litert_lm_input_data_delete(inp_prefix)
+        if rc_pre != 0:
+          raise RuntimeError("prefix prefill failed")
+        encoded = suffix_text.encode("utf-8")
+      else:
+        encoded = prompt.encode("utf-8")
       inp = lib.litert_lm_input_data_create(InputDataType.TEXT, encoded, len(encoded))
       inputs = (ctypes.c_void_p * 1)(inp)
       t_req = time.monotonic_ns()
@@ -188,12 +202,22 @@ class Driver:
     finally:
       lib.litert_lm_session_delete(sess)
 
-    n_prompt = native.get("prefill_tokens", [None])[0] if native.get("prefill_tokens") else None
+    ptoks = native.get("prefill_tokens") or []
+    if use_split_prefill and len(ptoks) >= 2:
+      n_cached = int(ptoks[0])
+      n_prefilled = int(ptoks[1])
+      n_prompt = n_cached + n_prefilled
+    else:
+      n_prompt = ptoks[0] if ptoks else None
+      n_cached = 0
+      n_prefilled = n_prompt
     n_gen = native.get("decode_tokens", [len(chunk_ns)])[0] if native.get("decode_tokens") else len(chunk_ns)
     text = "".join(pieces)
     resp = {
         "ok": True,
         "n_prompt": n_prompt,
+        "n_cached": n_cached,
+        "n_prefilled": n_prefilled,
         "n_gen": n_gen,
         "n_stream_chunks": len(chunk_ns),
         "stopped_on_eos": n_gen < max_tokens,
@@ -215,6 +239,7 @@ class Driver:
           "info": {"threads": self.args.threads, "ctx": self.args.ctx,
                    "ynnpack": self.args.ynnpack, "cache_dir": self.args.cache_dir,
                    "fixed_decode_tokens": self.args.fixed_decode_tokens,
+                   "cache_prefix": getattr(self.args, "cache_prefix", False),
                    "sampler": "top_p sampler with top_k=1 (greedy)", "pid": os.getpid()}})
     for line in sys.stdin:
       line = line.strip()
@@ -254,6 +279,7 @@ def main(argv=None) -> int:
   ap.add_argument("--cache-dir", default="", help="XNNPACK weight cache dir ('' = default)")
   ap.add_argument("--ynnpack", action="store_true")
   ap.add_argument("--fixed-decode-tokens", type=int, default=0)
+  ap.add_argument("--cache-prefix", action="store_true", help="enable cached-prefix mode")
   args = ap.parse_args(argv)
   try:
     driver = Driver(args)

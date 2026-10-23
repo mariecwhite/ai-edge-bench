@@ -62,6 +62,7 @@ struct Args {
   bool mmap = true;
   bool repack = true;
   bool swa_full = false;  // llama-bench and llama-cli default
+  bool cache_prefix = false;
 };
 
 Args parse_args(int argc, char** argv) {
@@ -87,6 +88,7 @@ Args parse_args(int argc, char** argv) {
     else if (k == "--no-mmap") a.mmap = false;
     else if (k == "--no-repack") a.repack = false;
     else if (k == "--swa-full") a.swa_full = true;
+    else if (k == "--cache-prefix") a.cache_prefix = true;
     else {
       std::fprintf(stderr, "unknown argument: %s\n", k.c_str());
       std::exit(2);
@@ -191,8 +193,10 @@ int main(int argc, char** argv) {
           {"mmap", args.mmap},
           {"repack", args.repack},
           {"swa_full", args.swa_full},
+          {"cache_prefix", args.cache_prefix},
           {"system_info", llama_print_system_info()}}}});
 
+  std::vector<llama_token> cached_prefix_ids;
   std::string line;
   while (std::getline(std::cin, line)) {
     if (line.empty()) continue;
@@ -218,6 +222,8 @@ int main(int argc, char** argv) {
         const int max_tokens = req.value("max_tokens", 256);
         const bool ignore_eos = req.value("ignore_eos", false);
         const bool return_text = req.value("return_text", true);
+        const bool use_cache = req.value("cache_prefix", args.cache_prefix);
+        const int prefix_tokens = req.value("prefix_tokens", 0);
         // Optional seeded sampling; absent or temperature <= 0 means greedy.
         const json sampling = req.value("sampling", json::object());
         const float temperature = sampling.value("temperature", 0.0f);
@@ -234,21 +240,61 @@ int main(int argc, char** argv) {
         std::set<llama_token> stop_ids;
         for (auto& s : req.value("stop_ids", json::array())) stop_ids.insert(s.get<int>());
 
-        llama_memory_clear(llama_get_memory(ctx), true);
-        llama_perf_context_reset(ctx);
+        int n_cached = 0;
+        int64_t t_req = 0;
+        std::vector<llama_token> prompt_ids;
 
-        // Timed region starts before tokenization, matching LiteRT-LM where
-        // tokenization happens inside the prefill call.
-        const int64_t t_req = now_ns();
-        std::vector<llama_token> prompt_ids = tokenize(vocab, prompt, true);
-        if ((int)prompt_ids.size() + max_tokens > (int)llama_n_ctx(ctx)) {
-          throw std::runtime_error("prompt + max_tokens exceeds context");
-        }
-        // Prefill in n_batch chunks; llama_decode splits into ubatches.
-        for (size_t i = 0; i < prompt_ids.size(); i += args.batch) {
-          int n = (int)std::min<size_t>(args.batch, prompt_ids.size() - i);
-          llama_batch b = llama_batch_get_one(prompt_ids.data() + i, n);
-          if (llama_decode(ctx, b) != 0) throw std::runtime_error("prefill decode failed");
+        if (use_cache && prefix_tokens > 0) {
+          prompt_ids = tokenize(vocab, prompt, true);
+          if ((int)prompt_ids.size() + max_tokens > (int)llama_n_ctx(ctx)) {
+            throw std::runtime_error("prompt + max_tokens exceeds context");
+          }
+          if ((int)prompt_ids.size() > prefix_tokens) {
+            std::vector<llama_token> prefix_ids(
+                prompt_ids.begin(), prompt_ids.begin() + prefix_tokens);
+            if (cached_prefix_ids != prefix_ids) {
+              llama_memory_clear(llama_get_memory(ctx), true);
+              for (size_t i = 0; i < prefix_ids.size(); i += args.batch) {
+                int n = (int)std::min<size_t>(args.batch, prefix_ids.size() - i);
+                llama_batch b = llama_batch_get_one(prefix_ids.data() + i, n);
+                if (llama_decode(ctx, b) != 0) {
+                  throw std::runtime_error("prefix prefill decode failed");
+                }
+              }
+              cached_prefix_ids = std::move(prefix_ids);
+            } else {
+              llama_memory_seq_rm(llama_get_memory(ctx), 0, prefix_tokens, -1);
+            }
+            n_cached = prefix_tokens;
+          } else {
+            cached_prefix_ids.clear();
+            llama_memory_clear(llama_get_memory(ctx), true);
+          }
+          llama_perf_context_reset(ctx);
+          t_req = now_ns();
+          for (size_t i = (size_t)n_cached; i < prompt_ids.size(); i += args.batch) {
+            int n = (int)std::min<size_t>(args.batch, prompt_ids.size() - i);
+            llama_batch b = llama_batch_get_one(prompt_ids.data() + i, n);
+            if (llama_decode(ctx, b) != 0) throw std::runtime_error("prefill decode failed");
+          }
+        } else {
+          cached_prefix_ids.clear();
+          llama_memory_clear(llama_get_memory(ctx), true);
+          llama_perf_context_reset(ctx);
+
+          // Timed region starts before tokenization, matching LiteRT-LM where
+          // tokenization happens inside the prefill call.
+          t_req = now_ns();
+          prompt_ids = tokenize(vocab, prompt, true);
+          if ((int)prompt_ids.size() + max_tokens > (int)llama_n_ctx(ctx)) {
+            throw std::runtime_error("prompt + max_tokens exceeds context");
+          }
+          // Prefill in n_batch chunks; llama_decode splits into ubatches.
+          for (size_t i = 0; i < prompt_ids.size(); i += args.batch) {
+            int n = (int)std::min<size_t>(args.batch, prompt_ids.size() - i);
+            llama_batch b = llama_batch_get_one(prompt_ids.data() + i, n);
+            if (llama_decode(ctx, b) != 0) throw std::runtime_error("prefill decode failed");
+          }
         }
         const int64_t t_prefill_done = now_ns();
 
@@ -282,6 +328,8 @@ int main(int argc, char** argv) {
         json resp = {{"id", id},
                      {"ok", true},
                      {"n_prompt", prompt_ids.size()},
+                     {"n_cached", n_cached},
+                     {"n_prefilled", (int)prompt_ids.size() - n_cached},
                      {"n_gen", gen.size()},
                      {"stopped_on_eos", stopped},
                      {"t_req_ns", t_req},

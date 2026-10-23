@@ -1,0 +1,78 @@
+# Intel Xeon Sapphire Rapids - x86-64, 2x 48C/96T (4 SNC NUMA nodes x 24C).
+#
+#   docker compose -f compose.yaml -f compose/machines/sapphire-rapids.yaml \
+#     --profile cpu run --rm llama-cpp
+#
+# Sapphire Rapids supports AVX-512 (VNNI, VBMI, BF16, FP16) and Intel AMX
+# (AMX-TILE, AMX-INT8, AMX-BF16). Benchmarks pin to Socket 0 physical cores
+# to avoid cross-socket memory traffic.
+
+x-machine: &machine
+  AEB_MACHINE: sapphire-rapids
+  AEB_MACHINE_NOTES: "Intel Xeon Sapphire Rapids, 2x48C/96T, pinned to Socket 0 physical cores (AVX-512 + AMX)"
+  AEB_THREADS: ${AEB_THREADS:-32}
+
+services:
+  base:
+    platform: linux/amd64
+    environment: *machine
+
+  fetch-models:
+    platform: linux/amd64
+    environment: *machine
+
+  llama-cpp:
+    platform: linux/amd64
+    environment:
+      <<: *machine
+      AEB_VARIANT: cpu
+      AEB_GPU_LAYERS: "0"
+
+  litert-lm-xnnpack: &gnr-litert
+    platform: linux/amd64
+    build:
+      args:
+        BAZEL_CONFIG: linux_x86_64
+    environment:
+      <<: *machine
+      AEB_BACKEND: cpu
+
+  litert-lm-ynnpack:
+    <<: *gnr-litert
+
+  xla:
+    platform: linux/amd64
+    environment: *machine
+
+  openvino:
+    platform: linux/amd64
+    environment: *machine
+
+  onnxruntime:
+    platform: linux/amd64
+    environment: *machine
+
+  # Framework-neutral harness and offline tools (see docs/harness.md).
+  harness-llama-cpp:
+    platform: linux/amd64
+    environment: *machine
+
+  harness-litert-lm:
+    platform: linux/amd64
+    environment: *machine
+
+  harness-xla:
+    platform: linux/amd64
+    environment: *machine
+
+  harness-openvino:
+    platform: linux/amd64
+    environment: *machine
+
+  harness-onnxruntime:
+    platform: linux/amd64
+    environment: *machine
+
+  tools:
+    platform: linux/amd64
+    environment: *machine

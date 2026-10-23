@@ -1,4 +1,5 @@
 # Local inputs and generated benchmark output (keep small examples in docs/).
+/.cache/
 /models/
 /datasets/
 /results/

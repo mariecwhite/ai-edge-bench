@@ -8,6 +8,10 @@ implementing them.
 
 ## Proposing an adapter or benchmark
 
+- Always use the official model weights and the official model implementation
+  available in each inference framework or open-source library (e.g. Hugging
+  Face libraries, Google Tunix/Flax, native framework runtimes). Do not write
+  custom model implementations inside harness drivers.
 - Describe the framework and version, supported platform and backend, model
   format, and how the model will be obtained. Do not commit model weights or
   downloaded datasets.

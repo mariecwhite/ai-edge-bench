@@ -76,21 +76,29 @@ class OnnxRuntimeDriverTest(unittest.TestCase):
       original = {
           "model": {
               "type": "gemma4",
+              "context_length": 131072,
               "decoder": {"session_options": {"provider_options": []}},
               "embedding": {},
               "eos_token_id": [1, 106],
-          }
+          },
+          "search": {
+              "max_length": 131072,
+          },
       }
       (model_dir / "genai_config.json").write_text(json.dumps(original))
       (model_dir / "weights.bin").write_bytes(b"weights")
 
-      workspace, runtime_dir, updated = driver._prepare_runtime_model(model_dir, 6)
+      workspace, runtime_dir, updated = driver._prepare_runtime_model(model_dir, 6, 4096)
       try:
+        self.assertEqual(updated["model"]["context_length"], 4096)
+        self.assertEqual(updated["search"]["max_length"], 4096)
         self.assertEqual(updated["model"]["decoder"]["session_options"]["intra_op_num_threads"], 6)
         self.assertEqual(updated["model"]["decoder"]["session_options"]["inter_op_num_threads"], 1)
+        self.assertEqual(updated["model"]["decoder"]["session_options"]["execution_mode"], "sequential")
         self.assertEqual(updated["model"]["decoder"]["session_options"]["provider_options"], [])
         self.assertNotIn("providers", updated["model"]["decoder"]["session_options"])
         self.assertEqual(updated["model"]["embedding"]["session_options"]["intra_op_num_threads"], 6)
+        self.assertEqual(updated["model"]["embedding"]["session_options"]["execution_mode"], "sequential")
         self.assertEqual(json.loads((model_dir / "genai_config.json").read_text()), original)
         self.assertTrue((runtime_dir / "weights.bin").is_symlink())
       finally:
