@@ -165,7 +165,7 @@ def main(argv=None) -> int:
   ap.add_argument("--max-tokens", type=int, help="default: 8 (mmlu), 512 (gsm8k)")
   ap.add_argument("--resume", type=Path, help="existing run directory to continue")
   args = ap.parse_args(argv)
-  args.dataset = args.dataset or Path(f"/datasets/{args.task}/test.jsonl")
+  args.dataset = args.dataset or Path(os.environ.get("AEB_DATASETS_DIR", "/datasets")) / args.task / "test.jsonl"
   args.max_tokens = args.max_tokens or (8 if args.task == "mmlu" else 512)
   render_fn, extract_fn = (render, extract) if args.task == "mmlu" else (render_gsm8k, extract_gsm8k)
   score_fn = (lambda p, a: p == a) if args.task == "mmlu" else score_gsm8k
@@ -204,7 +204,7 @@ def main(argv=None) -> int:
       "driver_cmd": cmd,
       "model_path": model,
       "model_sha256": common.model_sha256(model) if model else None,
-      "build": common.build_info(),
+      "build": common.build_info(), "chat_template": workload.CHAT_TEMPLATE,
   }
   meta["limit"] = args.limit
   meta["shard"] = args.shard

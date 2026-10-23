@@ -23,13 +23,14 @@ every --sample-ms. The run directory receives:
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
 import json
 import os
 import sys
 import time
 
-from . import common, monitor, stats, workload
+from . import common, gpucheck, monitor, stats, workload
 from .driver import FRAMEWORKS, Driver, driver_command
 
 
@@ -77,13 +78,32 @@ def request_metrics(r: dict, samples: list[tuple]) -> dict:
     m["cpu_cores_prefill"] = cores(t_req, t_first)
     m["cpu_cores_decode"] = cores(t_first, t_end)
     m["cpu_cores_request"] = cores(t_req, t_end)
+    # System-wide GPU utilization (IOAccelerator "Device Utilization %"), mean
+    # over each phase. Coarse: it tracks sustained load but overstates idle
+    # gaps shorter than ~1 s (docs/harness.md, "Native Apple GPU suite").
+    util = [(s[0], s[15]) for s in samples if len(s) > 15 and s[15] is not None]
+
+    def util_mean(a, b):
+      v = [u for t, u in util if a <= t <= b]
+      return sum(v) / len(v) / 100 if v else None
+
+    if util:
+      m["gpu_util_prefill"] = util_mean(t_req, t_first)
+      m["gpu_util_decode"] = util_mean(t_first, t_end)
     window = [s for s in samples if t_req <= s[0] <= t_end]
     if window:
       m["rss_max_mb"] = max(s[2] for s in window) / 1024
-      m["rss_anon_max_mb"] = max(s[3] for s in window) / 1024
-      m["rss_file_max_mb"] = max((s[4] or 0) + (s[5] or 0) for s in window) / 1024
-      pss = [s[8] for s in window if s[8] is not None]
-      m["pss_max_mb"] = max(pss) / 1024 if pss else None
+      for key, col in (("rss_anon_max_mb", 3), ("rss_file_max_mb", 4), ("pss_max_mb", 8),
+                       ("footprint_max_mb", 12), ("gpu_mem_max_mb", 16)):
+        vals = [s[col] for s in window if len(s) > col and s[col] is not None]
+        m[key] = max(vals) / 1024 if vals else None
+      if not monitor.DARWIN:
+        m["rss_file_max_mb"] = max((s[4] or 0) + (s[5] or 0) for s in window) / 1024
+      # rusage ri_energy_nj: the kernel's CPU energy estimate; it does not
+      # include GPU work (verified: ~0 W for a GPU-saturating process).
+      energy = [s[17] for s in window if len(s) > 17 and s[17] is not None]
+      if len(energy) >= 2 and energy[-1] >= energy[0]:
+        m["cpu_energy_j"] = (energy[-1] - energy[0]) / 1e9
       sys_busy = (window[-1][10] - window[0][10])
       sys_total = (window[-1][11] - window[0][11])
       m["system_cpu_busy_frac"] = sys_busy / sys_total if sys_total else None
@@ -92,6 +112,30 @@ def request_metrics(r: dict, samples: list[tuple]) -> dict:
     m["cpu_seconds"] = (r["ticks_after"] - r["ticks_before"]) / monitor.CLK_TCK
     m["cpu_cores_exact"] = m["cpu_seconds"] / wall if wall > 0 else None
   return m
+
+
+def _mb(kb):
+  return kb / 1024 if kb is not None else None
+
+
+def _peak(end_sample, samples, col):
+  """Lifetime high-water mark column (VmHWM on Linux, max footprint on macOS)."""
+  if end_sample and end_sample[col] is not None:
+    return end_sample[col] / 1024
+  vals = [s[col] for s in samples if s[col] is not None]
+  return max(vals) / 1024 if vals else None
+
+
+def _idle_gpu_util(samples, requests, t_ready) -> float | None:
+  """Mean system GPU utilization after load, away from any request (cool-down
+  gaps): the background load other GPU clients (e.g. the window server) add."""
+  if t_ready is None:
+    return None
+  spans = [(r["t_req_ns"] - 300_000_000, r["t_end_ns"] + 1_000_000_000)
+           for r in requests if r.get("ok") is not False and "t_req_ns" in r]
+  vals = [s[15] for s in samples if len(s) > 15 and s[15] is not None and s[0] > t_ready
+          and not any(a <= s[0] <= b for a, b in spans)]
+  return sum(vals) / len(vals) / 100 if vals else None
 
 
 def cache_state(driver_args: list[str]) -> dict | None:
@@ -110,7 +154,8 @@ METRICS = ("e2e_ms", "ttft_ms", "prefill_tps", "suffix_prefill_tps", "decode_tps
            "tpot_ms", "itl_p50_ms", "itl_p99_ms", "cpu_cores_prefill",
            "cpu_cores_decode", "cpu_cores_request", "cpu_seconds", "rss_max_mb",
            "rss_anon_max_mb", "rss_file_max_mb", "pss_max_mb",
-           "system_cpu_busy_frac")
+           "system_cpu_busy_frac", "gpu_util_prefill", "gpu_util_decode", "footprint_max_mb",
+           "gpu_mem_max_mb", "cpu_energy_j")
 
 
 def main(argv=None) -> int:
@@ -160,17 +205,22 @@ def main(argv=None) -> int:
       "build": common.build_info(),
       "params": {k: getattr(args, k) for k in ("prompt_tokens", "prefix_tokens", "gen_tokens",
                                                 "warmup", "repetitions", "cooldown_s", "sample_ms")},
+      "platform": sys.platform,
+      "clk_tck": monitor.CLK_TCK,
   }
   meta["cache_state_before"] = cache_state(driver_args)
   common.write_sysinfo(run_dir / "sysinfo.json")
   print(f"[aeb] perf {args.framework}/{args.label} -> {run_dir}", file=sys.stderr, flush=True)
 
   t_spawn = time.monotonic_ns()
+  wall_start = dt.datetime.now(dt.timezone.utc)
   drv = Driver(cmd, run_dir / "driver.log")
+  meta["driver_pid"] = drv.pid
   mon = monitor.Monitor(drv.pid, interval_s=args.sample_ms / 1000).start()
   status = "ok"
   requests = []
   idle_after_load = None
+  t_ready = None
   try:
     ready = drv.wait_ready()
     t_ready = time.monotonic_ns()
@@ -214,6 +264,7 @@ def main(argv=None) -> int:
           "decode": "greedy, fixed length (stop tokens ignored)",
           "context_tokens_needed": ctx_needed,
       }
+    meta["workload"]["chat_template"] = workload.CHAT_TEMPLATE
     time.sleep(args.cooldown_s)
 
     for i in range(total):
@@ -250,6 +301,12 @@ def main(argv=None) -> int:
       if r.get("n_gen") != args.gen_tokens:
         r["warning"] = f"generated {r.get('n_gen')} tokens, expected {args.gen_tokens}"
         status = "warning"
+      if not before <= r["t_req_ns"] <= r["t_end_ns"] <= after:
+        # Driver and monitor timestamps must share one clock, or per-phase
+        # CPU/GPU/memory attribution is wrong (latencies stay valid).
+        r["warning"] = "driver timestamps outside the orchestrator's request window (clock domain)"
+        meta["clock_domain_mismatch"] = True
+        status = "warning"
       requests.append(r)
       print(f"[aeb] {'run' if measured else 'warmup'} {i}: e2e {(r['t_end_ns'] - r['t_req_ns']) / 1e6:.0f} ms, "
             f"ttft {(r['t_first_ns'] - r['t_req_ns']) / 1e6:.0f} ms, n_gen {r['n_gen']}",
@@ -264,6 +321,21 @@ def main(argv=None) -> int:
     end_sample = monitor.Monitor(drv.pid).sample(with_pss=True)
     meta["exit_code"] = drv.close()
     meta["cgroup_memory_peak_bytes"] = monitor.read_cgroup_peak()
+
+  if monitor.DARWIN:
+    # An engine that ignores Metal command-buffer errors keeps "running" after
+    # a GPU hang without doing GPU work; such a run is invalid (aeb/gpucheck.py).
+    time.sleep(2)  # let the unified log persist the last entries
+    errors = gpucheck.metal_errors(wall_start - dt.timedelta(seconds=1),
+                                   dt.datetime.now(dt.timezone.utc))
+    if errors is not None:
+      check = gpucheck.summarize(errors, wall_start - dt.timedelta(seconds=1),
+                                 dt.datetime.now(dt.timezone.utc), drv.pid)
+      common.dump(run_dir / "gpu_check.json", check)
+      if check["errors"]:
+        status = "error"
+        meta["error"] = gpucheck.error_text(check)
+        print(f"[aeb] {meta['error']}", file=sys.stderr)
 
   mon.write_csv(run_dir / "timeseries.csv")
   with open(run_dir / "requests.jsonl", "w") as f:
@@ -285,12 +357,16 @@ def main(argv=None) -> int:
       "n_measured": len(measured),
       "metrics": {k: stats.describe([m.get(k) for m in measured]) for k in METRICS},
       "load_ms": meta.get("load_ms_driver"),
-      "peak_rss_mb_lifetime": (end_sample[6] / 1024) if end_sample else
-                              (max(s[6] for s in samples) / 1024 if samples else None),
-      "idle_after_load": {"rss_mb": idle_after_load[2] / 1024, "rss_anon_mb": idle_after_load[3] / 1024,
-                          "rss_file_mb": ((idle_after_load[4] or 0) + (idle_after_load[5] or 0)) / 1024,
-                          "pss_mb": (idle_after_load[8] or 0) / 1024} if idle_after_load else None,
+      "peak_rss_mb_lifetime": _peak(end_sample, samples, 6),
+      "peak_footprint_mb_lifetime": _peak(end_sample, samples, 13),
+      "idle_after_load": {"rss_mb": idle_after_load[2] / 1024,
+                          "rss_anon_mb": _mb(idle_after_load[3]),
+                          "rss_file_mb": (_mb(idle_after_load[4]) if monitor.DARWIN else
+                                          ((idle_after_load[4] or 0) + (idle_after_load[5] or 0)) / 1024),
+                          "pss_mb": (idle_after_load[8] or 0) / 1024,
+                          "footprint_mb": _mb(idle_after_load[12])} if idle_after_load else None,
       "cgroup_memory_peak_mb": (meta["cgroup_memory_peak_bytes"] / 2**20) if meta["cgroup_memory_peak_bytes"] else None,
+      "gpu_util_idle": _idle_gpu_util(samples, requests, t_ready),
       "outliers_e2e": stats.mad_outliers([m["e2e_ms"] for m in measured]),
       "per_request": per_req,
   }

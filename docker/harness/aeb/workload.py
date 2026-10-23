@@ -16,12 +16,21 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from importlib import resources
 
 # Gemma 4 chat template, single user turn, thinking disabled (no <|think|> in
 # a system turn). <bos> is added by the framework, never by the harness.
 USER_PREFIX = "<|turn>user\n"
 TURN_SUFFIX = "<turn|>\n<|turn>model\n"
+# Generation-prompt variants of the Gemma 4 chat templates with thinking
+# disabled. The E2B template ends at "<|turn>model\n"; the 26B A4B (and 31B)
+# templates also emit an empty thought channel. Selected per suite
+# (workload.chat_template) through AEB_CHAT_TEMPLATE and recorded in every run.
+TEMPLATES = {"gemma4": "", "gemma4-empty-thought": "<|channel>thought\n<channel|>"}
+CHAT_TEMPLATE = os.environ.get("AEB_CHAT_TEMPLATE", "gemma4")
+if CHAT_TEMPLATE not in TEMPLATES:
+  raise ValueError(f"AEB_CHAT_TEMPLATE={CHAT_TEMPLATE!r}; expected one of {sorted(TEMPLATES)}")
 # Stop tokens from the .litertlm LlmMetadata (<eos>, <|tool_response>, <turn|>);
 # llama.cpp is given the same set explicitly.
 STOP_IDS = [1, 50, 106]
@@ -31,7 +40,7 @@ PERF_INSTRUCTION = ("Read the following passage, then write a detailed continuat
 
 
 def chat(user_text: str) -> str:
-  return f"{USER_PREFIX}{user_text}{TURN_SUFFIX}"
+  return f"{USER_PREFIX}{user_text}{TURN_SUFFIX}{TEMPLATES[CHAT_TEMPLATE]}"
 
 
 def passage() -> str:

@@ -6,6 +6,8 @@
   python3 scripts/suite.py repro    --machine apple-m5-max   # output reproducibility
   python3 scripts/suite.py sequence --machine apple-m5-max --suite suites/gemma4-e2b-cpu-arm-runtimes.json
   python3 scripts/suite.py plan     --machine apple-m5-max   # print commands only
+  python3 scripts/suite.py perf     --machine apple-m5-max --suite suites/gemma4-26b-a4b-gpu.json
+                                    # "execution": "native": runs on the macOS host (Metal)
 
 perf: first primes every config once (unmeasured; populates framework caches),
 then every config runs in its own container/process for `rounds` rounds. The
@@ -34,6 +36,13 @@ SERVICE = {
     "xla": "harness-xla",
     "openvino": "harness-openvino",
 }
+# Native (host) execution: suites with "execution": "native" run the harness
+# directly on the host (e.g. Metal GPU on macOS, unreachable from the Docker VM)
+# with the stack built by scripts/native-apple-gpu.sh.
+NATIVE = ROOT / "build" / "native"
+NATIVE_BUILD_INFO = {"llama.cpp": "llama.cpp", "litert-lm": "litert-lm", "mlx": "mlx",
+                     "basert": "basert"}
+EXECUTION = {"mode": "container", "machine_notes": "", "chat_template": "gemma4"}
 
 
 def resolve(value: str, ctx: dict) -> str:
@@ -76,8 +85,39 @@ def compose_base(machine: str, dev: bool) -> list[str]:
   return cmd
 
 
+def host_path(arg: str) -> str:
+  """Map the container mount points used in suite files to the repo directories."""
+  for mount in ("/models", "/results", "/datasets"):
+    if arg == mount or arg.startswith(mount + "/"):
+      return str(ROOT / mount.lstrip("/")) + arg[len(mount):]
+  return arg
+
+
+def native_cmd(machine: str, framework: str, module_args: list[str]) -> list[str]:
+  env = {
+      "AEB_MACHINE": machine,
+      "AEB_MACHINE_NOTES": EXECUTION["machine_notes"],
+      "AEB_RESULTS_DIR": str(ROOT / "results"),
+      "AEB_DATASETS_DIR": str(ROOT / "datasets"),
+      "AEB_GIT_REV": git_rev(),
+      "AEB_BUILD_INFO": str(NATIVE / NATIVE_BUILD_INFO[framework] / "build-info.json"),
+      "PYTHONPATH": str(ROOT / "docker" / "harness"),
+      "PATH": f"{NATIVE / 'llama.cpp' / 'bin'}:{NATIVE / 'venv' / 'bin'}:/usr/bin:/bin:/usr/sbin:/sbin",
+      "BASERT_LIB_PATH": str(NATIVE / "basert" / "engine" / "libbaseRT.dylib"),
+      "PYTHONUNBUFFERED": "1",
+      "AEB_CHAT_TEMPLATE": EXECUTION["chat_template"],
+  }
+  return (["env", "-i", *(f"{k}={v}" for k, v in env.items()),
+           str(NATIVE / "venv" / "bin" / "python"), "-m"]
+          + [host_path(a) for a in module_args])
+
+
 def run_cmd(machine: str, framework: str, module_args: list[str], dev: bool) -> list[str]:
+  if EXECUTION["mode"] == "native":
+    return native_cmd(machine, framework, module_args)
   cmd = compose_base(machine, dev) + ["run", "--rm", "-T", "-e", f"AEB_GIT_REV={git_rev()}"]
+  if EXECUTION["chat_template"] != "gemma4":
+    cmd += ["-e", f"AEB_CHAT_TEMPLATE={EXECUTION['chat_template']}"]
   if dev:
     cmd += ["-v", f"{ROOT / 'docker' / 'harness'}:/opt/aeb/harness:ro"]
   return cmd + [SERVICE[framework], *module_args]
@@ -90,6 +130,9 @@ def load(suite_path: Path, machine: str) -> tuple[dict, dict]:
     raise SystemExit(f"suite has no 'machines.{machine}' section (threads / fastest config)")
   ctx = dict(suite["models"])
   ctx.update(threads=mcfg["threads"], ctx=suite["workload"]["ctx"], fastest=mcfg.get("fastest", {}))
+  EXECUTION.update(mode=suite.get("execution", "container"),
+                   machine_notes=mcfg.get("machine_notes", ""),
+                   chat_template=suite["workload"].get("chat_template", "gemma4"))
   return suite, ctx
 
 
@@ -566,7 +609,7 @@ def accuracy_commands(suite, ctx, machine, only, dev, tasks, threads=None, shard
     fw, label = c["framework"], c["id"].split("/", 1)[1]
     acc = c.get("accuracy", {})
     driver = [resolve(a, ctx) for a in c["args"]]
-    if threads and fw in ("llama.cpp", "litert-lm"):
+    if threads and fw in ("llama.cpp", "litert-lm") and EXECUTION["mode"] != "native":
       # Thread invariance was validated for these two drivers only.
       driver[driver.index("--threads") + 1] = str(threads)
     for task in tasks:
@@ -672,10 +715,12 @@ def execute(cmds, dry: bool, cooldown: float) -> int:
 def keep_awake() -> None:
   """On macOS, idle sleep pauses the Docker VM mid-run (observed: an hour-long
   stall and a perturbed request). Hold a no-idle-sleep assertion for as long
-  as this process lives."""
+  as this process lives. Native GPU runs also keep the display awake, so the
+  window server's GPU load does not change part-way through a run."""
   if sys.platform == "darwin":
+    flags = ["-i", "-s"] + (["-d"] if EXECUTION["mode"] == "native" else [])
     try:
-      subprocess.Popen(["caffeinate", "-i", "-s", "-w", str(os.getpid())])
+      subprocess.Popen(["caffeinate", *flags, "-w", str(os.getpid())])
     except OSError:
       print("[suite] warning: caffeinate unavailable; disable sleep manually", flush=True)
 
@@ -711,6 +756,8 @@ def main(argv=None) -> int:
   suite, ctx = load(args.suite, args.machine)
   dry = args.dry_run or args.action == "plan"
   if not dry:
+    if EXECUTION["mode"] == "native" and not (NATIVE / "venv" / "bin" / "python").exists():
+      raise SystemExit("native suite: run scripts/native-apple-gpu.sh (make native) first")
     keep_awake()
   rounds = suite.get("rounds", 3) if args.rounds is None else args.rounds
   if args.action in ("perf", "plan"):
@@ -753,6 +800,10 @@ def main(argv=None) -> int:
   if args.action in ("repro", "plan"):
     cmds += repro_commands(suite, ctx, args.machine, args.only, args.dev,
                            results_dir=args.results, skip_existing=args.skip_existing)
+  if args.parallel > 1 and EXECUTION["mode"] == "native":
+    # One GPU: concurrent processes would share it and change each other's numerics timing.
+    print("[suite] native suite: ignoring --parallel; running one process at a time", flush=True)
+    args.parallel = 0
   if args.action == "accuracy" and args.parallel:
     return 1 if execute_parallel(acc, dry, args.parallel) else 0
   cmds += [(cid, cmd) for cid, cmd, _ in acc]

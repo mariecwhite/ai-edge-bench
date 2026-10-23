@@ -33,7 +33,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from . import accuracy as acc_mod  # noqa: E402
-from . import stats  # noqa: E402
+from . import gpucheck, stats  # noqa: E402
 
 COLORS = {
     "llama.cpp": "#d9822b",
@@ -41,6 +41,8 @@ COLORS = {
     "onnxruntime": "#9c4d9f",
     "xla": "#2e8b57",
     "openvino": "#0095a8",
+    "mlx": "#2a9d4b",
+    "basert": "#c0392b",
 }
 TRACK_ORDER = {"matched": 0, "fastest": 1, "reference": 2}
 HEADLINE = [  # metric, label, unit, higher_is_better, fmt
@@ -57,7 +59,34 @@ HEADLINE = [  # metric, label, unit, higher_is_better, fmt
     ("rss_file_max_mb", "Peak RSS file-backed", "MB", False, "{:.0f}"),
     ("pss_max_mb", "Peak PSS", "MB", False, "{:.0f}"),
 ]
+# Native macOS (Metal) suites: no /proc split of RSS, no PSS/cgroup; GPU and
+# phys_footprint instead. higher_is_better None = descriptive (no arrow).
+NATIVE_HEADLINE = [
+    ("ttft_ms", "TTFT", "ms", False, "{:.0f}"),
+    ("prefill_tps", "Prefill", "tok/s", True, "{:.1f}"),
+    ("decode_tps", "Decode", "tok/s", True, "{:.2f}"),
+    ("e2e_ms", "End-to-end", "ms", False, "{:.0f}"),
+    ("itl_p99_ms", "Inter-token p99", "ms", False, "{:.1f}"),
+    ("gpu_util_prefill", "GPU utilization, prefill (system counter)", "%", None, "{:.0%}"),
+    ("gpu_util_decode", "GPU utilization, decode (system counter)", "%", None, "{:.0%}"),
+    ("cpu_cores_prefill", "CPU cores (prefill)", "cores", False, "{:.2f}"),
+    ("cpu_cores_decode", "CPU cores (decode)", "cores", False, "{:.2f}"),
+    ("cpu_seconds", "CPU time / request", "s", False, "{:.1f}"),
+    ("cpu_energy_j", "CPU energy / request (excl. GPU)", "J", False, "{:.1f}"),
+    ("footprint_max_mb", "Peak phys_footprint (request)", "MB", False, "{:.0f}"),
+    ("rss_max_mb", "Peak resident size (request)", "MB", False, "{:.0f}"),
+    ("gpu_mem_max_mb", "GPU in-use memory, system (request)", "MB", False, "{:.0f}"),
+]
+CPU_HEADLINE = HEADLINE
 CHANGE_THRESHOLD = 0.03  # flag history changes beyond max(3%, 3 x pooled CV)
+
+
+def _h(key):
+  return next(h for h in HEADLINE if h[0] == key)
+
+
+def _arrow(hib):
+  return "" if hib is None else (" ↑" if hib else " ↓")
 
 
 # --------------------------------------------------------------------- load
@@ -67,6 +96,15 @@ def _read_json(p: Path):
   return json.loads(p.read_text()) if p.is_file() else None
 
 
+def _gpu_checked(d: Path, meta: dict, summ: dict) -> tuple[dict, dict]:
+  """Native runs: a Metal GPU error during the run (gpu_check.json, written by
+  aeb.perf or `python -m aeb.gpucheck`) invalidates it."""
+  err = gpucheck.error_text(_read_json(d / "gpu_check.json"))
+  if not err:
+    return meta, summ
+  return dict(meta, error=meta.get("error") or err), dict(summ, status="error", complete=False)
+
+
 def load_perf(results: Path, machine: str) -> list[dict]:
   runs = []
   for meta_p in sorted((results / machine / "perf").glob("*/*/*/meta.json")):
@@ -74,15 +112,17 @@ def load_perf(results: Path, machine: str) -> list[dict]:
     summ = _read_json(d / "summary.json")
     if summ is None:
       continue
-    runs.append({"dir": d, "meta": _read_json(meta_p), "summary": summ})
+    meta, summ = _gpu_checked(d, _read_json(meta_p), summ)
+    runs.append({"dir": d, "meta": meta, "summary": summ})
   return runs
 
 
 def load_accuracy(results: Path, machine: str) -> list[dict]:
   out = []
   for summ_p in sorted(results.glob(f"{machine}/accuracy-*/*/*/*/summary.json")):
-    meta = _read_json(summ_p.parent / "meta.json")
-    out.append({"dir": summ_p.parent, "meta": meta, "summary": _read_json(summ_p)})
+    meta, summ = _gpu_checked(summ_p.parent, _read_json(summ_p.parent / "meta.json") or {},
+                              _read_json(summ_p))
+    out.append({"dir": summ_p.parent, "meta": meta, "summary": summ})
   return out
 
 
@@ -143,8 +183,10 @@ def merge_accuracy(acc_runs, agg):
   return rows, preds_by
 
 
-def paired_agreement(preds_by) -> list[dict]:
-  """Per task, compare every pair of configs on the items both answered."""
+def paired_agreement(preds_by, track_of=None) -> list[dict]:
+  """Per task, compare every pair of configs on the items both answered.
+  Pairs share a framework or a track: the config label (CPU suites, whose
+  labels are track names) or, when `track_of` is given, the suite track."""
   out = []
   keys = sorted(preds_by)
   for i, a in enumerate(keys):
@@ -156,7 +198,8 @@ def paired_agreement(preds_by) -> list[dict]:
       if len(common) < 50:
         continue
       same_fw = a[0].split("/")[0] == b[0].split("/")[0]
-      same_track = a[0].split("/")[1] == b[0].split("/")[1]
+      same_track = (track_of.get(a[0]) == track_of.get(b[0]) if track_of
+                    else a[0].split("/")[1] == b[0].split("/")[1])
       if not (same_fw or same_track):
         continue
       same = sum(pa[k]["pred"] == pb[k]["pred"] for k in common)
@@ -277,8 +320,13 @@ def config_runs(runs, suite, since: str | None) -> dict[str, list[dict]]:
     mine.sort(key=lambda r: r["meta"]["started_at"])
     if since is None:
       mine = mine[-rounds:]
-    out[c["id"]] = mine
+    # Failed processes are listed in the report, never averaged or replaced.
+    EXCLUDED.extend((c["id"], r) for r in mine if r["summary"].get("status") == "error")
+    out[c["id"]] = [r for r in mine if r["summary"].get("status") != "error"]
   return out
+
+
+EXCLUDED: list[tuple[str, dict]] = []
 
 
 def pooled(runs: list[dict], metric: str) -> list[float]:
@@ -463,6 +511,21 @@ def prefix_cache_data(runs, suite, cfg_runs, agg, since=None) -> dict:
   }
 
 
+GPU_MEM_DELTA = ("gpu_mem_delta_mb", "GPU in-use memory above pre-load baseline", "MB", False,
+                 "{:.0f}")
+
+
+def _gpu_mem_delta(run) -> float | None:
+  """Native runs: peak system GPU in-use memory over the process lifetime minus
+  the value at process start (before the model loads). macOS attributes some
+  Metal allocations to no process footprint, so this is the comparable total."""
+  p = run["dir"] / "timeseries.csv"
+  if not p.is_file():
+    return None
+  vals = [v for v in read_timeseries(p).get("gpu_mem_kb", []) if v is not None]
+  return (max(vals) - vals[0]) / 1024 if vals else None
+
+
 def fmt(v, f="{:.2f}"):
   return "n/a" if v is None else f.format(v)
 
@@ -477,6 +540,10 @@ def describe_cfg(runs):
           v for r in runs
           if (v := r["summary"].get("cgroup_memory_peak_mb")) is not None and v > 0
       ]),
+      "peak_footprint_mb_lifetime": stats.describe([r["summary"].get("peak_footprint_mb_lifetime") for r in runs]),
+      "idle_footprint_mb": stats.describe([(r["summary"].get("idle_after_load") or {}).get("footprint_mb") for r in runs]),
+      "gpu_util_idle": stats.describe([r["summary"].get("gpu_util_idle") for r in runs]),
+      "gpu_mem_delta_mb": stats.describe([_gpu_mem_delta(r) for r in runs]),
       "system_cpu_busy_frac": stats.describe(pooled(runs, "system_cpu_busy_frac")),
       "round_medians_decode": [((r["summary"]["metrics"].get("decode_tps") or {}).get("median")) for r in runs],
       "round_medians_ttft": [((r["summary"]["metrics"].get("ttft_ms") or {}).get("median")) for r in runs],
@@ -510,9 +577,10 @@ def bar_chart(path: Path, cfg_ids, agg, metrics, title):
     if meds:
       ax.set_ylim(0, max(m_val + h_val for m_val, h_val in zip(meds, hi)) * 1.14)
     for x, v in zip(xs, meds):
-      ax.annotate(f"{v:.1f}" if v < 100 else f"{v:.0f}", (x, v), ha="center", va="bottom",
+      txt = f"{v:.0%}" if unit == "%" else (f"{v:.1f}" if v < 100 else f"{v:.0f}")
+      ax.annotate(txt, (x, v), ha="center", va="bottom",
                   fontsize=8, xytext=(0, 3), textcoords="offset points")
-    ax.set_title(f"{lab} ({unit}) {'↑' if hib else '↓'}", fontsize=10.5, fontweight="bold")
+    ax.set_title(f"{lab} ({unit}){_arrow(hib)}", fontsize=10.5, fontweight="bold")
     ax.tick_params(axis="x", labelsize=8, rotation=rot)
     ax.grid(axis="y", alpha=0.3)
   fig.suptitle(title + "  (median; whiskers = min-max over all measured requests)", fontsize=11, fontweight="bold")
@@ -690,7 +758,9 @@ def prefix_cache_section(data: dict) -> str:
   return "\n".join(lines) + "\n"
 
 
-def timeline_chart(path: Path, cfg_ids, cfg_runs):
+def timeline_chart(path: Path, cfg_ids, cfg_runs, native=False):
+  if native:
+    return native_timeline_chart(path, cfg_ids, cfg_runs)
   rows = [cid for cid in cfg_ids if cfg_runs.get(cid)]
   fig, (ax_mem, ax_cpu) = plt.subplots(2, 1, figsize=(11.5, 9.0))
   for cid in rows:
@@ -737,6 +807,51 @@ def timeline_chart(path: Path, cfg_ids, cfg_runs):
   plt.close(fig)
 
 
+def native_timeline_chart(path: Path, cfg_ids, cfg_runs):
+  """Compare configurations on aligned memory, CPU and system GPU panels."""
+  rows = [cid for cid in cfg_ids if cfg_runs.get(cid)]
+  fig, (ax_mem, ax_cpu, ax_gpu) = plt.subplots(3, 1, figsize=(11.5, 12.0))
+  for cid in rows:
+    run = cfg_runs[cid][0]
+    ts = read_timeseries(run["dir"] / "timeseries.csv")
+    if not ts.get("t_ns"):
+      continue
+    clk = run["meta"]["clk_tck"]
+    t0 = ts["t_ns"][0]
+    t = [(x - t0) / 1e9 for x in ts["t_ns"]]
+    col = COLORS.get(cid.split("/")[0], "gray")
+    ax_mem.plot(t, [v / 1024 if v is not None else float("nan") for v in ts["footprint_kb"]],
+                color=col, lw=1.6, label=f"{cid} (phys_footprint)")
+    ax_mem.plot(t, [v / 1024 if v is not None else float("nan") for v in ts["rss_kb"]],
+                color=col, lw=1, ls="--", alpha=0.7, label=f"{cid} (resident size)")
+    ticks = ts["cpu_ticks"]
+    cores_t, cores = [], []
+    for j in range(1, len(t)):
+      dt_ = t[j] - t[j - 1]
+      if dt_ > 0 and ticks[j] is not None and ticks[j - 1] is not None:
+        cores_t.append(t[j])
+        cores.append((ticks[j] - ticks[j - 1]) / clk / dt_)
+    sm = [statistics.fmean(cores[max(0, k - 2):k + 3]) for k in range(len(cores))]
+    ax_cpu.plot(cores_t, sm, color=col, lw=1.4, alpha=0.88, label=cid)
+    util = [(tt, u) for tt, u in zip(t, ts.get("gpu_util_pct", [])) if u is not None]
+    if util:
+      ax_gpu.plot(*zip(*util), color=col, lw=1.4, alpha=0.88, label=cid)
+  ax_gpu.set_ylim(0, 105)
+  for ax, ylabel, title in (
+      (ax_mem, "Memory (MB)", "Memory over time across configurations (round 0 process)"),
+      (ax_cpu, "CPU cores busy", "CPU utilization over time across configurations (round 0 process)"),
+      (ax_gpu, "GPU utilization (%)", "System GPU utilization over time (not process-specific)"),
+  ):
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel("Seconds since process start")
+    ax.set_title(title, fontsize=10.5, fontweight="bold")
+    ax.grid(alpha=0.3)
+    ax.legend(fontsize=8, ncol=2, loc="upper right", framealpha=0.9)
+  fig.tight_layout()
+  fig.savefig(path, dpi=130)
+  plt.close(fig)
+
+
 def _requests(d: Path):
   out = []
   p = d / "requests.jsonl"
@@ -760,6 +875,27 @@ THREAD_SWEEP_STYLES = {
     "openvino int8": ("#006064", "--s"),
     "onnxruntime q4_k_m": ("#9c4d9f", "-d"),
 }
+
+
+def thread_scaling_runs(runs, suite, cfg_runs, since=None):
+  """Legacy sweeps lack suite tags; require a measured model and platform match."""
+  def identity(meta):
+    sha = meta.get("model_sha256")
+    return (meta.get("framework"), sha, meta.get("platform") or "linux") if sha else None
+
+  identities = {identity(r["meta"]) for selected in cfg_runs.values() for r in selected}
+  identities.discard(None)
+  tag = f"suite={suite['name']}"
+  selected = []
+  for r in runs:
+    m = r["meta"]
+    notes = m.get("notes", "")
+    if (m.get("track") == "sweep-threads" and r["summary"].get("status") == "ok"
+        and identity(m) in identities
+        and (not notes or tag in notes.split())
+        and (since is None or m.get("started_at", "") >= since)):
+      selected.append(r)
+  return selected
 
 
 def scaling_chart(path: Path, runs, machine):
@@ -962,6 +1098,11 @@ def main(argv=None) -> int:
   args = ap.parse_args(argv)
 
   suite = json.loads(args.suite.read_text())
+  global HEADLINE
+  native = suite.get("execution") == "native"
+  HEADLINE = NATIVE_HEADLINE if native else CPU_HEADLINE
+  args._native = native
+  EXCLUDED.clear()
   report_id = f"{args.date}-{suite['name']}-{args.machine}"
   out = args.out / report_id
   out.mkdir(parents=True, exist_ok=True)
@@ -975,27 +1116,31 @@ def main(argv=None) -> int:
 
   # ---- accuracy: latest complete set of shards per (config, task, limit)
   acc_rows, acc_preds = merge_accuracy(load_accuracy(args.results, args.machine), agg)
-  agreement = paired_agreement(acc_preds)
+  agreement = paired_agreement(acc_preds, {c["id"]: c["track"] for c in suite["configs"]}
+                               if native else None)
 
   repro = load_repro(args.results, args.machine, set(cfg_ids))
   repro_tbl, repro_cross = repro_rows(repro, cfg_ids) if repro else ([], [])
 
   # ---- charts
-  bar_chart(out / "throughput.png", cfg_ids, agg, [HEADLINE[1], HEADLINE[2]], "Throughput")
-  bar_chart(out / "latency.png", cfg_ids, agg, [HEADLINE[0], HEADLINE[3], HEADLINE[4]], "Latency")
-  bar_chart(out / "cpu.png", cfg_ids, agg, [HEADLINE[5], HEADLINE[6], HEADLINE[7]], "CPU use")
-  bar_chart(out / "memory.png", cfg_ids, agg, [HEADLINE[9], HEADLINE[10], HEADLINE[11]], "Memory")
-  timeline_chart(out / "timeline.png", cfg_ids, cfg_runs)
+  bar_chart(out / "throughput.png", cfg_ids, agg, [_h("prefill_tps"), _h("decode_tps")], "Throughput")
+  bar_chart(out / "latency.png", cfg_ids, agg, [_h("ttft_ms"), _h("e2e_ms"), _h("itl_p99_ms")], "Latency")
+  bar_chart(out / "cpu.png", cfg_ids, agg,
+            [_h("cpu_cores_prefill"), _h("cpu_cores_decode"), _h("cpu_seconds")], "CPU use")
+  if native:
+    bar_chart(out / "gpu.png", cfg_ids, agg, [_h("gpu_util_prefill"), _h("gpu_util_decode")],
+              "GPU utilization (system-wide IOAccelerator counter; indicator only)")
+    bar_chart(out / "memory.png", cfg_ids, agg,
+              [GPU_MEM_DELTA, _h("footprint_max_mb"), _h("rss_max_mb")], "Memory")
+  else:
+    bar_chart(out / "memory.png", cfg_ids, agg,
+              [_h("rss_anon_max_mb"), _h("rss_file_max_mb"), _h("pss_max_mb")], "Memory")
+  timeline_chart(out / "timeline.png", cfg_ids, cfg_runs, native)
   if sequence:
     sequence_charts(out, sequence)
   if prefix_cache:
     prefix_cache_chart(out / "prefix_cache.png", prefix_cache)
-  sweep_thread_runs = [
-      r for r in runs
-      if r["meta"].get("track") == "sweep-threads"
-      and (not r["meta"].get("notes") or r["meta"].get("notes", "").startswith(f"suite={suite['name']}"))
-      and (args.since is None or r["meta"].get("started_at", "") >= args.since)
-  ]
+  sweep_thread_runs = thread_scaling_runs(runs, suite, cfg_runs, args.since)
   has_scaling = scaling_chart(
       out / "thread_scaling.png", sweep_thread_runs, args.machine)
   if acc_rows:
@@ -1003,6 +1148,14 @@ def main(argv=None) -> int:
     accuracy_chart(out / "accuracy.png", acc_rows,
                    json.loads(refs_path.read_text()) if refs_path and refs_path.is_file() else None)
   has_pareto = pareto_chart(out / "pareto.png", suite, cfg_ids, cfg_runs, agg, acc_rows)
+  for name, present in (
+      ("thread_scaling.png", has_scaling), ("pareto.png", has_pareto),
+      ("prefix_cache.png", bool(prefix_cache)), ("accuracy.png", bool(acc_rows)),
+      ("sequence_prefill.png", bool(sequence)), ("sequence_decode.png", bool(sequence)),
+      ("gpu.png", native),
+  ):
+    if not present:
+      (out / name).unlink(missing_ok=True)
 
   # ---- history
   def first_meta(cid):
@@ -1040,23 +1193,32 @@ def main(argv=None) -> int:
           "prefix_cache": prefix_cache,
           "accuracy": acc_rows, "accuracy_agreement": agreement,
           "reproducibility": {"rows": repro_tbl, "cross_framework": repro_cross}}
-  (out / "data.json").write_text(json.dumps(data, indent=1, default=str) + "\n")
+  (out / "data.json").write_text(_scrub(json.dumps(data, indent=1, default=str), args) + "\n")
 
   extra = args.extra_notes.read_text() if (args.extra_notes and args.extra_notes.is_file()) else ""
   args._quant_md = (quant_section(args.models / "aeb")
                     if any(c["track"] == "matched" for c in suite["configs"]) else "")
   refs_path = args.suite.parent / suite["references"] if suite.get("references") else None
   args._refs = json.loads(refs_path.read_text()) if refs_path and refs_path.is_file() else None
-  md_text = render_markdown(
+  md_text = _scrub(render_markdown(
       suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, has_scaling, history, changes,
       hist_path, extra, agreement, (repro_tbl, repro_cross), sequence, prefix_cache,
-      has_pareto=has_pareto)
+      has_pareto=has_pareto), args)
   (out / "README.md").write_text(md_text, encoding="utf-8")
   html_doc = markdown_to_html(md_text, base_dir=out, embed_images=True)
   (out / "README.html").write_text(html_doc, encoding="utf-8")
   (out / "index.html").write_text(html_doc, encoding="utf-8")
   print(f"wrote {out} (README.md, README.html, index.html)")
   return 0
+
+
+def _scrub(text: str, args) -> str:
+  """Native runs record host paths; show them relative to the repository
+  (/results, /models, /build/native/...) as container runs do."""
+  if not getattr(args, "_native", False):
+    return text
+  root = str(args.results.resolve().parent)
+  return text.replace(root + "/", "/").replace(json.dumps(root + "/")[1:-1], "/")
 
 
 def _track(suite, cid):
@@ -1181,6 +1343,14 @@ def _config_dtype_info(suite: dict, cid: str, meta: dict) -> tuple[str, str, str
     if idx + 1 < len(cmd):
       threads = cmd[idx + 1]
   threads_str = str(threads) if threads is not None else "—"
+
+  if suite.get("execution") == "native":
+    report = cfg_dict.get("report", {})
+    checkpoint = report.get("checkpoint", "not exposed")
+    precisions = [report.get(k, "not exposed") for k in ("weights", "activations", "kv_cache")]
+    if report.get("thread_usage"):
+      threads_str += f" ({report['thread_usage']})"
+    return group, f"`{checkpoint}`", "`" + " / ".join(precisions) + "`", threads_str
 
   if "qat-mobile" in mp or "litert-lm" in mp or fw == "litert-lm":
     checkpoint = "`qat-mobile`"
@@ -1474,6 +1644,9 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
   n_prompt = w.get("prompt_tokens", 1024)
   n_gen = w.get("gen_tokens", 128)
   _get_acc = _resolve_acc_lookup(cfg_runs, acc_rows)
+  native = suite.get("execution") == "native"
+  memory_key = "gpu_mem_delta_mb" if native else "rss_max_mb"
+  memory_label = "GPU memory Δ (MB)" if native else "Peak RSS (MB)"
 
   mmlu_ns = {a["n"] for a in acc_rows if a["task"] == "mmlu"}
   gsm8k_ns = {a["n"] for a in acc_rows if a["task"] == "gsm8k"}
@@ -1498,13 +1671,14 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
       f"Headline medians (`{n_prompt}` prompt → `{n_gen}` generated tokens, stateless cold KV cache) "
       "and accuracy grouped by data type. Within each data type, rows are ordered from fastest to "
       "slowest end-to-end latency, with the best-performing row highlighted (**🏆**) and best "
-      "per-column metrics bolded.\n",
+      "per-column metrics bolded. The highlighted row is the lowest measured latency, "
+      "not a claim of statistically significant superiority.\n",
   ]
   if has_pareto:
     L.append("![MMLU Accuracy vs. End-to-End Latency (Pareto Frontier)](pareto.png)\n")
   L.extend([
       f"| Framework / Config | Checkpoint | Weights / Acts / KV | Threads | TTFT (ms) ↓ | "
-      f"Prefill (tok/s) ↑ | Decode (tok/s) ↑ | E2E (ms) ↓ | Peak RSS (MB) ↓ | {mmlu_hdr} ↑ | {gsm8k_hdr} ↑ |",
+      f"Prefill (tok/s) ↑ | Decode (tok/s) ↑ | E2E (ms) ↓ | {memory_label} ↓ | {mmlu_hdr} ↑ | {gsm8k_hdr} ↑ |",
       "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
   ])
 
@@ -1533,7 +1707,7 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
     best_prefill = _best([_med(c, "prefill_tps") for c in cids_in_grp], True)
     best_decode = _best([_med(c, "decode_tps") for c in cids_in_grp], True)
     best_e2e = _best([_med(c, "e2e_ms") for c in cids_in_grp], False)
-    best_rss = _best([_med(c, "rss_max_mb") for c in cids_in_grp], False)
+    best_memory = _best([_med(c, memory_key) for c in cids_in_grp], False)
     best_mmlu = _best([_get_acc(c, "mmlu") for c in cids_in_grp], True)
     best_gsm8k = _best([_get_acc(c, "gsm8k") for c in cids_in_grp], True)
 
@@ -1545,7 +1719,7 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
       v_prefill = _med(cid, "prefill_tps")
       v_decode = _med(cid, "decode_tps")
       v_e2e = _med(cid, "e2e_ms")
-      v_rss = _med(cid, "rss_max_mb")
+      v_memory = _med(cid, memory_key)
       v_mmlu = _get_acc(cid, "mmlu")
       v_gsm8k = _get_acc(cid, "gsm8k")
 
@@ -1553,7 +1727,7 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
         if val is None:
           return "—"
         s = fmt_str.format(val)
-        if is_winner or (best_val is not None and abs(val - best_val) <= 1e-9):
+        if best_val is not None and abs(val - best_val) <= 1e-9:
           return f"**{s}**"
         return s
 
@@ -1568,23 +1742,101 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
           f"{_fmt_cell(v_prefill, best_prefill, '{:,.1f}')} | "
           f"{_fmt_cell(v_decode, best_decode, '{:.2f}')} | "
           f"{_fmt_cell(v_e2e, best_e2e, '{:,.0f}')} | "
-          f"{_fmt_cell(v_rss, best_rss, '{:,.0f}')} | "
+          f"{_fmt_cell(v_memory, best_memory, '{:,.0f}')} | "
           f"{_fmt_cell(v_mmlu, best_mmlu, '{:.2%}')} | "
           f"{_fmt_cell(v_gsm8k, best_gsm8k, '{:.2%}')} |"
       )
 
   L.append("")
-  L.append(
-      "**Legend:**\n"
-      "- **`matched`**: Apples-to-apples comparison using the **exact same pre-quantized integer weights** "
-      "from the mobile QAT checkpoint (`qat-mobile`: mixed per-channel `INT2` / `INT4` / `INT8` tensors), "
-      "matching thread counts, context length, and closest KV-cache precision (`Q2_K`/`Q4_0`/`Q8_0` in "
-      "`llama.cpp/matched`, `.litertlm` in `litert-lm/matched`, and `QArray` in `xla/matched-ynnpack`).\n"
-      "- **`fastest`**: Each framework's empirically fastest configuration on the mobile QAT checkpoint "
-      "selected by the thread-scaling and kernel sweep (e.g., `llama.cpp/fastest` stores the mobile QAT "
-      "`INT2` tensors in `Q4_0` blocks so `llama.cpp` can dispatch repacked AVX-512/AMX kernels instead "
-      "of scalar `Q2_K`, and `litert-lm/fastest` uses the sweep-selected thread count).\n"
-  )
+  tracks = {c.get("track") for c in suite["configs"] if c["id"] in cfg_ids}
+  L.append("**Legend:**\n")
+  if "matched" in tracks:
+    L.append("- **`matched`**: Same pre-quantized integer weights, prompt tokens, decoding "
+             "and thread counts, with the closest supported KV-cache precision. See "
+             "Quantization equivalence for representation and activation differences.\n")
+  if "fastest" in tracks:
+    L.append("- **`fastest`**: Empirically selected configuration from the suite's thread "
+             "and kernel sweep; read performance together with the accuracy gate.\n")
+  if "reference" in tracks:
+    L.append("- **`reference`**: Published framework-specific artifacts and defaults; weights "
+             "and quantization are not matched. Read speed together with accuracy.\n")
+  if native:
+    L.append("- **GPU memory Δ**: Peak system GPU in-use memory over each process lifetime "
+             "minus its pre-load baseline; includes other GPU clients. Process RSS and "
+             "phys_footprint do not consistently include Metal weights across runtimes.\n"
+             "- **Precision**: Suite-declared artifact metadata; `not exposed` means the "
+             "runtime/artifact does not establish that precision. Thread counts describe "
+             "host work or are recorded only, not GPU parallelism.\n")
+  return "\n".join(L)
+
+
+def detailed_metrics_section(suite, args, cfg_ids, cfg_runs, agg):
+  L = ["### Detailed metrics\n"]
+  L.append("Medians over all measured requests (n per cell in the last row); "
+           "[min – max] in brackets.\n")
+  hdr = "| Metric | " + " | ".join(f"`{c}`" for c in cfg_ids) + " |"
+  L.append(hdr)
+  L.append("| --- " * (len(cfg_ids) + 1) + "|")
+  for m, lab, unit, hib, f in HEADLINE:
+    cells = []
+    for cid in cfg_ids:
+      d = agg[cid].get(m)
+      cells.append("n/a" if not d else f"{f.format(d['median'])} [{f.format(d['min'])}–{f.format(d['max'])}]")
+    L.append(f"| {lab} ({unit}){_arrow(hib)} | " + " | ".join(cells) + " |")
+  extra_rows = ((("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
+                 ("gpu_mem_delta_mb", "GPU in-use memory above pre-load baseline, process lifetime (system, MB)", "{:.0f}"),
+                 ("peak_footprint_mb_lifetime", "Peak phys_footprint, process lifetime (MB)", "{:.0f}"),
+                 ("idle_footprint_mb", "phys_footprint after load, before 1st request (MB)", "{:.0f}"),
+                 ("idle_rss_mb", "Resident size after load, before 1st request (MB)", "{:.0f}"),
+                 ("gpu_util_idle", "GPU utilization between requests (background)", "{:.0%}"))
+                if getattr(args, "_native", False) else
+                (("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
+                 ("peak_rss_mb_lifetime", "Peak RSS, process lifetime (VmHWM, MB)", "{:.0f}"),
+                 ("idle_rss_mb", "RSS after load, before 1st request (MB)", "{:.0f}"),
+                 ("idle_rss_anon_mb", "  …of which anonymous (MB)", "{:.0f}"),
+                 ("cgroup_peak_mb", "Container memory.peak incl. page cache (MB)", "{:.0f}")))
+  for key, lab, f in extra_rows:
+    cells = [fmt((agg[cid].get(key) or {}).get("median"), f) for cid in cfg_ids]
+    L.append(f"| {lab} | " + " | ".join(cells) + " |")
+  L.append("| Measured requests (n) | " + " | ".join(
+      str((agg[cid].get("e2e_ms") or {}).get("n", 0)) for cid in cfg_ids) + " |")
+  L.append("| Decode CV across requests | " + " | ".join(
+      fmt((agg[cid].get("decode_tps") or {}).get("cv"), "{:.1%}") for cid in cfg_ids) + " |\n")
+
+  # ratios
+  pairs = []
+  if "llama.cpp/matched" in agg and "litert-lm/matched" in agg:
+    pairs.append(("matched", "llama.cpp/matched", "litert-lm/matched"))
+  if "llama.cpp/fastest" in agg and "litert-lm/fastest" in agg:
+    pairs.append(("fastest", "llama.cpp/fastest", "litert-lm/fastest"))
+  if pairs:
+    L.append("#### llama.cpp ÷ LiteRT-LM\n")
+    L.append("Ratio of medians with a 95% bootstrap interval over requests. >1 means llama.cpp has "
+             "the larger value (better for throughput, worse for latency/CPU/memory).\n")
+    L.append("| Track | Prefill tok/s | Decode tok/s | TTFT | End-to-end | CPU s / request | Peak RSS |")
+    L.append("| --- | --- | --- | --- | --- | --- | --- |")
+    for name, a, b in pairs:
+      L.append(f"| {name} | " + " | ".join(ratio_line(agg, cfg_runs, a, b, m, True) for m in
+                                           ("prefill_tps", "decode_tps", "ttft_ms", "e2e_ms",
+                                            "cpu_seconds", "rss_max_mb")) + " |")
+    L.append("")
+
+  base = suite.get("ratio_baseline")
+  if base in agg and len(cfg_ids) > 1:
+    L.append(f"#### Ratio to `{base}`\n")
+    L.append("Ratio of medians with a 95% bootstrap interval over measured requests. >1 means the "
+             "configuration has the larger value (better for throughput, worse for latency and "
+             "memory). Reference configurations use different model artifacts; read with the "
+             "accuracy gate.\n")
+    L.append("| Config | Prefill tok/s | Decode tok/s | TTFT | End-to-end | Peak phys_footprint |")
+    L.append("| --- | --- | --- | --- | --- | --- |")
+    for cid in cfg_ids:
+      if cid != base:
+        L.append(f"| `{cid}` | " + " | ".join(ratio_line(agg, cfg_runs, cid, base, m, True) for m in
+                                              ("prefill_tps", "decode_tps", "ttft_ms", "e2e_ms",
+                                               "footprint_max_mb")) + " |")
+    L.append("")
+
   return "\n".join(L)
 
 
@@ -1612,7 +1864,6 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append(suite["description"] + "\n")
   L.append(summary_by_dtype_section(suite, cfg_ids, cfg_runs, agg, acc_rows, has_pareto=has_pareto))
 
-  # headline table (Results right after Summary)
   L.append("## Results\n")
   L.append("### Throughput\n")
   L.append("![Throughput](throughput.png)\n")
@@ -1622,18 +1873,35 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append("![Latency](latency.png)\n")
   if prefix_cache:
     L.append(prefix_cache_section(prefix_cache))
+  if getattr(args, "_native", False):
+    L.append("### GPU\n")
+    L.append("![GPU](gpu.png)\n")
   L.append("### CPU\n")
   L.append("![CPU](cpu.png)\n")
   L.append("### Memory\n")
   L.append("![Memory](memory.png)\n")
-  L.append("### Memory and CPU over time\n")
-  L.append("Combined timeline (round 0 process per configuration: model load, warm-up, and "
-           "measured requests) showing Total RSS (MB) and active CPU cores over time.\n")
+  if getattr(args, "_native", False):
+    L.append("### Memory, CPU and GPU over time\n")
+    L.append("Combined timelines (one round-0 process per configuration): load, warm-up "
+             "and measured requests. Solid = phys_footprint, dashed = resident size. "
+             "phys_footprint is the process's private memory "
+             "as macOS accounts it; it includes some Metal allocations (MLX's buffers) but not "
+             "others (llama.cpp's no-copy mmap'd weights, LiteRT-LM's and BaseRT's GPU weights), "
+             "so compare memory with the GPU in-use memory above the pre-load baseline. GPU "
+             "utilization is the system-wide IOAccelerator counter.\n")
+  else:
+    L.append("### Memory and CPU over time\n")
+    L.append("Combined timeline (round-0 process per configuration: model load, warm-up "
+             "and measured requests) showing total RSS and active CPU cores. File-backed "
+             "RSS is mmap'd model pages (shared, reclaimable); anonymous RSS is private "
+             "memory (KV cache, activations, repacked or converted weights).\n")
   L.append("![Timeline](timeline.png)\n")
 
   if has_scaling:
     L.append("### Thread scaling\n")
     L.append("![Thread scaling](thread_scaling.png)\n")
+
+  L.append(detailed_metrics_section(suite, args, cfg_ids, cfg_runs, agg))
 
   # generated text on the timing prompt
   L.append("### Generated text on the timing prompt\n")
@@ -1756,10 +2024,20 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append("| Item | Value |\n| --- | --- |")
   L.append(f"| Machine | {args.machine} — {_sanitize_machine_notes(first.get('machine_notes', ''))} |")
   cpu = sysinfo.get("cpu", {})
-  kernel_str = re.sub(r"-smp-[0-9.]+", "", str(sysinfo.get("container", {}).get("kernel", "?")))
-  L.append(f"| Container view | {sysinfo.get('container', {}).get('os', '?')}, kernel "
-           f"{kernel_str}, {cpu.get('nproc', '?')} vCPUs, "
-           f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.1f} GiB RAM |")
+  if getattr(args, "_native", False):
+    gpu, power = sysinfo.get("gpu", {}), sysinfo.get("power", {})
+    L.append(f"| Host (native, no container) | {sysinfo.get('host', {}).get('os', '?')}, "
+             f"{sysinfo.get('host', {}).get('kernel', '?')}; {cpu.get('model', '?')}: "
+             f"{cpu.get('nproc', '?')} CPU cores ({cpu.get('perflevel0_cores', '?')} + "
+             f"{cpu.get('perflevel1_cores', '?')}), {gpu.get('cores', '?')}-core GPU "
+             f"({gpu.get('metal', '?')}), {(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.0f} GiB "
+             f"unified memory; power: {'; '.join(power.get('source', [])) or '?'}, low-power mode "
+             f"{'on' if power.get('low_power_mode') else 'off'} |")
+  else:
+    kernel_str = re.sub(r"-smp-[0-9.]+", "", str(sysinfo.get("container", {}).get("kernel", "?")))
+    L.append(f"| Container view | {sysinfo.get('container', {}).get('os', '?')}, kernel "
+             f"{kernel_str}, {cpu.get('nproc', '?')} vCPUs, "
+             f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.1f} GiB RAM |")
   for fw, b in sorted(builds.items()):
     commit_val = str(b.get("commit") or "")
     if commit_val and "==" in commit_val:
@@ -1812,6 +2090,13 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
     if len(rm) > 1 and (max(rm) - min(rm)) / statistics.median(rm) > 0.05:
       checks.append(f"`{cid}`: per-process decode medians spread {min(rm):.1f}–{max(rm):.1f} tok/s "
                     f"(>5%); between-process variance dominates.")
+  for cid, r in EXCLUDED:
+    checks.append(f"`{cid}` run `{r['dir'].name}` **excluded**: {r['meta'].get('error')}")
+  for n, point in (((sequence or {}).get("points") or {}).items()
+                   if getattr(args, "_native", False) else ()):
+    for cid, c in point["configs"].items():
+      for e in c["errors"]:
+        checks.append(f"Sweep N={n}, `{cid}`: process excluded — {e}")
   L.append("\n".join(f"- {c}" for c in checks) if checks else "- All runs completed; no outliers; "
            "decode CV ≤ 5% everywhere.")
   L.append("")
@@ -1819,12 +2104,14 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append("## Caveats\n")
   L.append(caveats.strip() or "_none recorded_")
   L.append("")
-  L.append(reproduction_section(suite, args.machine, args.suite.name, cfg_ids, cfg_runs, builds, first, w))
+  L.append(reproduction_section(suite, args.machine, args.suite.name, cfg_ids, cfg_runs, builds, first, w,
+                                report_date=args.date))
   return "\n".join(L)
 
 
 def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids: list[str],
-                         cfg_runs: dict, builds: dict, first_meta: dict, w: dict) -> str:
+                         cfg_runs: dict, builds: dict, first_meta: dict, w: dict,
+                         report_date: str | None = None) -> str:
   suite_rel = f"suites/{suite_filename}"
   service_map = {
       "llama.cpp": "harness-llama-cpp",
@@ -1839,6 +2126,9 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
       "xla": "[`openxla/xla`](https://github.com/openxla/xla) / [`jax-ml/jax`](https://github.com/jax-ml/jax) / [`google/tunix`](https://github.com/google/tunix) / [`google/qwix`](https://github.com/google/qwix)",
       "openvino": "[`openvinotoolkit/openvino.genai`](https://github.com/openvinotoolkit/openvino.genai)",
       "onnxruntime": "[`microsoft/onnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai)",
+      "mlx": "[`ml-explore/mlx-lm`](https://github.com/ml-explore/mlx-lm) / "
+             "[`ml-explore/mlx`](https://github.com/ml-explore/mlx)",
+      "basert": "[`basecompute/BaseRT`](https://github.com/basecompute/BaseRT)",
   }
   L = [
       "## Reproducing these results\n",
@@ -1849,14 +2139,18 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
   for fw, b in sorted(builds.items()):
     repo = repo_urls.get(fw, f"`{fw}`")
     ref = f"`{b.get('ref', '—')}`"
-    if fw == "xla":
+    if fw == "mlx":
+      pkgs = [b.get("ref")] + [f"{key.replace('_', '-')}=={b[key]}"
+                                     for key in ("mlx", "mlx_metal") if b.get(key)]
+      exact_ver = ", ".join(f"`{p}`" for p in pkgs if p)
+    elif fw == "xla":
       pkgs = [b.get(k) for k in ("runtime", "tunix", "qwix", "flax", "tokenizers") if b.get(k)]
       exact_ver = ", ".join(f"`{p}`" for p in pkgs) if pkgs else f"`{b.get('commit', '—')}`"
     elif fw in ("openvino", "onnxruntime"):
       pkgs = [b.get(k) for k in ("runtime", "genai") if b.get(k)]
       exact_ver = ", ".join(f"`{p}`" for p in pkgs) if pkgs else f"`{b.get('commit', '—')}`"
     else:
-      commit = b.get("commit", "—")
+      commit = b.get("commit") or b.get("ref") or "not supplied"
       extra_flags = b.get("bazel_extra_flags") or b.get("cmake_extra_flags")
       exact_ver = f"`{commit}`" + (f" (`{extra_flags}`)" if extra_flags else "")
     L.append(f"| `{fw}` | {repo} | {ref} | {exact_ver} | `{b.get('built_at', '—')}` |")
@@ -1865,6 +2159,32 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
       f"| `ai-edge-bench` (harness) | [`mariecwhite/ai-edge-bench`](https://github.com/mariecwhite/ai-edge-bench) | "
       f"`{h_info.get('repo_rev', 'unknown')}` | harness sha256 `{h_info.get('harness_sha256', '—')}` | — |\n"
   )
+
+  if suite.get("execution") == "native":
+    L.append("### 2. Building the native framework stack (pinned)\n")
+    L.append("Metal runs on the macOS host, not in Docker. The setup script pins framework "
+             "versions and verifies downloaded artifacts; BaseRT uses a prebuilt engine.\n")
+    L.append("```bash\nmake native\nmake gpu-models\n```\n")
+    L.append("### 3. Machine setup & running the full benchmark suite\n")
+    L.append("Use AC power with low-power mode off; keep other GPU clients idle. The suite "
+             "prevents sleep and runs one benchmark process at a time.\n")
+    L.append("```bash")
+    for target in ("suite-perf", "suite-sequence", "suite-accuracy", "suite-repro"):
+      if target == "suite-sequence" and not suite.get("sequence_sweep"):
+        continue
+      L.append(f"make MACHINE={machine} SUITE={suite_rel} {target}")
+    date_arg = f" DATE={report_date}" if report_date else ""
+    L.append(f"make MACHINE={machine} SUITE={suite_rel} native-report{date_arg}")
+    L.append("```\n")
+    L.append("### 4. Single-configuration performance commands\n")
+    L.append("Each command uses the suite's workload, warm-ups, repetitions and interleaved "
+             "round count for the selected configuration.\n")
+    L.append("```bash")
+    for cid in cfg_ids:
+      L.append(f"build/native/venv/bin/python scripts/suite.py perf --machine {machine} "
+               f"--suite {suite_rel} --only {cid}")
+    L.append("```\n")
+    return "\n".join(L)
 
   # Build commands (exact pinned vs. latest upstream)
   llama_ref = (builds.get("llama.cpp") or {}).get("ref", "b11259")
@@ -2138,7 +2458,7 @@ def _split_table_row(line: str) -> list[str]:
     s = s[1:]
   if s.endswith("|"):
     s = s[:-1]
-  return [cell.strip() for cell in s.split("|")]
+  return [cell.strip().replace(r"\|", "|") for cell in re.split(r"(?<!\\)\|", s)]
 
 
 def markdown_to_html(md_text: str, base_dir: Path, embed_images: bool = True) -> str:
@@ -2147,6 +2467,7 @@ def markdown_to_html(md_text: str, base_dir: Path, embed_images: bool = True) ->
   i = 0
   body_parts: list[str] = []
   title = "AI Edge Bench Report"
+  heading_ids: set[str] = set()
   list_item_re = re.compile(r"^(\s*)(?:([-*+])|(\d+)\.)\s+(.*)$")
 
   while i < n:
@@ -2177,8 +2498,14 @@ def markdown_to_html(md_text: str, base_dir: Path, embed_images: bool = True) ->
       if level == 1 and title == "AI Edge Bench Report":
         title = re.sub(r"`([^`]+)`", r"\1", raw_heading)
       slug = _slugify(raw_heading)
+      unique_slug = slug
+      suffix = 1
+      while unique_slug in heading_ids:
+        unique_slug = f"{slug}_{suffix}"
+        suffix += 1
+      heading_ids.add(unique_slug)
       heading_html = _render_inline(raw_heading, base_dir, embed_images)
-      body_parts.append(f'<h{level} id="{slug}">{heading_html}</h{level}>')
+      body_parts.append(f'<h{level} id="{unique_slug}">{heading_html}</h{level}>')
       i += 1
       continue
 
@@ -2294,6 +2621,8 @@ def markdown_to_html(md_text: str, base_dir: Path, embed_images: bool = True) ->
     main {{
       max-width: 1440px;
       margin: 0 auto;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }}
     h1, h2, h3, h4, h5 {{
       margin-top: 1.8rem;
@@ -2443,6 +2772,16 @@ def markdown_to_html(md_text: str, base_dir: Path, embed_images: bool = True) ->
       margin-top: 0.4rem;
       font-size: 0.85rem;
       color: var(--muted);
+    }}
+    @media (max-width: 600px) {{
+      body {{ padding: 1rem; }}
+      h1 {{ font-size: 1.5rem; }}
+    }}
+    @media print {{
+      body {{ padding: 0; }}
+      .table-wrap {{ overflow: visible; }}
+      table {{ white-space: normal; font-size: 10px; }}
+      pre {{ white-space: pre-wrap; }}
     }}
   </style>
 </head>

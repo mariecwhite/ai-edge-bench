@@ -84,7 +84,7 @@ def main(argv=None) -> int:
       "machine": os.environ.get("AEB_MACHINE", "unknown-machine"), "notes": args.notes,
       "started_at": common.utc_now(), "driver_cmd": cmd, "model_path": model,
       "model_sha256": common.model_sha256(model) if model else None,
-      "build": common.build_info(), "repeats": args.repeats, "max_tokens": args.max_tokens,
+      "build": common.build_info(), "chat_template": workload.CHAT_TEMPLATE, "repeats": args.repeats, "max_tokens": args.max_tokens,
       "mode": args.mode, "seed": args.seed if args.mode == "seeded" else None,
       "sampling": SAMPLING if args.mode == "seeded" else {"temperature": 0},
   }
