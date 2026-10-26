@@ -6,8 +6,10 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import secrets
 import subprocess
+import sys
 from pathlib import Path
 
 RESULTS = Path(os.environ.get("AEB_RESULTS_DIR", "/results"))
@@ -62,7 +64,8 @@ def model_sha256(path: str) -> str:
 
 
 def build_info() -> dict:
-  p = Path("/opt/aeb/build-info.json")
+  # Native (host) runs point AEB_BUILD_INFO at the framework's build record.
+  p = Path(os.environ.get("AEB_BUILD_INFO", "/opt/aeb/build-info.json"))
   info = json.loads(p.read_text()) if p.is_file() else {}
   info["harness_sha256"] = harness_digest()
   info["repo_rev"] = os.environ.get("AEB_GIT_REV", "unknown")
@@ -80,7 +83,52 @@ def harness_digest() -> str:
   return h.hexdigest()
 
 
+def _cmd(*args: str) -> str:
+  try:
+    return subprocess.run(args, capture_output=True, text=True, timeout=30).stdout.strip()
+  except (OSError, subprocess.SubprocessError):
+    return ""
+
+
+def darwin_sysinfo() -> dict:
+  """Native macOS counterpart of docker/bin/aeb-sysinfo."""
+  sysctl = lambda k: _cmd("sysctl", "-n", k)
+  gpu = {}
+  try:
+    disp = json.loads(_cmd("system_profiler", "-json", "SPDisplaysDataType") or "{}")
+    g = (disp.get("SPDisplaysDataType") or [{}])[0]
+    gpu = {"model": g.get("sppci_model"), "cores": g.get("sppci_cores"),
+           "metal": g.get("spdisplays_mtlgpufamilysupport"),
+           "displays": [d.get("_name") for d in g.get("spdisplays_ndrvs", [])]}
+  except (ValueError, IndexError):
+    pass
+  therm = _cmd("pmset", "-g", "therm")
+  return {
+      "schema": "aeb.sysinfo/1",
+      "collected_at": utc_now(),
+      "machine": os.environ.get("AEB_MACHINE", "unknown-machine"),
+      "machine_notes": os.environ.get("AEB_MACHINE_NOTES", ""),
+      "hostname": _cmd("hostname", "-s"),
+      "kernel": _cmd("uname", "-sr"),
+      "arch": _cmd("uname", "-m"),
+      "host": {"os": f"macOS {_cmd('sw_vers', '-productVersion')} ({_cmd('sw_vers', '-buildVersion')})",
+               "kernel": _cmd("uname", "-sr")},
+      "cpu": {"model": sysctl("machdep.cpu.brand_string"), "nproc": int(sysctl("hw.ncpu") or 0),
+              "perflevel0_cores": int(sysctl("hw.perflevel0.physicalcpu") or 0),
+              "perflevel1_cores": int(sysctl("hw.perflevel1.physicalcpu") or 0)},
+      "memory": {"total_kb": int(sysctl("hw.memsize") or 0) // 1024},
+      "gpu": gpu,
+      "power": {"source": _cmd("pmset", "-g", "batt").splitlines()[0:1],
+                "low_power_mode": bool(re.search(r"lowpowermode\s+1", _cmd("pmset", "-g"))),
+                "thermal": therm.splitlines()[-3:] if therm else []},
+      "build": build_info(),
+  }
+
+
 def write_sysinfo(path: Path) -> None:
+  if sys.platform == "darwin":
+    dump(path, darwin_sysinfo())
+    return
   try:
     subprocess.run(["aeb-sysinfo", str(path)], check=True, timeout=60)
   except (OSError, subprocess.SubprocessError) as e:

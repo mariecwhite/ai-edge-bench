@@ -347,6 +347,41 @@ from different conditions as a single framework ranking.
 - Re-run the full suite (all tracks, accuracy gate included) whenever a
   framework revision is bumped; never mix revisions inside one report.
 
+## Native GPU runs (Apple silicon)
+
+Containers on macOS cannot reach Metal, so GPU suites run natively on the host
+(`"execution": "native"`, see [harness.md](harness.md#native-apple-gpu-suite)).
+The rules above still apply: one framework process at a time (the GPU is never
+shared between benchmark processes, accuracy runs included), interleaved
+rounds, warm-up, process-level repetition, the accuracy gate and pinned
+framework builds and model files.
+
+- **Synchronization.** A token timestamp is taken when the token id is
+  available to the caller on the CPU, which requires the GPU work that
+  produced it to have completed. Dispatch alone is never timed. Engines that
+  pipeline the next step (mlx-lm) or sync every few steps
+  (`gpu_decode_steps_per_sync`) keep their defaults; that shows up in
+  inter-token latency, not in decode throughput.
+- **Memory.** Unified memory makes "GPU memory" and "CPU memory" one pool,
+  and macOS does not attribute every Metal allocation to the allocating
+  process's `phys_footprint`. Compare frameworks on the rise in system GPU
+  in-use memory above the value at process start (other GPU clients idle), and
+  report `phys_footprint` and resident size alongside it.
+- **Utilization and energy.** Without root, macOS exposes only a system-wide,
+  coarse GPU utilization counter and a CPU-only per-process energy estimate.
+  Report them as indicators with their calibration, state the background GPU
+  load between requests, and do not present either as GPU efficiency.
+- **GPU errors.** A GPU hang or fault can leave an engine silently returning
+  stale output with impossible timings. Check the system's GPU error log for
+  every process (`aeb.gpucheck`). Exclude affected processes and report them;
+  never average or replace them.
+- **Idle time.** Prefill (TTFT) can depend on how long the GPU idled before
+  the request. Keep the inter-request idle time fixed (the suite's
+  `cooldown_s`), state it, and when it matters publish the sensitivity.
+- **Conditions.** Record power source, low-power mode and thermal warnings.
+  Keep the display awake for the whole run so the window server's GPU load
+  stays the same, and close other GPU applications.
+
 ## Virtualized and shared hosts
 
 When the container runs in a VM (e.g. Docker on macOS), the host scheduler,

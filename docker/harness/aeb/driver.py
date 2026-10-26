@@ -10,10 +10,11 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import threading
 from pathlib import Path
 
-FRAMEWORKS = ("llama.cpp", "litert-lm", "onnxruntime", "xla", "openvino")
+FRAMEWORKS = ("llama.cpp", "litert-lm", "onnxruntime", "xla", "openvino", "mlx", "basert")
 
 
 def driver_command(framework: str, driver_args: list[str]) -> list[str]:
@@ -29,6 +30,11 @@ def driver_command(framework: str, driver_args: list[str]) -> list[str]:
     return ["python3", "-m", "aeb.drivers.xla_driver", *driver_args]
   if framework == "openvino":
     return ["python3", "-m", "aeb.drivers.openvino_driver", *driver_args]
+  # Native-only drivers (Apple GPU suite) run under the harness's own interpreter.
+  if framework == "mlx":
+    return [sys.executable, "-m", "aeb.drivers.mlx_driver", *driver_args]
+  if framework == "basert":
+    return [sys.executable, "-m", "aeb.drivers.basert_driver", *driver_args]
   raise ValueError(f"unknown framework {framework!r}; expected one of {FRAMEWORKS}")
 
 

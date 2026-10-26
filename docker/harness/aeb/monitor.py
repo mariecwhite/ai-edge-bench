@@ -13,6 +13,15 @@ walks page tables.
 Every sample carries a CLOCK_MONOTONIC timestamp (time.monotonic_ns), the same
 clock the drivers use for request/token timestamps, so samples can be split
 into load / prefill / decode / idle phases afterwards.
+
+On macOS (native Apple GPU suite) the same columns come from aeb.macos:
+cpu_ticks are microseconds (CLK_TCK = 1e6), rss_kb is the resident size, and
+the Linux-only split (anon/file/shmem), PSS, VmHWM and cgroup memory are
+empty. Extra columns, empty on Linux: footprint_kb (phys_footprint: private
+memory including Metal buffers), footprint_max_kb (lifetime maximum),
+gpu_ns (accumulated GPU time of the process's Metal clients), gpu_util_pct and
+gpu_mem_kb (system-wide IOAccelerator utilization and in-use memory) and
+energy_nj (the kernel's per-process energy estimate).
 """
 
 from __future__ import annotations
@@ -21,14 +30,22 @@ import os
 import threading
 import time
 
-CLK_TCK = os.sysconf("SC_CLK_TCK")
+from . import macos
+
+DARWIN = macos.IS_DARWIN
+# Unit of the cpu_ticks column (recorded in each run's meta.json).
+CLK_TCK = 1_000_000 if DARWIN else os.sysconf("SC_CLK_TCK")
 PAGE = os.sysconf("SC_PAGE_SIZE")
 
 FIELDS = ("t_ns", "cpu_ticks", "rss_kb", "rss_anon_kb", "rss_file_kb", "rss_shmem_kb",
-          "hwm_kb", "threads", "pss_kb", "cg_mem_bytes", "sys_busy_ticks", "sys_total_ticks")
+          "hwm_kb", "threads", "pss_kb", "cg_mem_bytes", "sys_busy_ticks", "sys_total_ticks",
+          "footprint_kb", "footprint_max_kb", "gpu_ns", "gpu_util_pct", "gpu_mem_kb", "energy_nj")
 
 
 def read_cpu_ticks(pid: int) -> int | None:
+  if DARWIN:
+    r = macos.proc_rusage(pid)
+    return r["cpu_ns"] // 1000 if r else None
   try:
     with open(f"/proc/{pid}/stat", "rb") as f:
       data = f.read().decode()
@@ -94,6 +111,8 @@ def read_cgroup_peak() -> int | None:
 
 
 def read_sys_ticks() -> tuple[int, int]:
+  if DARWIN:
+    return macos.host_cpu_ticks()
   with open("/proc/stat") as f:
     parts = f.readline().split()[1:]
   vals = [int(x) for x in parts]
@@ -114,6 +133,8 @@ class Monitor:
     self._thread = threading.Thread(target=self._run, name="aeb-monitor", daemon=True)
 
   def sample(self, with_pss: bool = False) -> tuple | None:
+    if DARWIN:
+      return self._sample_darwin()
     t = time.monotonic_ns()
     ticks = read_cpu_ticks(self.pid)
     st = read_status(self.pid)
@@ -123,7 +144,21 @@ class Monitor:
     pss = read_pss_kb(self.pid) if with_pss else None
     return (t, ticks, st.get("VmRSS", 0), st.get("RssAnon", 0), st.get("RssFile", 0),
             st.get("RssShmem", 0), st.get("VmHWM", 0), st.get("Threads", 0), pss,
-            read_cgroup_mem(), busy, total)
+            read_cgroup_mem(), busy, total, None, None, None, None, None, None)
+
+  def _sample_darwin(self) -> tuple | None:
+    t = time.monotonic_ns()
+    r = macos.proc_rusage(self.pid)
+    if r is None:
+      return None
+    busy, total = macos.host_cpu_ticks()
+    gpu = macos.gpu_device_stats() or {}
+    mem = gpu.get("in_use_mem_bytes")
+    return (t, r["cpu_ns"] // 1000, r["resident_bytes"] // 1024, None, None, None, None,
+            macos.proc_threads(self.pid), None, None, busy, total,
+            r["footprint_bytes"] // 1024, r["footprint_max_bytes"] // 1024,
+            macos.gpu_time_ns(self.pid), gpu.get("device_util_pct"),
+            mem // 1024 if mem is not None else None, r["energy_nj"])
 
   def _run(self) -> None:
     i = 0

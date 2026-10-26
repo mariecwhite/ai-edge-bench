@@ -18,6 +18,10 @@ parameter `num_decode_tokens`, which makes LiteRT-LM decode exactly N steps and
 ignore stop tokens. This is an engine-creation setting, so a driver started
 with it cannot also serve EOS-terminated requests; the harness starts a
 separate driver process for accuracy runs.
+
+`--backend gpu` selects LiteRT's ML Drift GPU backend (Metal on macOS; the
+`litert-lm-api` macOS wheel links it into liblitert-lm.dylib). The native
+Apple GPU suite runs this driver on the macOS host, outside any container.
 """
 
 from __future__ import annotations
@@ -39,6 +43,14 @@ def emit(obj) -> None:
   sys.stdout.flush()
 
 
+def _version() -> str | None:
+  try:
+    from importlib import metadata
+    return metadata.version("litert-lm-api")
+  except Exception:  # source builds inside the container carry no wheel metadata
+    return None
+
+
 class Driver:
 
   def __init__(self, args):
@@ -47,10 +59,13 @@ class Driver:
     _ffi.set_min_log_severity(_ffi.LogSeverity.ERROR)
     lib = self.lib
     t0 = time.monotonic_ns()
-    settings = lib.litert_lm_engine_settings_create(args.model, "cpu", None, None)
+    settings = lib.litert_lm_engine_settings_create(args.model, args.backend, None, None)
     if not settings:
       raise RuntimeError("engine settings creation failed")
     lib.litert_lm_engine_settings_set_num_threads(settings, args.threads)
+    if args.gpu_decode_steps_per_sync > 0:
+      lib.litert_lm_engine_settings_set_gpu_decode_steps_per_sync(
+          settings, args.gpu_decode_steps_per_sync)
     lib.litert_lm_engine_settings_set_max_num_tokens(settings, args.ctx)
     if args.cache_dir:
       # LiteRT-LM silently skips the weight cache when the directory is
@@ -93,7 +108,8 @@ class Driver:
     lib.litert_lm_session_config_set_max_output_tokens(cfg, max_tokens)
     sampling = sampling or {}
     seeded = float(sampling.get("temperature", 0.0)) > 0.0
-    sp = lib.litert_lm_sampler_params_create(SamplerType.TOP_P)
+    greedy_type = SamplerType.GREEDY if self.args.sampler == "greedy" and not seeded else SamplerType.TOP_P
+    sp = lib.litert_lm_sampler_params_create(greedy_type)
     # Greedy is top_k = 1; "no top-k" for seeded sampling is the full vocabulary.
     lib.litert_lm_sampler_params_set_top_k(sp, (int(sampling.get("top_k", 0)) or 262144) if seeded else 1)
     lib.litert_lm_sampler_params_set_top_p(sp, float(sampling.get("top_p", 1.0)) if seeded else 1.0)
@@ -240,7 +256,11 @@ class Driver:
                    "ynnpack": self.args.ynnpack, "cache_dir": self.args.cache_dir,
                    "fixed_decode_tokens": self.args.fixed_decode_tokens,
                    "cache_prefix": getattr(self.args, "cache_prefix", False),
-                   "sampler": "top_p sampler with top_k=1 (greedy)", "pid": os.getpid()}})
+                   "backend": self.args.backend,
+                   "gpu_decode_steps_per_sync": self.args.gpu_decode_steps_per_sync or "default",
+                   "sampler": ("GREEDY sampler" if self.args.sampler == "greedy"
+                               else "top_p sampler with top_k=1 (greedy)"),
+                   "litert_lm_version": _version(), "pid": os.getpid()}})
     for line in sys.stdin:
       line = line.strip()
       if not line:
@@ -280,6 +300,13 @@ def main(argv=None) -> int:
   ap.add_argument("--ynnpack", action="store_true")
   ap.add_argument("--fixed-decode-tokens", type=int, default=0)
   ap.add_argument("--cache-prefix", action="store_true", help="enable cached-prefix mode")
+  ap.add_argument("--backend", choices=("cpu", "gpu"), default="cpu",
+                  help="gpu = LiteRT ML Drift (Metal on macOS)")
+  ap.add_argument("--gpu-decode-steps-per-sync", type=int, default=0,
+                  help="0 = engine default")
+  ap.add_argument("--sampler", choices=("top_p_k1", "greedy"), default="top_p_k1",
+                  help="greedy decoding: TOP_P with top_k=1 (the v0.17.1 CPU sampler only "
+                       "implements TOP_P) or the GREEDY sampler type")
   args = ap.parse_args(argv)
   try:
     driver = Driver(args)

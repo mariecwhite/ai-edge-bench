@@ -1,0 +1,11 @@
+# Pinned Python packages for the native Apple GPU suite (Python 3.12, macOS arm64).
+# Installed by scripts/native-apple-gpu.sh into build/native/venv.
+mlx==0.32.4
+mlx-metal==0.32.4
+mlx-lm==0.32.2
+# mlx-lm tokenizes through transformers; pinned because it affects token ids.
+transformers==5.20.2
+tokenizers==0.23.3
+litert-lm==0.18.1
+litert-lm-api==0.18.1
+matplotlib==3.11.2

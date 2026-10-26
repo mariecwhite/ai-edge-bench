@@ -9,6 +9,8 @@
 
 MACHINE ?= epyc-7443p
 SUITE ?= suites/gemma4-e2b-cpu.json
+GPU_SUITE := suites/gemma4-26b-a4b-gpu.json
+NATIVE_PY := build/native/venv/bin/python
 COMPOSE := docker compose -f compose.yaml -f compose/machines/$(MACHINE).yaml
 # Report date and optional run filter for `make report`.
 DATE ?= $(shell date -u +%Y-%m-%d)
@@ -18,7 +20,8 @@ SINCE ?=
 .PHONY: help base images models bench bench-llama-cpp bench-litert-lm \
         bench-gpu sysinfo config machines clean-results tools matched-models \
         datasets suite-perf suite-accuracy suite-repro report dashboard test diagnose-activations \
-        arm-images arm-models suite-sequence
+        arm-images arm-models suite-sequence native gpu-models native-report \
+        native-crosscheck
 
 help:
 	@echo "AI Edge Bench - MACHINE=$(MACHINE)"
@@ -46,6 +49,14 @@ help:
 	@echo "  make dashboard                  update dashboards/index.html from reports & results"
 	@echo "  make test                       harness unit tests (no models needed)"
 	@echo "  make MACHINE=<m> diagnose-activations  PyTorch reference with/without activation quantization"
+	@echo
+	@echo "  Native Apple GPU suite (macOS host, Metal; docs/harness.md):"
+	@echo "  make native                     build the host stack into build/native/"
+	@echo "  make gpu-models                 stage the pinned Gemma 4 26B A4B artifacts"
+	@echo "  make MACHINE=apple-m5-max SUITE=$(GPU_SUITE) suite-perf   (also suite-accuracy,"
+	@echo "                                  suite-repro, suite-sequence; native suites run on the host)"
+	@echo "  make MACHINE=apple-m5-max native-crosscheck   native benchmark tools on the same shapes"
+	@echo "  make MACHINE=apple-m5-max SUITE=$(GPU_SUITE) native-report"
 
 machines:
 	@ls compose/machines/*.yaml | xargs -n1 basename | sed 's/\.yaml$$//'
@@ -153,6 +164,23 @@ diagnose-activations: tools
 	  --a /results/$$($(COMPOSE) --profile tools run --rm -T --entrypoint printenv tools AEB_MACHINE | tail -1)/accuracy-mmlu/llama.cpp/matched \
 	  --b /results/$$($(COMPOSE) --profile tools run --rm -T --entrypoint printenv tools AEB_MACHINE | tail -1)/accuracy-mmlu/litert-lm/matched \
 	  --out /results/$$($(COMPOSE) --profile tools run --rm -T --entrypoint printenv tools AEB_MACHINE | tail -1)/diagnostics/hf-reference-mmlu.json
+
+# ---- native Apple GPU suite (macOS host; containers cannot reach Metal) ----
+native:
+	scripts/native-apple-gpu.sh
+
+gpu-models:
+	PYTHONPATH=docker/harness python3 -m aeb.prep.fetch_gpu_models
+
+native-crosscheck:
+	python3 scripts/native_tools_crosscheck.py --machine $(MACHINE) --suite $(GPU_SUITE)
+
+native-report:
+	PYTHONPATH=docker/harness AEB_RESULTS_DIR=$(CURDIR)/results $(NATIVE_PY) -m aeb.report \
+	  --machine $(MACHINE) --suite $(SUITE) --date $(DATE) \
+	  --results results --out reports --models models \
+	  $(if $(SINCE),--since $(SINCE),) \
+	  $(if $(wildcard reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md),--extra-notes reports/notes/$(notdir $(basename $(SUITE)))-$(MACHINE).md,)
 
 clean-results:
 	rm -rf results/*
