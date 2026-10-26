@@ -1,0 +1,19 @@
+{
+  "model": "google/gemma-4-26B-A4B-it",
+  "retrieved": "2026-10-22",
+  "summary": "Google publishes no original-MMLU or GSM8K score for Gemma 4 26B A4B; the model card (revision 4d7ae4984b7d) reports MMLU-Pro, MMMLU, GPQA Diamond, AIME 2026, LiveCodeBench v6 and BigBench Extra Hard for the instruction-tuned bf16 model, and labels only the Gemma 3 27B comparison column 'no think'. None of these setups matches this harness (zero-shot, thinking disabled, greedy, ~4-bit weights, answer-prefilled MMLU, 512-token GSM8K cap), so they are context, not a pass/fail threshold; the frameworks are judged against each other on identical items.",
+  "results": [
+    {"benchmark": "MMLU Pro", "task_key": null, "value": 82.6, "variant": "gemma-4-26B-A4B-it, bf16", "setup": "Google model card (Gemma 3 27B column marked 'no think'; Gemma 4 columns not)", "source_name": "Gemma 4 26B A4B model card", "source": "https://huggingface.co/google/gemma-4-26B-A4B-it"},
+    {"benchmark": "MMMLU", "task_key": null, "value": 86.3, "variant": "gemma-4-26B-A4B-it, bf16", "setup": "same", "source_name": "Gemma 4 26B A4B model card", "source": "https://huggingface.co/google/gemma-4-26B-A4B-it"},
+    {"benchmark": "GPQA Diamond", "task_key": null, "value": 82.3, "variant": "gemma-4-26B-A4B-it, bf16", "setup": "same", "source_name": "Gemma 4 26B A4B model card", "source": "https://huggingface.co/google/gemma-4-26B-A4B-it"},
+    {"benchmark": "AIME 2026 (no tools)", "task_key": null, "value": 88.3, "variant": "gemma-4-26B-A4B-it, bf16", "setup": "same", "source_name": "Gemma 4 26B A4B model card", "source": "https://huggingface.co/google/gemma-4-26B-A4B-it"},
+    {"benchmark": "LiveCodeBench v6", "task_key": null, "value": 77.1, "variant": "gemma-4-26B-A4B-it, bf16", "setup": "same", "source_name": "Gemma 4 26B A4B model card", "source": "https://huggingface.co/google/gemma-4-26B-A4B-it"},
+    {"benchmark": "BigBench Extra Hard", "task_key": null, "value": 64.8, "variant": "gemma-4-26B-A4B-it, bf16", "setup": "same", "source_name": "Gemma 4 26B A4B model card", "source": "https://huggingface.co/google/gemma-4-26B-A4B-it"},
+    {"benchmark": "MMLU Pro (E2B, for scale)", "task_key": null, "value": 60.0, "variant": "gemma-4-E2B-it, bf16", "setup": "same table", "source_name": "Gemma 4 26B A4B model card", "source": "https://huggingface.co/google/gemma-4-26B-A4B-it"}
+  ],
+  "notes": [
+    "Order-of-magnitude check: the same table puts 26B A4B 22.6 points above E2B on MMLU Pro. This harness measured 57-61% MMLU and 76-78% GSM8K for E2B on the identical subsets (2026-10-02 CPU report), so a healthy 26B A4B configuration should score clearly higher on both.",
+    "The 26B A4B chat template closes a non-thinking model turn with an empty thought channel ('<|channel>thought\\n<channel|>'); the model card states that all Gemma 4 models except E2B/E4B emit this empty block when thinking is disabled. This suite's prompts include it (workload.chat_template = gemma4-empty-thought).",
+    "Published scores use bf16 weights; no source reports accuracy for the QAT Q4_0 GGUF, the LiteRT-LM GPU package, the MLX 4-bit conversion or the BaseRT Q4 bundle themselves."
+  ]
+}

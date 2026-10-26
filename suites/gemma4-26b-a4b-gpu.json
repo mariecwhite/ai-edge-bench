@@ -1,0 +1,103 @@
+{
+  "name": "gemma4-26b-a4b-gpu",
+  "description": "Gemma 4 26B A4B (MoE, 3.8B active) on the Apple M5 Max GPU, run natively on macOS with Metal: LiteRT-LM (ML Drift GPU backend), llama.cpp (Metal), MLX (mlx-lm) and BaseRT. Every configuration is a reference (open) comparison: each framework runs its own published ~4-bit artifact of the model with framework defaults, so weights and quantization are NOT matched and speed must be read together with the accuracy gate. Native macOS numbers are not comparable with the Linux-VM CPU suites.",
+  "references": "references/gemma-4-26B-A4B-it.json",
+  "execution": "native",
+  "ratio_baseline": "litert-lm/gpu",
+  "models": {
+    "litertlm_gpu": "/models/litert-community/gemma-4-26B-A4B-it-litert-lm/gemma-4-26B-A4B-it-gpu.litertlm",
+    "gguf_qat_q4_0": "/models/google/gemma-4-26B-A4B-it-qat-q4_0-gguf/gemma-4-26B_q4_0-it.gguf",
+    "mlx_qat_4bit": "/models/lmstudio-community/gemma-4-26B-A4B-it-QAT-MLX-4bit",
+    "basert_q4": "/models/basecompute/gemma-4-26B-A4B-it/gemma-4-26B-A4B-it-Q4.base"
+  },
+  "workload": {
+    "prompt_tokens": 1024,
+    "gen_tokens": 256,
+    "warmup": 2,
+    "repetitions": 5,
+    "cooldown_s": 2,
+    "ctx": 4096,
+    "chat_template": "gemma4-empty-thought"
+  },
+  "rounds": 3,
+  "sequence_sweep": {
+    "prompt_tokens": [128, 512, 1024, 2048, 4096, 8192, 16384],
+    "gen_tokens": 512,
+    "ctx": 16896
+  },
+  "configs": [
+    {
+      "id": "litert-lm/gpu",
+      "framework": "litert-lm",
+      "track": "reference",
+      "dtype": "int4",
+      "report": {
+        "checkpoint": "it (LiteRT-LM GPU)",
+        "weights": "~4-bit",
+        "activations": "not exposed",
+        "kv_cache": "not exposed",
+        "thread_usage": "host"
+      },
+      "args": [
+        "--model", "{litertlm_gpu}", "--backend", "gpu", "--threads", "{threads}",
+        "--ctx", "{ctx}", "--cache-dir", "/results/_cache/litert-lm-gpu-26b-a4b"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "llama.cpp/metal",
+      "framework": "llama.cpp",
+      "track": "reference",
+      "dtype": "int4",
+      "report": {
+        "checkpoint": "QAT (GGUF)",
+        "weights": "q4_0",
+        "activations": "not exposed",
+        "kv_cache": "fp16",
+        "thread_usage": "host"
+      },
+      "args": [
+        "--model", "{gguf_qat_q4_0}", "--n-gpu-layers", "999", "--threads", "{threads}",
+        "--ctx", "{ctx}"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "mlx/metal",
+      "framework": "mlx",
+      "track": "reference",
+      "dtype": "int4",
+      "report": {
+        "checkpoint": "QAT (MLX)",
+        "weights": "4/8-bit affine g64",
+        "activations": "bf16",
+        "kv_cache": "not exposed",
+        "thread_usage": "recorded only"
+      },
+      "args": ["--model", "{mlx_qat_4bit}", "--threads", "{threads}", "--ctx", "{ctx}"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "basert/metal",
+      "framework": "basert",
+      "track": "reference",
+      "dtype": "int4",
+      "report": {
+        "checkpoint": "it (BaseRT)",
+        "weights": "Q4",
+        "activations": "not exposed",
+        "kv_cache": "not exposed",
+        "thread_usage": "recorded only"
+      },
+      "args": ["--model", "{basert_q4}", "--threads", "{threads}", "--ctx", "{ctx}"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    }
+  ],
+  "machines": {
+    "apple-m5-max": {
+      "threads": 6,
+      "threads_note": "CPU threads for host-side work (llama.cpp's default on Apple silicon is the perflevel0 core count, 6 here); MLX and BaseRT record the value only.",
+      "machine_notes": "Apple M5 Max (40-core GPU, 64 GB), native macOS with Metal; GPU suite, not comparable with the Linux-VM CPU suites"
+    }
+  }
+}

@@ -11,12 +11,34 @@ and the first published comparison:
 - [Gemma 4 E2B on CPU, Apple M5 Max (Linux VM), 2026-10-01](reports/2026-10-01-gemma4-e2b-cpu-apple-m5-max/README.md)
 - [Three-framework ARM CPU comparison, 2026-10-02](reports/2026-10-02-gemma4-e2b-cpu-arm-runtimes-apple-m5-max/README.md):
   LiteRT-LM, llama.cpp and ONNX Runtime.
+- [Gemma 4 26B A4B on the Apple M5 Max GPU (native macOS, Metal), 2026-10-22](reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/README.md):
+  LiteRT-LM (ML Drift GPU), llama.cpp, MLX and BaseRT.
+  [HTML version](reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/README.html).
 - Performance history: [reports/history/](reports/history)
 
 The optional ONNX Runtime GenAI CPU adapter for the Apple ARM VM has a
 separate [exploratory suite](suites/gemma4-e2b-cpu-arm-runtimes.json). Its
 independently converted model files are **not** weight-matched to the first
 report; see [model staging and validation](docs/harness.md#optional-arm-cpu-runtimes).
+
+## Native Apple GPU suite
+
+[suites/gemma4-26b-a4b-gpu.json](suites/gemma4-26b-a4b-gpu.json) benchmarks
+Gemma 4 26B A4B on the Apple M5 Max GPU with LiteRT-LM (ML Drift GPU
+backend), llama.cpp (Metal), MLX and BaseRT. Docker on macOS cannot reach
+Metal, so this suite runs natively on the macOS host through the same harness,
+runner, accuracy gate and report:
+
+```bash
+make native                                   # pinned host stack in build/native/
+make gpu-models                               # pinned, checksum-verified artifacts
+make MACHINE=apple-m5-max SUITE=suites/gemma4-26b-a4b-gpu.json suite-perf
+make MACHINE=apple-m5-max SUITE=suites/gemma4-26b-a4b-gpu.json native-report
+```
+
+See [harness.md](docs/harness.md#native-apple-gpu-suite) for the full
+sequence (sweep, accuracy, reproducibility, native-tool cross-check), the
+artifacts and what the GPU-side metrics mean.
 
 ## Benchmark containers
 

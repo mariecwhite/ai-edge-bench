@@ -549,7 +549,7 @@
         </div>
       </div>
       <div class="header-meta">
-        <span class="meta-pill">Updated: 2026-10-26 10:46:35 UTC</span>
+        <span class="meta-pill">Updated: 2026-10-26 18:11:50 UTC</span>
         <span>Update command: <code>python3 scripts/update_dashboard.py</code></span>
       </div>
     </div>
@@ -559,12 +559,12 @@
     <div class="kpi-grid" id="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">Benchmark Suites</div>
-        <div class="kpi-value">3</div>
-        <div class="kpi-sub">Tracked across x86 AMX &amp; ARM CPUs (8 snapshots)</div>
+        <div class="kpi-value">4</div>
+        <div class="kpi-sub">Tracked across x86 AMX &amp; ARM CPUs (9 snapshots)</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Configurations Tracked</div>
-        <div class="kpi-value">24</div>
+        <div class="kpi-value">28</div>
         <div class="kpi-sub">Across FP32, BF16, INT8, INT4/Mixed</div>
       </div>
       <div class="kpi-card">
@@ -604,7 +604,7 @@
 
   <script id="dashboard-data" type="application/json">
 {
-  "generated_at": "2026-10-26 10:46:35 UTC",
+  "generated_at": "2026-10-26 18:11:50 UTC",
   "suites": [
     {
       "id": "gemma4-e2b-cpu-sapphire-rapids--sapphire-rapids",
@@ -4102,6 +4102,257 @@
               "framework_ref": "jax==0.12.0.1",
               "framework_commit": "google-tunix==0.1.7",
               "report_url": "../reports/2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gemma4-26b-a4b-gpu--apple-m5-max",
+      "suite": "gemma4-26b-a4b-gpu",
+      "machine": "apple-m5-max",
+      "machine_notes": "Apple M5 Max (40-core GPU, 64 GB), native macOS with Metal; GPU suite, not comparable with the Linux-VM CPU suites",
+      "description": "Gemma 4 26B A4B (MoE, 3.8B active) on the Apple M5 Max GPU, run natively on macOS with Metal: LiteRT-LM (ML Drift GPU backend), llama.cpp (Metal), MLX (mlx-lm) and BaseRT. Every configuration is a reference (open) comparison: each framework runs its own published ~4-bit artifact of the model with framework defaults, so weights and quantization are NOT matched and speed must be read together with the accuracy gate. Native macOS numbers are not comparable with the Linux-VM CPU suites.",
+      "workload": {
+        "prompt_tokens": 1024,
+        "gen_tokens": 256,
+        "ctx": 4096,
+        "rounds": 3,
+        "repetitions": 5
+      },
+      "reports": [
+        {
+          "report_id": "2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max",
+          "date": "2026-10-22",
+          "report_url": "../reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/index.html"
+        }
+      ],
+      "configs": [
+        {
+          "id": "mlx/metal",
+          "framework": "mlx",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (HF)",
+          "weights_acts_kv": "int4",
+          "threads": "6",
+          "color": "#59636e",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 4001.95,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 118.55,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 2408.01,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max",
+              "date": "2026-10-22",
+              "prefill_tps": {
+                "median": 4001.95,
+                "min": 3341.18,
+                "max": 4158.04,
+                "cv": 0.04771,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 118.55,
+                "min": 118.17,
+                "max": 118.63,
+                "cv": 0.00118,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 2408.01,
+                "min": 2400.59,
+                "max": 2461.54,
+                "cv": 0.00607,
+                "n": 15
+              },
+              "ttft_ms": 255.9,
+              "itl_p99_ms": 8.6,
+              "rss_max_mb": 14260.0,
+              "mmlu": 0.795,
+              "gsm8k": 0.94,
+              "framework_ref": "mlx-lm==0.32.2",
+              "framework_commit": null,
+              "report_url": "../reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/index.html"
+            }
+          ]
+        },
+        {
+          "id": "llama.cpp/metal",
+          "framework": "llama.cpp",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (GGUF)",
+          "weights_acts_kv": "q4_0 / q8_0 / fp16",
+          "threads": "6",
+          "color": "#d9822b",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 3413.19,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 110.33,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 2610.3,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max",
+              "date": "2026-10-22",
+              "prefill_tps": {
+                "median": 3413.19,
+                "min": 3381.19,
+                "max": 3446.06,
+                "cv": 0.00502,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 110.33,
+                "min": 109.35,
+                "max": 112.04,
+                "cv": 0.00735,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 2610.3,
+                "min": 2578.92,
+                "max": 2632.3,
+                "cv": 0.00636,
+                "n": 15
+              },
+              "ttft_ms": 300.0,
+              "itl_p99_ms": 9.9,
+              "rss_max_mb": 14169.0,
+              "mmlu": 0.784,
+              "gsm8k": 0.936,
+              "framework_ref": "b11259",
+              "framework_commit": "d280808f5d82fcc3142b53f94ea5f594250cd765",
+              "report_url": "../reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/index.html"
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/gpu",
+          "framework": "litert-lm",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-mobile",
+          "weights_acts_kv": "int2_int4_int8 / int8 / int8",
+          "threads": "6",
+          "color": "#2b6cd9",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 2752.33,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 103.72,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 2829.51,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max",
+              "date": "2026-10-22",
+              "prefill_tps": {
+                "median": 2752.33,
+                "min": 2589.69,
+                "max": 2873.66,
+                "cv": 0.03113,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 103.72,
+                "min": 103.65,
+                "max": 103.79,
+                "cv": 0.00043,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 2829.51,
+                "min": 2814.45,
+                "max": 2854.41,
+                "cv": 0.00436,
+                "n": 15
+              },
+              "ttft_ms": 372.0,
+              "itl_p99_ms": 9.9,
+              "rss_max_mb": 5131.0,
+              "mmlu": 0.7905,
+              "gsm8k": 0.936,
+              "framework_ref": "litert-lm-api==0.18.1",
+              "framework_commit": null,
+              "report_url": "../reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/index.html"
+            }
+          ]
+        },
+        {
+          "id": "basert/metal",
+          "framework": "basert",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (HF)",
+          "weights_acts_kv": "int4",
+          "threads": "6",
+          "color": "#59636e",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 3368.82,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 77.55,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 3592.53,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max",
+              "date": "2026-10-22",
+              "prefill_tps": {
+                "median": 3368.82,
+                "min": 3335.81,
+                "max": 3481.44,
+                "cv": 0.01097,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 77.55,
+                "min": 77.22,
+                "max": 77.69,
+                "cv": 0.00156,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 3592.53,
+                "min": 3582.2,
+                "max": 3608.04,
+                "cv": 0.00196,
+                "n": 15
+              },
+              "ttft_ms": 304.0,
+              "itl_p99_ms": 52.5,
+              "rss_max_mb": 2063.0,
+              "mmlu": 0.788,
+              "gsm8k": 0.936,
+              "framework_ref": "v0.4.0",
+              "framework_commit": "24badc8dd173e4111b64996a718d0e056405ea62",
+              "report_url": "../reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/index.html"
             }
           ]
         }

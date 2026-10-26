@@ -19,6 +19,9 @@
 #include <set>
 #include <string>
 #include <vector>
+#ifdef __APPLE__
+#include <time.h>
+#endif
 
 #include "ggml-backend.h"
 #include "ggml.h"
@@ -30,9 +33,16 @@ using json = nlohmann::json;
 namespace {
 
 int64_t now_ns() {
+#ifdef __APPLE__
+  // libc++'s steady_clock is CLOCK_MONOTONIC_RAW (counts sleep) on macOS;
+  // Python's time.monotonic_ns (3.12+), used by the monitor, is
+  // mach_absolute_time, i.e. CLOCK_UPTIME_RAW.
+  return (int64_t)clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+#else
   return std::chrono::duration_cast<std::chrono::nanoseconds>(
              std::chrono::steady_clock::now().time_since_epoch())
       .count();
+#endif
 }
 
 void emit(const json& j) {
@@ -63,6 +73,7 @@ struct Args {
   bool repack = true;
   bool swa_full = false;  // llama-bench and llama-cli default
   bool cache_prefix = false;
+  int n_gpu_layers = 0;   // 0 = CPU only; -1 = offload every layer
 };
 
 Args parse_args(int argc, char** argv) {
@@ -89,6 +100,7 @@ Args parse_args(int argc, char** argv) {
     else if (k == "--no-repack") a.repack = false;
     else if (k == "--swa-full") a.swa_full = true;
     else if (k == "--cache-prefix") a.cache_prefix = true;
+    else if (k == "--n-gpu-layers") a.n_gpu_layers = std::stoi(val());
     else {
       std::fprintf(stderr, "unknown argument: %s\n", k.c_str());
       std::exit(2);
@@ -140,7 +152,7 @@ int main(int argc, char** argv) {
   llama_backend_init();
 
   llama_model_params mp = llama_model_default_params();
-  mp.n_gpu_layers = 0;
+  mp.n_gpu_layers = args.n_gpu_layers;
   mp.use_extra_bufts = args.repack;
   if (!args.mmap) mp.load_mode = LLAMA_LOAD_MODE_NONE;
   llama_model* model = llama_model_load_from_file(args.model.c_str(), mp);
@@ -194,6 +206,7 @@ int main(int argc, char** argv) {
           {"repack", args.repack},
           {"swa_full", args.swa_full},
           {"cache_prefix", args.cache_prefix},
+          {"n_gpu_layers", args.n_gpu_layers},
           {"system_info", llama_print_system_info()}}}});
 
   std::vector<llama_token> cached_prefix_ids;
