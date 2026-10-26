@@ -54,6 +54,21 @@ RUN git init -q . \
  && git lfs pull \
  && git rev-parse HEAD > /src/.litert-lm-commit
 
+# Build fixes for upstream tags that do not build as tagged. Patches in
+# litert-lm/patches/<LITERT_LM_REF>/ are applied in order; every other ref is
+# built unmodified. Applied patch names are recorded in build-info.json.
+COPY litert-lm/patches/ /patches/
+RUN set -eu; \
+    : > /src/.litert-lm-patches; \
+    if [ -d "/patches/${LITERT_LM_REF}" ]; then \
+      for p in "/patches/${LITERT_LM_REF}"/*.patch; do \
+        [ -e "${p}" ] || continue; \
+        echo "applying ${p}"; \
+        git apply --verbose "${p}"; \
+        printf '%s ' "$(basename "${p}")" >> /src/.litert-lm-patches; \
+      done; \
+    fi
+
 # linux_x86_64 | linux_arm64. Do not use the x86-64 config on Arm: it adds
 # -mavx2. Note the x86-64 config requires an AVX2-capable host (Zen 3+ is fine).
 ARG BAZEL_CONFIG=linux_x86_64
@@ -152,11 +167,12 @@ ARG LITERT_LM_REF
 ARG BAZEL_CONFIG
 ARG BAZEL_EXTRA_FLAGS
 COPY --from=build /src/.litert-lm-commit /tmp/commit
-RUN printf '{"framework":"litert-lm","ref":"%s","commit":"%s","bazel_config":"%s","bazel_extra_flags":"%s","binaries":"%s","built_at":"%s"}\n' \
-      "${LITERT_LM_REF}" "$(cat /tmp/commit)" "${BAZEL_CONFIG}" "${BAZEL_EXTRA_FLAGS}" \
+COPY --from=build /src/.litert-lm-patches /tmp/patches
+RUN printf '{"framework":"litert-lm","ref":"%s","commit":"%s","patches":"%s","bazel_config":"%s","bazel_extra_flags":"%s","binaries":"%s","built_at":"%s"}\n' \
+      "${LITERT_LM_REF}" "$(cat /tmp/commit)" "$(sed 's/ *$//' /tmp/patches)" "${BAZEL_CONFIG}" "${BAZEL_EXTRA_FLAGS}" \
       "$(ls /opt/litert-lm/bin | tr '\n' ' ')" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
       > /opt/aeb/build-info.json \
- && rm -f /tmp/commit
+ && rm -f /tmp/commit /tmp/patches
 
 ENV PATH="/opt/aeb/bin:/opt/litert-lm/bin:${PATH}" \
     LD_LIBRARY_PATH="/opt/litert-lm/bin" \

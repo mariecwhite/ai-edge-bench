@@ -197,8 +197,7 @@ test one new configuration without rerunning the original engines.
 The [Sapphire Rapids suite](../suites/gemma4-e2b-cpu-sapphire-rapids.json)
 evaluates five CPU runtimes (`litert-lm`, `llama.cpp`, `xla`, `openvino`, and
 `onnxruntime`) across `fp32`, `bf16`, `int8`, and `int4` precision tiers on
-Intel Xeon Sapphire Rapids (`numactl --physcpubind=0-39 --localalloc` via
-[scripts/dock_shim.py](../scripts/dock_shim.py)):
+Intel Xeon Sapphire Rapids (`numactl --physcpubind=0-55 --localalloc`):
 
 - [scripts/setup_amx_machine.sh](../scripts/setup_amx_machine.sh): Stages images,
   datasets, and all pre-built model artifacts on the remote AMX host.

@@ -90,7 +90,7 @@
 3. **Hardware & NUMA pinning (`Sapphire Rapids`).**
    - Dual-socket **4th Gen Intel Xeon Scalable (Sapphire Rapids)** server (2× 56 physical cores, ~1,008 GiB DDR5 RAM across 2 NUMA nodes).
    - ISA extensions present: `avx512f`, `avx512bw`, `avx512dq`, `avx512vl`, `avx512_vnni`, `avx512_bf16`, `avx512_fp16`, `amx_tile`, `amx_int8`, `amx_bf16`.
-   - All single-stream performance and reproducibility runs are strictly pinned to **NUMA node 0 physical cores** via `numactl` inside `scripts/dock_shim.py`, avoiding cross-socket UPI traffic and SMT sibling contention.
+   - All single-stream performance and reproducibility runs are strictly pinned to **NUMA node 0 physical cores** via `numactl`, avoiding cross-socket UPI traffic and SMT sibling contention.
    - During the 2-shard parallel accuracy runs (`--parallel 2 --shards 2`), shard 0 is pinned to Socket 0 physical cores and shard 1 is pinned to Socket 1 physical cores.
 
 4. **OpenXLA CPU: Official Tunix + Pre-Quantized QArray on YNNPACK (`__ynn_fusion`).**

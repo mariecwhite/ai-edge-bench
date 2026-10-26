@@ -3,8 +3,7 @@
 
 Translates `docker compose ... run ... <service> <args...>` and
 `docker run ... <image> <args...>` into isolated rootfs container executions:
-- Uses `/data/dock/dock` if both `/data/dock/dock` and the bundle's `config.json` exist.
-- Otherwise uses Linux `unshare --mount` + `chroot` into `/data/aeb/bundles/<bundle>/rootfs`
+- Uses Linux `unshare --mount` + `chroot` into `/data/aeb/bundles/<bundle>/rootfs`
   with private bind mounts for `/proc`, `/sys`, `/dev`, `/models`, `/results`,
   `/datasets`, `/reports`, `/opt/aeb/harness`, and `/tmp`.
 - Automatically pins execution to the physical cores of NUMA node 0 (or node 1
@@ -23,7 +22,6 @@ from pathlib import Path
 
 AEB_ROOT = Path(os.environ.get("AEB_DATA_ROOT", "/data/aeb"))
 BUNDLES_DIR = AEB_ROOT / "bundles"
-DOCK_BIN = os.environ.get("AEB_DOCK_BIN", "/data/dock/dock")
 
 SERVICE_MAP = {
     "base": ("base", [], ["aeb-sysinfo"], {}),
@@ -212,14 +210,14 @@ def _exec_unshare(
   return proc.returncode
 
 
-def _exec_dock(
+def _exec_container(
     bundle: str,
     cmd_argv: list[str],
     extra_env: dict[str, str],
     extra_mounts: list[str],
 ) -> int:
   cid = f"aeb-{bundle}-{uuid.uuid4().hex[:8]}"
-  tmp_host = Path(f"/tmp/dock-tmp-{cid}")
+  tmp_host = Path(f"/tmp/aeb-tmp-{cid}")
   tmp_host.mkdir(parents=True, exist_ok=True)
 
   repo_notes = AEB_ROOT / "repo" / "reports" / "notes"
@@ -232,7 +230,6 @@ def _exec_dock(
         if not (dst_f.exists() and os.path.samefile(f, dst_f)):
           shutil.copy2(f, dst_f)
 
-  mounts_by_dst: dict[str, str] = {}
   mounts_src_by_dst: dict[str, str] = {}
   default_mounts = [
       f"{AEB_ROOT / 'models'}:/models",
@@ -243,8 +240,7 @@ def _exec_dock(
       f"{tmp_host}:/tmp",
   ]
   for m in default_mounts + extra_mounts:
-    dst, src, m_norm = _normalize_mount(m)
-    mounts_by_dst[dst] = m_norm
+    dst, src, _ = _normalize_mount(m)
     mounts_src_by_dst[dst] = src
 
   env = dict(DEFAULT_ENV)
@@ -255,24 +251,7 @@ def _exec_dock(
   rootfs_dir = bundle_dir / "rootfs"
 
   try:
-    if os.path.isfile(DOCK_BIN) and os.access(DOCK_BIN, os.X_OK) and (bundle_dir / "config.json").is_file():
-      dock_cmd = [
-          *numa_prefix,
-          DOCK_BIN,
-          "run",
-          "--rm",
-          f"--bundle={bundle_dir}",
-      ]
-      for m_norm in mounts_by_dst.values():
-        dock_cmd.extend(["-m", m_norm])
-      for k, v in env.items():
-        # Note: /data/dock/dock uses StringSliceVarP for -e which splits on commas
-        dock_cmd.extend(["-e", f"{k}={v.replace(',', ';')}"])
-      dock_cmd.extend([cid, "--", *cmd_argv])
-      proc = subprocess.run(dock_cmd)
-      return proc.returncode
-    else:
-      return _exec_unshare(rootfs_dir, numa_prefix, cmd_argv, env, mounts_src_by_dst)
+    return _exec_unshare(rootfs_dir, numa_prefix, cmd_argv, env, mounts_src_by_dst)
   finally:
     shutil.rmtree(tmp_host, ignore_errors=True)
 
@@ -364,7 +343,7 @@ def _handle_compose(argv: list[str]) -> int:
 
   cmd_tail = service_args if service_args else list(default_cmd)
   full_cmd = ep + cmd_tail
-  return _exec_dock(bundle, full_cmd, merged_env, extra_mounts)
+  return _exec_container(bundle, full_cmd, merged_env, extra_mounts)
 
 
 def _handle_run(argv: list[str]) -> int:
@@ -406,7 +385,7 @@ def _handle_run(argv: list[str]) -> int:
   bundle = IMAGE_MAP.get(image, image.split("/")[-1].split(":")[0])
   ep = [entrypoint_override] if entrypoint_override else []
   full_cmd = ep + cmd_args
-  return _exec_dock(bundle, full_cmd, extra_env, extra_mounts)
+  return _exec_container(bundle, full_cmd, extra_env, extra_mounts)
 
 
 def main() -> int:

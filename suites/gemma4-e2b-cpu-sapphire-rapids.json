@@ -443,7 +443,7 @@
       "threads": 16,
       "fastest": {
         "llama.cpp": {
-          "threads": 32,
+          "threads": 40,
           "ubatch": 1024,
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
         },
@@ -460,7 +460,7 @@
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (YNNPACK)"
         },
         "openvino": {
-          "threads": 40,
+          "threads": 32,
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
         },
         "onnxruntime": {

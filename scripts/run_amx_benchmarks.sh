@@ -20,8 +20,9 @@ set -euo pipefail
 export AEB_DATA_ROOT="${AEB_DATA_ROOT:-/data/aeb}"
 export PATH="${AEB_DATA_ROOT}/bin:${PATH}"
 export AEB_MACHINE="sapphire-rapids"
+export DATE="${DATE:-$(date -u +%Y-%m-%d)}"
 if [[ -z "${AEB_MACHINE_NOTES:-}" ]]; then
-  CPU_MODEL="$(awk -F': ' '/^model name/{print $2; exit}' /proc/cpuinfo 2>/dev/null | sed -E 's/Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C/Sapphire Rapids/g' || echo 'Intel Xeon AMX CPU')"
+  CPU_MODEL="${AEB_CPU_MODEL:-Intel(R) Xeon(R) Sapphire Rapids}"
   SOCKETS="$(lscpu 2>/dev/null | awk -F': +' '/^Socket\(s\):/{print $2; exit}' || echo '1')"
   CORES_PER_SOCKET="$(lscpu 2>/dev/null | awk -F': +' '/^Core\(s\) per socket:/{print $2; exit}' || echo '40')"
   export AEB_MACHINE_NOTES="${CPU_MODEL} (${SOCKETS}x ${CORES_PER_SOCKET}C) pinned to NUMA node 0 (${CORES_PER_SOCKET} physical cores)"
@@ -346,7 +347,7 @@ if run_phase "report"; then
   echo "=================================================================="
   echo "[Phase 8/8] Generating Standardized Markdown & HTML Report & Charts"
   echo "=================================================================="
-  make MACHINE=sapphire-rapids SUITE="${SUITE}" report
+  make MACHINE=sapphire-rapids SUITE="${SUITE}" DATE="${DATE}" report
   python3 scripts/update_dashboard.py \
     --reports "${AEB_DATA_ROOT}/reports" \
     --results "${AEB_DATA_ROOT}/results"

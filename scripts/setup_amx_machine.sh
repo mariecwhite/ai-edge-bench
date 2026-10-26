@@ -24,12 +24,9 @@ fi
 REMOTE_DIR="${AEB_REMOTE_DIR:-/data/aeb}"
 BWLIMIT="${AEB_RSYNC_BWLIMIT:-20000}" # KB/s (~20 MB/s default bandwidth limit)
 
-# Reuse a ControlMaster socket (~/.ssh/cm-aeb) if active; otherwise authenticate interactively.
-SSH_OPTS="${AEB_SSH_OPTS:--o StrictHostKeyChecking=no}"
+# Reuse or auto-create a ControlMaster socket (~/.ssh/cm-aeb) so a single SSH handshake serves the entire sync.
 SOCK="${HOME}/.ssh/cm-aeb"
-if [[ -S "${SOCK}" ]]; then
-  SSH_OPTS="${SSH_OPTS} -o ControlPath=${SOCK}"
-fi
+SSH_OPTS="${AEB_SSH_OPTS:--o StrictHostKeyChecking=no -o ControlMaster=auto -o ControlPath=${SOCK} -o ControlPersist=4h}"
 
 echo "==> [0/4] Bootstrapping ${REMOTE_DIR} on ${HOST} ..."
 RUNTIME_MODE="$(ssh ${SSH_OPTS} "${HOST}" "
@@ -69,7 +66,7 @@ rsync -avP --checksum --exclude='.git' --exclude='.cache' --exclude='models' --e
   -e "ssh ${SSH_OPTS}" ./ "${HOST}:${REMOTE_DIR}/repo/"
 
 rsync -avP --checksum -e "ssh ${SSH_OPTS}" ./datasets/ "${HOST}:${REMOTE_DIR}/datasets/"
-rsync -avP --checksum -e "ssh ${SSH_OPTS}" ./reports/notes/ "${HOST}:${REMOTE_DIR}/reports/notes/"
+rsync -avP --checksum -e "ssh ${SSH_OPTS}" ./reports/ "${HOST}:${REMOTE_DIR}/reports/"
 
 if [[ "${RUNTIME_MODE}" == "bundles-fresh" || "${2:-}" == "--bundles" ]]; then
   echo "==> [2/4] Checking & syncing 7 container bundles to ${HOST}:${REMOTE_DIR}/bundles/ ..."
@@ -306,24 +303,27 @@ if [[ "${#TO_PUSH[@]}" -eq 0 ]]; then
 else
   echo "==> Pushing ${#TO_PUSH[@]} incomplete/missing model files to ${HOST}:${REMOTE_DIR}/models/ ..."
   for item in "${TO_PUSH[@]}"; do
-    rel="${item%%:*}"
-    sha="${item#*:}"
-    rel_dir="$(dirname "${rel}")"
-    echo "  [PUSH] models/${rel} (expected sha256=${sha:0:12}...) ..."
-    rsync -avP --partial --inplace --bwlimit="${BWLIMIT}" -e "ssh ${SSH_OPTS}" \
-      "./models/${rel}" "${HOST}:${REMOTE_DIR}/models/${rel}"
-    # Verify remote SHA-256 hash after push and write remote .sha256 sidecar
-    ssh ${SSH_OPTS} "${HOST}" "
-      set -e
-      actual=\$(sha256sum '${REMOTE_DIR}/models/${rel}' | awk '{print \$1}')
-      if [[ \"\${actual}\" != '${sha}' ]]; then
-        echo 'ERROR: Remote SHA-256 mismatch after rsync for models/${rel}: got '\${actual}', expected ${sha}' >&2
+    printf '%s\n' "${item%%:*}"
+  done | rsync -avP --partial --inplace --bwlimit="${BWLIMIT}" --files-from=- \
+    -e "ssh ${SSH_OPTS}" ./models/ "${HOST}:${REMOTE_DIR}/models/"
+
+  echo "==> Verifying remote SHA-256 hashes for ${#TO_PUSH[@]} pushed model files ..."
+  for item in "${TO_PUSH[@]}"; do
+    printf '%s\t%s\n' "${item%%:*}" "${item#*:}"
+  done | ssh ${SSH_OPTS} "${HOST}" "
+    set -e
+    while IFS=\$'\t' read -r rel sha; do
+      [[ -z \"\${rel}\" ]] && continue
+      fpath='${REMOTE_DIR}/models/'\"\${rel}\"
+      actual=\$(sha256sum \"\${fpath}\" | awk '{print \$1}')
+      if [[ \"\${actual}\" != \"\${sha}\" ]]; then
+        echo \"ERROR: Remote SHA-256 mismatch after rsync for models/\${rel}: got \${actual}, expected \${sha}\" >&2
         exit 1
       fi
-      echo '${sha}  $(basename "${rel}")' > '${REMOTE_DIR}/models/${rel}.sha256'
-    "
-    echo "  [VERIFIED] models/${rel} (sha256=${sha:0:12}...)"
-  done
+      echo \"\${sha}  \$(basename \"\${rel}\")\" > \"\${fpath}.sha256\"
+      echo \"  [VERIFIED] models/\${rel} (sha256=\${sha:0:12}...)\"
+    done
+  "
 fi
 
 echo "==> Sync complete! You can now SSH into ${HOST} and run:"

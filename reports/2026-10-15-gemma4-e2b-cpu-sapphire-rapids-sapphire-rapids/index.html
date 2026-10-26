@@ -321,7 +321,7 @@
 <ul>
 <li>Dual-socket <strong>4th Gen Intel Xeon Scalable (Sapphire Rapids)</strong> server (2× 56 physical cores, ~1,008 GiB DDR5 RAM across 2 NUMA nodes).</li>
 <li>ISA extensions present: <code>avx512f</code>, <code>avx512bw</code>, <code>avx512dq</code>, <code>avx512vl</code>, <code>avx512_vnni</code>, <code>avx512_bf16</code>, <code>avx512_fp16</code>, <code>amx_tile</code>, <code>amx_int8</code>, <code>amx_bf16</code>.</li>
-<li>All single-stream performance and reproducibility runs are strictly pinned to <strong>NUMA node 0 physical cores</strong> via <code>numactl</code> inside <code>scripts/dock_shim.py</code>, avoiding cross-socket UPI traffic and SMT sibling contention.</li>
+<li>All single-stream performance and reproducibility runs are strictly pinned to <strong>NUMA node 0 physical cores</strong> via <code>numactl</code>, avoiding cross-socket UPI traffic and SMT sibling contention.</li>
 <li>During the 2-shard parallel accuracy runs (<code>--parallel 2 --shards 2</code>), shard 0 is pinned to Socket 0 physical cores and shard 1 is pinned to Socket 1 physical cores.</li>
 </ul></li>
 <li><strong>OpenXLA CPU: Official Tunix + Pre-Quantized QArray on YNNPACK (<code>__ynn_fusion</code>).</strong>
