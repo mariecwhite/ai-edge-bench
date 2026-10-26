@@ -22,6 +22,7 @@ import html
 import json
 import math
 from pathlib import Path
+import re
 import statistics
 import sys
 
@@ -305,8 +306,8 @@ def collect_dashboard_data(
         m0 = (c_runs[0].get("meta") if c_runs else {}) or {}
         if m0.get("machine_notes") and key not in machine_notes_by_suite:
           machine_notes_by_suite[key] = re.sub(
-              r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C",
-              "Sapphire Rapids",
+              r"(Intel\(R\)\s+Xeon\(R\))(?:\s+(?:Platinum|Gold|Silver|Bronze|Max))?\s+(?!Sapphire\s+Rapids\b)[0-9A-Za-z-]+(?:\s+CPU)?",
+              r"\1 Sapphire Rapids",
               str(m0["machine_notes"]),
           )
 
@@ -423,8 +424,8 @@ def collect_dashboard_data(
       m0 = selected[0][0]
       if m0.get("machine_notes") and key not in machine_notes_by_suite:
         machine_notes_by_suite[key] = re.sub(
-            r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C",
-            "Sapphire Rapids",
+            r"(Intel\(R\)\s+Xeon\(R\))(?:\s+(?:Platinum|Gold|Silver|Bronze|Max))?\s+(?!Sapphire\s+Rapids\b)[0-9A-Za-z-]+(?:\s+CPU)?",
+            r"\1 Sapphire Rapids",
             str(m0["machine_notes"]),
         )
 

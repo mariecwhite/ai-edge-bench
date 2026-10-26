@@ -106,29 +106,39 @@ import json
 import re
 from pathlib import Path
 
+XEON_RE = re.compile(
+    r"(Intel\(R\)\s+Xeon\(R\))(?:\s+(?:Platinum|Gold|Silver|Bronze|Max))?"
+    r"\s+(?!Sapphire\s+Rapids\b)[0-9A-Za-z-]+(?:\s+CPU)?(?:\s*@\s*[0-9.]+GHz)?"
+)
+KERNEL_RE = re.compile(r"^([A-Za-z]+\s+\d+\.\d+(?:\.\d+)?).*$")
+
 for p in sorted(Path("results").rglob("sysinfo.json")):
   try:
     d = json.loads(p.read_text())
   except Exception:
     continue
   changed = False
-  c = d.get("container", {})
-  if "google.com" in str(c.get("hostname", "")):
-    c["hostname"] = d.get("machine", {}).get("label", "container")
-    changed = True
-  if "-smp-" in str(c.get("kernel", "")):
-    c["kernel"] = re.sub(r"-smp-[0-9.]+", "", str(c["kernel"]))
-    changed = True
   m = d.get("machine", {})
-  new_m_notes = re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(m.get("notes", "")))
-  if new_m_notes != str(m.get("notes", "")):
-    m["notes"] = new_m_notes
+  m_label = m.get("label") or "container"
+  c = d.get("container", {})
+  if c.get("hostname") != m_label:
+    c["hostname"] = m_label
     changed = True
-  cpu = d.get("cpu", {})
-  new_cpu_model = re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(cpu.get("model", "")))
-  if new_cpu_model != str(cpu.get("model", "")):
-    cpu["model"] = new_cpu_model
+  k_str = str(c.get("kernel", ""))
+  new_k = KERNEL_RE.sub(r"\1", k_str)
+  if new_k != k_str:
+    c["kernel"] = new_k
     changed = True
+  if m_label == "sapphire-rapids":
+    new_m_notes = XEON_RE.sub(r"\1 Sapphire Rapids", str(m.get("notes", "")))
+    if new_m_notes != str(m.get("notes", "")):
+      m["notes"] = new_m_notes
+      changed = True
+    cpu = d.get("cpu", {})
+    new_cpu_model = XEON_RE.sub(r"\1 Sapphire Rapids", str(cpu.get("model", "")))
+    if new_cpu_model != str(cpu.get("model", "")):
+      cpu["model"] = new_cpu_model
+      changed = True
   if changed:
     p.write_text(json.dumps(d, indent=2) + "\n")
 
@@ -137,10 +147,11 @@ for p in sorted(Path("results").rglob("meta.json")):
     d = json.loads(p.read_text())
   except Exception:
     continue
-  new_notes = re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(d.get("machine_notes", "")))
-  if new_notes != str(d.get("machine_notes", "")):
-    d["machine_notes"] = new_notes
-    p.write_text(json.dumps(d, indent=1) + "\n")
+  if d.get("machine") == "sapphire-rapids":
+    new_notes = XEON_RE.sub(r"\1 Sapphire Rapids", str(d.get("machine_notes", "")))
+    if new_notes != str(d.get("machine_notes", "")):
+      d["machine_notes"] = new_notes
+      p.write_text(json.dumps(d, indent=1) + "\n")
 PY
 
 echo "==> Updating dashboards/index.html ..."

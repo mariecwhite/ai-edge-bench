@@ -1231,8 +1231,14 @@ def _slim(d):
   return {k: d[k] for k in ("n", "median", "min", "max", "cv")}
 
 
+_XEON_SKU_RE = re.compile(
+    r"(Intel\(R\)\s+Xeon\(R\))(?:\s+(?:Platinum|Gold|Silver|Bronze|Max))?"
+    r"\s+(?!Sapphire\s+Rapids\b)[0-9A-Za-z-]+(?:\s+CPU)?(?:\s*@\s*[0-9.]+GHz)?"
+)
+
+
 def _sanitize_machine_notes(notes: str) -> str:
-  return re.sub(r"Platinum [0-9]{4}C|[0-9]{4}[A-Z]-C", "Sapphire Rapids", str(notes or ""))
+  return _XEON_SKU_RE.sub(r"\1 Sapphire Rapids", str(notes or ""))
 
 
 def _meta_slim(m):
@@ -2034,7 +2040,11 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
              f"unified memory; power: {'; '.join(power.get('source', [])) or '?'}, low-power mode "
              f"{'on' if power.get('low_power_mode') else 'off'} |")
   else:
-    kernel_str = re.sub(r"-smp-[0-9.]+", "", str(sysinfo.get("container", {}).get("kernel", "?")))
+    kernel_str = re.sub(
+        r"^([A-Za-z]+\s+\d+\.\d+(?:\.\d+)?).*$",
+        r"\1",
+        str(sysinfo.get("container", {}).get("kernel", "?")),
+    )
     L.append(f"| Container view | {sysinfo.get('container', {}).get('os', '?')}, kernel "
              f"{kernel_str}, {cpu.get('nproc', '?')} vCPUs, "
              f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.1f} GiB RAM |")

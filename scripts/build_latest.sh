@@ -29,8 +29,8 @@ echo "=================================================================="
 echo "[1/4] Resolving latest upstream versions for all frameworks ..."
 echo "=================================================================="
 
-export AEB_LLAMA_CPP_REF="${AEB_LLAMA_CPP_REF:-$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')}"
-export AEB_LITERTLM_REF="${AEB_LITERTLM_REF:-$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\^{}//')}"
+export AEB_LLAMA_CPP_REF="${AEB_LLAMA_CPP_REF:-$(git ls-remote --tags --refs https://github.com/ggml-org/llama.cpp.git 'b[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^b[0-9]+$' | sort -V | tail -n1)}"
+export AEB_LITERTLM_REF="${AEB_LITERTLM_REF:-$(git ls-remote --tags --refs https://github.com/google-ai-edge/LiteRT-LM.git 'v[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)}"
 
 read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER SAFETENSORS_VER JAXTYPING_VER TOKENIZERS_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'
 import json
