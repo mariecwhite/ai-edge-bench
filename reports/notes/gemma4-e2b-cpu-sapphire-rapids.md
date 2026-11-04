@@ -3,18 +3,18 @@
 1. **Precision Matrix (`FP32`, `BF16`, `INT8`, plus `INT4`/`INT2` where pre-built artifacts exist).**
    - Every framework is evaluated across `FP32`, `BF16`, `INT8`, and `INT4`/`INT2`
      **only where pre-existing model artifacts and runtime support are available**:
-     - **OpenXLA (`jax==0.11.2` / `jaxlib==0.11.2`, official Google `tunix.models.gemma4` + `qwix.QArray` on YNNPACK)**:
+     - **OpenXLA (`jax==0.12.0.1` / `jaxlib==0.12.0.1`, official Google `tunix.models.gemma4` + `qwix.QArray` on YNNPACK)**:
        - **YNNPACK backend (`__ynn_fusion`)**: `xla/fp32-ynnpack` (`FP32` on `google/gemma-4-E2B-it`), `xla/bf16-ynnpack` (`BF16` on `google/gemma-4-E2B-it`), and
          `xla/matched-ynnpack` (loads the pre-quantized mixed `INT2`/`INT4`/`INT8` weights, per-channel weight scales, and static activation scales directly from `google/gemma-4-E2B-it-qat-mobile-transformers`; no dynamic activation quantization or on-the-fly channel-wise PTQ is run on unquantized checkpoints).
-       - **Intel oneDNN backend (`--onednn`) disabled:** Disabled on Sapphire Rapids because `jaxlib==0.11.2`'s experimental XLA:CPU oneDNN integration (`--xla_cpu_experimental_onednn_custom_call=true`) segfaults (`SIGSEGV`) or corrupts attention outputs on Intel AMX.
+       - **Intel oneDNN backend (`--onednn`) disabled:** Disabled on Sapphire Rapids because XLA:CPU's experimental oneDNN integration (`--xla_cpu_experimental_onednn_custom_call=true`) segfaults (`SIGSEGV`) or corrupts attention outputs on Intel AMX.
        - **Omitted from `INT8`:** No pre-quantized `INT8` safetensors checkpoint is published for Gemma 4 E2B, and `xla_driver.py` does not apply on-the-fly dynamic/channel-wise quantization to unquantized checkpoints.
-     - **LiteRT-LM (`v0.17.1`)**:
-       - `litert-lm/matched` (XNNPACK, 16 threads), `litert-lm/fastest` (XNNPACK, 32 threads,
-         empirical E2E winner on x86 AVX-512), and `litert-lm/ynnpack` (**YNNPACK**, `--ynnpack`,
-         16 threads) executing `litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm`
+     - **LiteRT-LM (`v0.19.0`)**:
+       - `litert-lm/matched` (XNNPACK, 16 threads), `litert-lm/fastest` (XNNPACK, sweep-selected threads),
+         and `litert-lm/ynnpack` (**YNNPACK**, `--ynnpack`, sweep-selected threads) executing
+         `litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it.litertlm`
          (mixed `INT2`/`INT4`/`INT8` mobile QAT weights). Omitted from `FP32`, `BF16`, and
          pure `INT8` because `.litertlm` only ships as the pre-compiled mobile QAT bundle.
-     - **`llama.cpp` (`b11259`, Sapphire Rapids AVX-512 + AMX backend)**:
+     - **`llama.cpp` (`b12070`, Sapphire Rapids AVX-512 + AMX backend)**:
        - `llama.cpp/bf16` (`BF16`), `llama.cpp/int8` (`Q8_0`),
          `llama.cpp/stock-q4_0` (official `ggml-org` `Q4_0` INT4 QAT checkpoint, tracked
          under `dtype: "q4_0"` with `--ubatch 1024`),
@@ -32,7 +32,7 @@
          (`OpenVINO/gemma-4-E2B-it-int8-ov`), and `openvino/int4`
          (`OpenVINO/gemma-4-E2B-it-int4-ov`), configured with `SchedulerConfig(enable_prefix_caching=False)`
          so `VLMPipeline` executes a full prefill from an empty KV cache on every request.
-     - **ONNX Runtime GenAI (`0.17.1`)**:
+     - **ONNX Runtime GenAI (`0.19.0`)**:
        - `onnxruntime/q4_k_m` (`Q4_K_M` 4-bit block quantization from
          `justinchuby/gemma-4-e2b-it-onnx`, configured with `execution_mode: "sequential"`
          and context bounded to `--ctx`).
@@ -94,9 +94,9 @@
    - During the 2-shard parallel accuracy runs (`--parallel 2 --shards 2`), shard 0 is pinned to Socket 0 physical cores and shard 1 is pinned to Socket 1 physical cores.
 
 4. **OpenXLA CPU: Official Tunix + Pre-Quantized QArray on YNNPACK (`__ynn_fusion`).**
-   - `xla_driver.py` uses the official Google Tunix Gemma 4 implementation (`tunix.models.gemma4`) and `qwix.QArray` on Flax NNX/JAX (`jaxlib==0.11.2`).
+   - `xla_driver.py` uses the official Google Tunix Gemma 4 implementation (`tunix.models.gemma4`) and `qwix.QArray` on Flax NNX/JAX (`jaxlib==0.12.0.1`).
    - By default (`xla/*-ynnpack`), XLA:CPU lowers matrix multiplications and elementwise fusions into `__ynn_fusion` custom calls backed by **YNNPACK**.
-   - XLA's experimental Intel oneDNN backend (`--onednn`) is disabled on Sapphire Rapids due to upstream `jaxlib==0.11.2` oneDNN crashes (`SIGSEGV`) and `BF16` `__onednn$softmax` corruption on Intel AMX.
+   - XLA's experimental Intel oneDNN backend (`--onednn`) is disabled on Sapphire Rapids due to upstream XLA:CPU oneDNN crashes (`SIGSEGV`) and `BF16` `__onednn$softmax` corruption on Intel AMX.
 
 5. **Data-Type-Aware Phase Selection, Cached-Prefix Mode & Apples-to-Apples Accuracy Protocol.**
    - **Phase 3 (`perf`):** Evaluates all 11 active configurations in stateless mode (fresh KV cache per request, 2 interleaved rounds × 3 measured requests after 1 warm-up at 1,024 prompt → 128 generated tokens).

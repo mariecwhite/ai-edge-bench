@@ -2197,19 +2197,19 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
     return "\n".join(L)
 
   # Build commands (exact pinned vs. latest upstream)
-  llama_ref = (builds.get("llama.cpp") or {}).get("ref", "b11259")
-  litert_ref = (builds.get("litert-lm") or {}).get("ref", "v0.17.1")
+  llama_ref = (builds.get("llama.cpp") or {}).get("ref", "b12070")
+  litert_ref = (builds.get("litert-lm") or {}).get("ref", "v0.19.0")
   xla_b = builds.get("xla") or {}
-  jax_ver = str(xla_b.get("ref", "jax==0.11.2")).split("==")[-1]
+  jax_ver = str(xla_b.get("ref", "jax==0.12.0.1")).split("==")[-1]
   tunix_ver = str(xla_b.get("tunix", "google-tunix==0.1.7")).split("==")[-1]
   qwix_ver = str(xla_b.get("qwix", "qwix==0.1.8")).split("==")[-1]
-  flax_ver = str(xla_b.get("flax", "flax==0.12.10")).split("==")[-1]
+  flax_ver = str(xla_b.get("flax", "flax==0.12.12")).split("==")[-1]
   ov_b = builds.get("openvino") or {}
-  ov_ver = str(ov_b.get("runtime", "openvino==2026.4.1.0")).split("==")[-1]
+  ov_ver = str(ov_b.get("runtime", "openvino==2026.4.1")).split("==")[-1]
   ov_genai_ver = str(ov_b.get("genai", "openvino-genai==2026.4.1.0")).split("==")[-1]
   ort_b = builds.get("onnxruntime") or {}
-  ort_ver = str(ort_b.get("runtime", "onnxruntime==1.30.0")).split("==")[-1]
-  ort_genai_ver = str(ort_b.get("genai", "onnxruntime-genai==0.17.1")).split("==")[-1]
+  ort_ver = str(ort_b.get("runtime", "onnxruntime==1.31.1")).split("==")[-1]
+  ort_genai_ver = str(ort_b.get("genai", "onnxruntime-genai==0.19.0")).split("==")[-1]
 
   L.append("### 2. Building framework container images (pinned vs. latest upstream)\n")
   L.append("**Option A — Rebuild with the exact pinned versions used in this report:**\n")
@@ -2241,8 +2241,8 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
   L.append("Or run the underlying version resolution and build commands directly:\n")
   L.append("```bash")
   L.append("# Query latest upstream git tags for llama.cpp and LiteRT-LM:")
-  L.append("export AEB_LLAMA_CPP_REF=\"$(git ls-remote --tags --sort='-v:refname' https://github.com/ggml-org/llama.cpp.git 'b*' | head -n1 | sed 's|.*refs/tags/||')\"")
-  L.append("export AEB_LITERTLM_REF=\"$(git ls-remote --tags --sort='-v:refname' https://github.com/google-ai-edge/LiteRT-LM.git 'v*' | head -n1 | sed 's|.*refs/tags/||; s/\\^{}//')\"")
+  L.append("export AEB_LLAMA_CPP_REF=\"$(git ls-remote --tags --refs https://github.com/ggml-org/llama.cpp.git 'b[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^b[0-9]+$' | sort -V | tail -n1)\"")
+  L.append("export AEB_LITERTLM_REF=\"$(git ls-remote --tags --refs https://github.com/google-ai-edge/LiteRT-LM.git 'v[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^v[0-9]+\\.[0-9]+\\.[0-9]+$' | sort -V | tail -n1)\"")
   L.append("")
   L.append("# Query latest PyPI versions for OpenXLA (jax/flax/qwix/tunix), OpenVINO, and ONNX Runtime:")
   L.append("read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'")

@@ -46,9 +46,51 @@ def emit(obj) -> None:
 def _version() -> str | None:
   try:
     from importlib import metadata
-    return metadata.version("litert-lm-api")
+    for pkg in ("litert-lm", "litert-lm-api"):
+      try:
+        return metadata.version(pkg)
+      except metadata.PackageNotFoundError:
+        continue
   except Exception:  # source builds inside the container carry no wheel metadata
-    return None
+    pass
+  return None
+
+
+# LiteRT-LM >= v0.19.0 switched its C API from direct handle/value returns to
+# status-returning functions with trailing out-pointers (`_ffi.create_checked`,
+# `_ffi.get_checked`, `_ffi.call_checked`). Keep thin shims so both v0.19.0+ and
+# older pinned wheels (e.g. macOS GPU v0.17.x/v0.18.x) work seamlessly.
+_OUT_PARAM_FFI = hasattr(_ffi, "create_checked")
+
+
+def _c_call(lib, func_name: str, *args) -> None:
+  if _OUT_PARAM_FFI:
+    _ffi.call_checked(lib, func_name, *args)
+    return
+  rc = getattr(lib, func_name)(*args)
+  if isinstance(rc, int) and rc != 0:
+    raise RuntimeError(f"{func_name} failed with status {rc}")
+
+
+def _c_create(lib, func_name: str, *args):
+  if _OUT_PARAM_FFI:
+    return _ffi.create_checked(lib, func_name, *args)
+  ptr = getattr(lib, func_name)(*args)
+  if not ptr:
+    raise RuntimeError(f"{func_name} returned a null handle")
+  return ptr
+
+
+def _c_create_optional(lib, func_name: str, *args):
+  if _OUT_PARAM_FFI:
+    return _ffi.create_optional_checked(lib, func_name, *args)
+  return getattr(lib, func_name)(*args)
+
+
+def _c_get(lib, func_name: str, out_type, *args):
+  if _OUT_PARAM_FFI:
+    return _ffi.get_checked(lib, func_name, out_type, *args)
+  return getattr(lib, func_name)(*args)
 
 
 class Driver:
@@ -56,91 +98,176 @@ class Driver:
   def __init__(self, args):
     self.args = args
     self.lib = _ffi._get_lib()
+    self._current_callback = None
     _ffi.set_min_log_severity(_ffi.LogSeverity.ERROR)
     lib = self.lib
     t0 = time.monotonic_ns()
-    settings = lib.litert_lm_engine_settings_create(args.model, args.backend, None, None)
-    if not settings:
-      raise RuntimeError("engine settings creation failed")
-    lib.litert_lm_engine_settings_set_num_threads(settings, args.threads)
-    if args.gpu_decode_steps_per_sync > 0:
-      lib.litert_lm_engine_settings_set_gpu_decode_steps_per_sync(
-          settings, args.gpu_decode_steps_per_sync)
-    lib.litert_lm_engine_settings_set_max_num_tokens(settings, args.ctx)
-    if args.cache_dir:
-      # LiteRT-LM silently skips the weight cache when the directory is
-      # missing, which changes both load time and memory (packed weights stay
-      # in anonymous memory instead of a mmap'd cache file).
-      if args.cache_dir != ":memory":
-        os.makedirs(args.cache_dir, exist_ok=True)
-      lib.litert_lm_engine_settings_set_cache_dir(settings, args.cache_dir)
-    if args.ynnpack:
-      lib.litert_lm_engine_settings_set_enable_ynnpack(settings, True)
-    # Benchmark mode only records per-turn timings unless num_*_tokens > 0.
-    lib.litert_lm_engine_settings_enable_benchmark(settings)
-    if args.fixed_decode_tokens > 0:
-      lib.litert_lm_engine_settings_set_num_decode_tokens(settings, args.fixed_decode_tokens)
-    self.engine = lib.litert_lm_engine_create(settings)
-    lib.litert_lm_engine_settings_delete(settings)
-    if not self.engine:
-      raise RuntimeError("engine creation failed")
+    settings = _c_create(
+        lib, "litert_lm_engine_settings_create", args.model, args.backend, None, None
+    )
+    try:
+      _c_call(lib, "litert_lm_engine_settings_set_num_threads", settings, args.threads)
+      if args.gpu_decode_steps_per_sync > 0:
+        _c_call(
+            lib,
+            "litert_lm_engine_settings_set_gpu_decode_steps_per_sync",
+            settings,
+            args.gpu_decode_steps_per_sync,
+        )
+      _c_call(lib, "litert_lm_engine_settings_set_max_num_tokens", settings, args.ctx)
+      if args.cache_dir:
+        # LiteRT-LM silently skips the weight cache when the directory is
+        # missing, which changes both load time and memory (packed weights stay
+        # in anonymous memory instead of a mmap'd cache file).
+        if args.cache_dir != ":memory":
+          os.makedirs(args.cache_dir, exist_ok=True)
+        _c_call(lib, "litert_lm_engine_settings_set_cache_dir", settings, args.cache_dir)
+      if args.ynnpack:
+        _c_call(lib, "litert_lm_engine_settings_set_enable_ynnpack", settings, True)
+      # Benchmark mode only records per-turn timings unless num_*_tokens > 0.
+      _c_call(lib, "litert_lm_engine_settings_enable_benchmark", settings)
+      if args.fixed_decode_tokens > 0:
+        _c_call(
+            lib,
+            "litert_lm_engine_settings_set_num_decode_tokens",
+            settings,
+            args.fixed_decode_tokens,
+        )
+      self.engine = _c_create(lib, "litert_lm_engine_create", settings)
+    finally:
+      lib.litert_lm_engine_settings_delete(settings)
     self.load_ns = time.monotonic_ns() - t0
 
   # ---------------------------------------------------------------- helpers
 
   def tokenize(self, text: str, add_bos: bool) -> list[int]:
     lib = self.lib
-    res = lib.litert_lm_engine_tokenize(self.engine, text)
-    if not res:
-      raise RuntimeError("tokenize failed")
+    res = _c_create(lib, "litert_lm_engine_tokenize", self.engine, text)
     try:
-      n = lib.litert_lm_tokenize_result_get_num_tokens(res)
-      ptr = lib.litert_lm_tokenize_result_get_tokens(res)
-      ids = [ptr[i] for i in range(n)]
+      n = int(_c_get(lib, "litert_lm_tokenize_result_get_num_tokens", ctypes.c_size_t, res))
+      ptr = _c_get(
+          lib,
+          "litert_lm_tokenize_result_get_tokens",
+          ctypes.POINTER(ctypes.c_int),
+          res,
+      )
+      ids = [int(ptr[i]) for i in range(n)]
     finally:
       lib.litert_lm_tokenize_result_delete(res)
     return ([2] if add_bos else []) + ids
 
   def _session(self, max_tokens: int, sampling: dict | None = None):
     lib = self.lib
-    cfg = lib.litert_lm_session_config_create()
-    lib.litert_lm_session_config_set_apply_prompt_template(cfg, False)
-    lib.litert_lm_session_config_set_max_output_tokens(cfg, max_tokens)
-    sampling = sampling or {}
-    seeded = float(sampling.get("temperature", 0.0)) > 0.0
-    greedy_type = SamplerType.GREEDY if self.args.sampler == "greedy" and not seeded else SamplerType.TOP_P
-    sp = lib.litert_lm_sampler_params_create(greedy_type)
-    # Greedy is top_k = 1; "no top-k" for seeded sampling is the full vocabulary.
-    lib.litert_lm_sampler_params_set_top_k(sp, (int(sampling.get("top_k", 0)) or 262144) if seeded else 1)
-    lib.litert_lm_sampler_params_set_top_p(sp, float(sampling.get("top_p", 1.0)) if seeded else 1.0)
-    lib.litert_lm_sampler_params_set_temperature(sp, float(sampling.get("temperature", 1.0)) if seeded else 1.0)
-    lib.litert_lm_sampler_params_set_seed(sp, int(sampling.get("seed", 0)))
-    lib.litert_lm_session_config_set_sampler_params(cfg, sp)
-    lib.litert_lm_sampler_params_delete(sp)
-    sess = lib.litert_lm_engine_create_session(self.engine, cfg)
-    lib.litert_lm_session_config_delete(cfg)
-    if not sess:
-      raise RuntimeError("session creation failed")
+    cfg = _c_create(lib, "litert_lm_session_config_create")
+    try:
+      _c_call(lib, "litert_lm_session_config_set_apply_prompt_template", cfg, False)
+      _c_call(lib, "litert_lm_session_config_set_max_output_tokens", cfg, max_tokens)
+      sampling = sampling or {}
+      seeded = float(sampling.get("temperature", 0.0)) > 0.0
+      greedy_type = (
+          SamplerType.GREEDY
+          if self.args.sampler == "greedy" and not seeded
+          else SamplerType.TOP_P
+      )
+      sp = _c_create(lib, "litert_lm_sampler_params_create", int(greedy_type))
+      try:
+        # Greedy is top_k = 1; "no top-k" for seeded sampling is the full vocabulary.
+        _c_call(
+            lib,
+            "litert_lm_sampler_params_set_top_k",
+            sp,
+            (int(sampling.get("top_k", 0)) or 262144) if seeded else 1,
+        )
+        _c_call(
+            lib,
+            "litert_lm_sampler_params_set_top_p",
+            sp,
+            float(sampling.get("top_p", 1.0)) if seeded else 1.0,
+        )
+        _c_call(
+            lib,
+            "litert_lm_sampler_params_set_temperature",
+            sp,
+            float(sampling.get("temperature", 1.0)) if seeded else 1.0,
+        )
+        _c_call(lib, "litert_lm_sampler_params_set_seed", sp, int(sampling.get("seed", 0)))
+        _c_call(lib, "litert_lm_session_config_set_sampler_params", cfg, sp)
+      finally:
+        lib.litert_lm_sampler_params_delete(sp)
+      sess = _c_create(lib, "litert_lm_engine_create_session", self.engine, cfg)
+    finally:
+      lib.litert_lm_session_config_delete(cfg)
     return sess
 
   def _benchmark_info(self, sess) -> dict:
     lib = self.lib
-    info = lib.litert_lm_session_get_benchmark_info(sess)
+    try:
+      info = _c_create_optional(lib, "litert_lm_session_get_benchmark_info", sess)
+    except Exception:
+      return {}
     if not info:
       return {}
     try:
-      npt = lib.litert_lm_benchmark_info_get_num_prefill_turns(info)
-      ndt = lib.litert_lm_benchmark_info_get_num_decode_turns(info)
+      npt = int(
+          _c_get(lib, "litert_lm_benchmark_info_get_num_prefill_turns", ctypes.c_size_t, info)
+      )
+      ndt = int(
+          _c_get(lib, "litert_lm_benchmark_info_get_num_decode_turns", ctypes.c_size_t, info)
+      )
       return {
-          "ttft_s": lib.litert_lm_benchmark_info_get_time_to_first_token(info),
-          "prefill_tokens": [lib.litert_lm_benchmark_info_get_prefill_token_count_at(info, i)
-                             for i in range(npt)],
-          "prefill_tok_s": [lib.litert_lm_benchmark_info_get_prefill_tokens_per_sec_at(info, i)
-                            for i in range(npt)],
-          "decode_tokens": [lib.litert_lm_benchmark_info_get_decode_token_count_at(info, i)
-                            for i in range(ndt)],
-          "decode_tok_s": [lib.litert_lm_benchmark_info_get_decode_tokens_per_sec_at(info, i)
-                           for i in range(ndt)],
+          "ttft_s": float(
+              _c_get(
+                  lib, "litert_lm_benchmark_info_get_time_to_first_token", ctypes.c_double, info
+              )
+          ),
+          "prefill_tokens": [
+              int(
+                  _c_get(
+                      lib,
+                      "litert_lm_benchmark_info_get_prefill_token_count_at",
+                      ctypes.c_size_t,
+                      info,
+                      i,
+                  )
+              )
+              for i in range(npt)
+          ],
+          "prefill_tok_s": [
+              float(
+                  _c_get(
+                      lib,
+                      "litert_lm_benchmark_info_get_prefill_tokens_per_sec_at",
+                      ctypes.c_double,
+                      info,
+                      i,
+                  )
+              )
+              for i in range(npt)
+          ],
+          "decode_tokens": [
+              int(
+                  _c_get(
+                      lib,
+                      "litert_lm_benchmark_info_get_decode_token_count_at",
+                      ctypes.c_size_t,
+                      info,
+                      i,
+                  )
+              )
+              for i in range(ndt)
+          ],
+          "decode_tok_s": [
+              float(
+                  _c_get(
+                      lib,
+                      "litert_lm_benchmark_info_get_decode_tokens_per_sec_at",
+                      ctypes.c_double,
+                      info,
+                      i,
+                  )
+              )
+              for i in range(ndt)
+          ],
       }
     finally:
       lib.litert_lm_benchmark_info_delete(info)
@@ -164,37 +291,46 @@ class Driver:
 
     def on_chunk(_unused, chunk):
       ts = time.monotonic_ns()
-      err = lib.litert_lm_stream_chunk_get_error(chunk)
-      if err:
-        events.put(("error", ts, err.decode("utf-8", "replace")))
-        return
-      text = lib.litert_lm_stream_chunk_get_text(chunk)
-      final = lib.litert_lm_stream_chunk_is_final(chunk)
-      events.put(("final" if final else "chunk", ts,
-                  text.decode("utf-8", "replace") if text else ""))
+      try:
+        err = _c_get(lib, "litert_lm_stream_chunk_get_error", ctypes.c_char_p, chunk)
+        if err:
+          events.put(("error", ts, err.decode("utf-8", "replace")))
+          return
+        text = _c_get(lib, "litert_lm_stream_chunk_get_text", ctypes.c_char_p, chunk)
+        final = bool(_c_get(lib, "litert_lm_stream_chunk_is_final", ctypes.c_bool, chunk))
+        events.put(("final" if final else "chunk", ts,
+                    text.decode("utf-8", "replace") if text else ""))
+      except Exception as exc:
+        events.put(("error", ts, str(exc)))
 
     cb = STREAM_CALLBACK_TYPE(on_chunk)
+    self._current_callback = cb
     try:
       if use_split_prefill:
         enc_prefix = prefix_text.encode("utf-8")
-        inp_prefix = lib.litert_lm_input_data_create(InputDataType.TEXT, enc_prefix, len(enc_prefix))
-        rc_pre = lib.litert_lm_session_run_prefill(sess, (ctypes.c_void_p * 1)(inp_prefix), 1)
-        lib.litert_lm_input_data_delete(inp_prefix)
-        if rc_pre != 0:
-          raise RuntimeError("prefix prefill failed")
+        inp_prefix = _c_create(
+            lib, "litert_lm_input_data_create", int(InputDataType.TEXT), enc_prefix, len(enc_prefix)
+        )
+        try:
+          _c_call(
+              lib, "litert_lm_session_run_prefill", sess, (ctypes.c_void_p * 1)(inp_prefix), 1
+          )
+        finally:
+          lib.litert_lm_input_data_delete(inp_prefix)
         encoded = suffix_text.encode("utf-8")
       else:
         encoded = prompt.encode("utf-8")
-      inp = lib.litert_lm_input_data_create(InputDataType.TEXT, encoded, len(encoded))
+      inp = _c_create(
+          lib, "litert_lm_input_data_create", int(InputDataType.TEXT), encoded, len(encoded)
+      )
       inputs = (ctypes.c_void_p * 1)(inp)
       t_req = time.monotonic_ns()
-      rc = lib.litert_lm_session_run_prefill(sess, inputs, 1)
-      t_prefill_done = time.monotonic_ns()
-      lib.litert_lm_input_data_delete(inp)
-      if rc != 0:
-        raise RuntimeError("prefill failed")
-      if lib.litert_lm_session_run_decode_async(sess, cb, None) != 0:
-        raise RuntimeError("decode failed to start")
+      try:
+        _c_call(lib, "litert_lm_session_run_prefill", sess, inputs, 1)
+        t_prefill_done = time.monotonic_ns()
+      finally:
+        lib.litert_lm_input_data_delete(inp)
+      _c_call(lib, "litert_lm_session_run_decode_async", sess, cb, None)
       chunk_ns, pieces, error = [], [], None
       while True:
         kind, ts, payload = events.get()
@@ -217,6 +353,7 @@ class Driver:
       native = self._benchmark_info(sess)
     finally:
       lib.litert_lm_session_delete(sess)
+      self._current_callback = None
 
     ptoks = native.get("prefill_tokens") or []
     if use_split_prefill and len(ptoks) >= 2:

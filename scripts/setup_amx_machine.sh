@@ -68,7 +68,7 @@ rsync -avP --checksum --exclude='.git' --exclude='.cache' --exclude='models' --e
 rsync -avP --checksum -e "ssh ${SSH_OPTS}" ./datasets/ "${HOST}:${REMOTE_DIR}/datasets/"
 rsync -avP --checksum -e "ssh ${SSH_OPTS}" ./reports/ "${HOST}:${REMOTE_DIR}/reports/"
 
-if [[ "${RUNTIME_MODE}" == "bundles-fresh" || "${2:-}" == "--bundles" ]]; then
+if [[ "${RUNTIME_MODE}" == bundles-* && ( "${RUNTIME_MODE}" == "bundles-fresh" || "${2:-}" == "--bundles" ) ]]; then
   echo "==> [2/4] Checking & syncing 7 container bundles to ${HOST}:${REMOTE_DIR}/bundles/ ..."
   mkdir -p "${ROOT}/.cache/bundles"
   for pair in \
@@ -112,10 +112,6 @@ if [[ "${RUNTIME_MODE}" == "bundles-fresh" || "${2:-}" == "--bundles" ]]; then
           echo 'UNPACKED_OK'
           exit 0
         fi
-      elif [[ -x ${REMOTE_DIR}/bundles/${name}/rootfs/usr/bin/env && ! -f ${REMOTE_DIR}/bundles/${name}/.verified_sha256 && '${name}' != 'xla' ]]; then
-        echo '${local_sha}' > ${REMOTE_DIR}/bundles/${name}/.verified_sha256
-        echo 'UNPACKED_OK'
-        exit 0
       fi
       if [[ -f ${REMOTE_DIR}/bundles/${name}.tar.gz ]]; then
         rsize=\$(stat -c '%s' ${REMOTE_DIR}/bundles/${name}.tar.gz 2>/dev/null || echo 0)
@@ -155,14 +151,18 @@ if [[ "${RUNTIME_MODE}" == "bundles-fresh" || "${2:-}" == "--bundles" ]]; then
       rm -f ${REMOTE_DIR}/bundles/${name}.tar.gz
     "
   done
-elif [[ "${RUNTIME_MODE}" == "docker-fresh" ]]; then
-  echo "==> [2/4] Fresh Docker daemon machine detected: saving & loading 7 Docker images ..."
+elif [[ "${RUNTIME_MODE}" == "docker-fresh" || ( "${RUNTIME_MODE}" == "docker-ready" && "${2:-}" == "--bundles" ) ]]; then
+  echo "==> [2/4] Docker daemon machine detected: saving & loading 7 Docker images ..."
   mkdir -p "${ROOT}/.cache/bundles"
   img_tar="${ROOT}/.cache/bundles/aeb-all-images.tar.gz"
-  if [[ ! -s "${img_tar}" ]]; then
+  img_ids_file="${img_tar}.image_ids"
+  cur_all_ids="$(docker image inspect -f '{{.Id}}' aeb/base:latest aeb/tools:latest aeb/llama-cpp:cpu aeb/litert-lm:cpu aeb/onnxruntime:cpu aeb/openvino:cpu aeb/xla:cpu 2>/dev/null | tr '\n' ' ' || true)"
+  cached_all_ids="$(cat "${img_ids_file}" 2>/dev/null || true)"
+  if [[ ! -s "${img_tar}" || ( -n "${cur_all_ids}" && "${cur_all_ids}" != "${cached_all_ids}" ) ]]; then
     docker save aeb/base:latest aeb/tools:latest aeb/llama-cpp:cpu aeb/litert-lm:cpu \
       aeb/onnxruntime:cpu aeb/openvino:cpu aeb/xla:cpu | pigz -1 > "${img_tar}.tmp"
     mv "${img_tar}.tmp" "${img_tar}"
+    [[ -n "${cur_all_ids}" ]] && printf '%s' "${cur_all_ids}" > "${img_ids_file}"
   fi
   rsync -avP --partial --inplace --bwlimit="${BWLIMIT}" -e "ssh ${SSH_OPTS}" \
     "${img_tar}" "${HOST}:${REMOTE_DIR}/bundles/aeb-all-images.tar.gz"

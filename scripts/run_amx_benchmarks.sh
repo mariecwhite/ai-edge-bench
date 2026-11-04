@@ -260,7 +260,8 @@ suite = json.loads(suite_path.read_text())
 
 mapping = {
     ("llama.cpp", "q4_0"): "llama.cpp",
-    ("litert-lm", "ynnpack"): "litert-lm",
+    ("litert-lm", "matched"): "litert-lm",
+    ("litert-lm", "ynnpack"): "litert-lm-ynnpack",
     ("xla", "ynnpack-bf16"): "xla",
     ("openvino", "int4"): "openvino",
     ("onnxruntime", "q4_k_m"): "onnxruntime",

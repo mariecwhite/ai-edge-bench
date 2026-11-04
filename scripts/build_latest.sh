@@ -32,7 +32,7 @@ echo "=================================================================="
 export AEB_LLAMA_CPP_REF="${AEB_LLAMA_CPP_REF:-$(git ls-remote --tags --refs https://github.com/ggml-org/llama.cpp.git 'b[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^b[0-9]+$' | sort -V | tail -n1)}"
 export AEB_LITERTLM_REF="${AEB_LITERTLM_REF:-$(git ls-remote --tags --refs https://github.com/google-ai-edge/LiteRT-LM.git 'v[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)}"
 
-read -r JAX_VER FLAX_VER QWIX_VER TUNIX_VER SAFETENSORS_VER JAXTYPING_VER TOKENIZERS_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'
+read -r LITERT_PYPI_VER JAX_VER FLAX_VER QWIX_VER TUNIX_VER SAFETENSORS_VER JAXTYPING_VER TOKENIZERS_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'
 import json
 import urllib.request
 
@@ -41,6 +41,7 @@ def latest(pkg: str) -> str:
     return json.load(r)["info"]["version"]
 
 print(
+    latest("litert-lm"),
     latest("jax"),
     latest("flax"),
     latest("qwix"),
@@ -55,9 +56,10 @@ print(
 )
 PY
 )
+export AEB_LITERTLM_PYPI_VERSION="${AEB_LITERTLM_PYPI_VERSION:-${LITERT_PYPI_VER}}"
 
 echo "  llama.cpp          : ${AEB_LLAMA_CPP_REF}"
-echo "  litert-lm          : ${AEB_LITERTLM_REF}"
+echo "  litert-lm          : ${AEB_LITERTLM_REF} (pypi: ${AEB_LITERTLM_PYPI_VERSION})"
 echo "  jax / jaxlib       : ${JAX_VER}"
 echo "  flax               : ${FLAX_VER}"
 echo "  qwix               : ${QWIX_VER}"

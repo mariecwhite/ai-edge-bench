@@ -96,7 +96,7 @@ services:
         EXTRA_RUNTIME_PACKAGES: ${AEB_LLAMA_CPP_RUNTIME_PACKAGES:-}
         CMAKE_EXTRA_FLAGS: ${AEB_LLAMA_CPP_CMAKE_FLAGS:-}
         CMAKE_BUILD_JOBS: ${AEB_BUILD_JOBS:-0}
-        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b11259}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b12070}
         AEB_VARIANT: ${AEB_LLAMA_CPP_VARIANT:-cpu}
     <<: *aeb-service
     environment:
@@ -127,7 +127,7 @@ services:
         BAZEL_CONFIG: ${AEB_LITERTLM_BAZEL_CONFIG:-linux_x86_64}
         BAZEL_EXTRA_FLAGS: ${AEB_LITERTLM_BAZEL_FLAGS:---define=litert_enable_ynnpack=true}
         BAZEL_JOBS: ${AEB_BUILD_JOBS:-0}
-        LITERT_LM_REF: ${AEB_LITERTLM_REF:-v0.17.1}
+        LITERT_LM_REF: ${AEB_LITERTLM_REF:-v0.19.0}
     <<: *aeb-service
     environment: &litert-lm-env
       <<: *aeb-workload
@@ -158,6 +158,8 @@ services:
       dockerfile: onnxruntime/Dockerfile
       args:
         AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        ONNXRUNTIME_VERSION: ${AEB_ONNXRUNTIME_VERSION:-1.31.1}
+        ONNXRUNTIME_GENAI_VERSION: ${AEB_ONNXRUNTIME_GENAI_VERSION:-0.19.0}
     <<: *aeb-service
     environment: *aeb-workload
     command: ["python3", "-m", "aeb.perf", "--help"]
@@ -170,6 +172,13 @@ services:
       dockerfile: xla/Dockerfile
       args:
         AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        JAX_VERSION: ${AEB_JAX_VERSION:-0.12.0.1}
+        FLAX_VERSION: ${AEB_FLAX_VERSION:-0.12.12}
+        QWIX_VERSION: ${AEB_QWIX_VERSION:-0.1.8}
+        TUNIX_VERSION: ${AEB_TUNIX_VERSION:-0.1.7}
+        SAFETENSORS_VERSION: ${AEB_SAFETENSORS_VERSION:-0.8.0}
+        JAXTYPING_VERSION: ${AEB_JAXTYPING_VERSION:-0.3.11}
+        TOKENIZERS_VERSION: ${AEB_TOKENIZERS_VERSION:-0.23.3}
     <<: *aeb-service
     environment: *aeb-workload
     command: ["python3", "-m", "aeb.perf", "--help"]
@@ -182,6 +191,8 @@ services:
       dockerfile: openvino/Dockerfile
       args:
         AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
+        OPENVINO_VERSION: ${AEB_OPENVINO_VERSION:-2026.4.1}
+        OPENVINO_GENAI_VERSION: ${AEB_OPENVINO_GENAI_VERSION:-2026.4.1.0}
     <<: *aeb-service
     environment: *aeb-workload
     command: ["python3", "-m", "aeb.perf", "--help"]
@@ -232,7 +243,8 @@ services:
       dockerfile: tools/Dockerfile
       args:
         AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
-        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b11259}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b12070}
+        LITERT_LM_PYPI_VERSION: ${AEB_LITERTLM_PYPI_VERSION:-0.19.0}
     init: true
     volumes:
       - ./models:/models

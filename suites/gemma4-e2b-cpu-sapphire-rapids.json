@@ -443,12 +443,12 @@
       "threads": 16,
       "fastest": {
         "llama.cpp": {
-          "threads": 40,
+          "threads": 32,
           "ubatch": 1024,
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
         },
         "litert-lm": {
-          "threads": 16,
+          "threads": 32,
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} x {XNNPACK, YNNPACK} (XNNPACK t=32 E2E winner)"
         },
         "litert-lm-ynnpack": {
@@ -456,11 +456,11 @@
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (YNNPACK)"
         },
         "xla": {
-          "threads": 32,
+          "threads": 16,
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40} (YNNPACK)"
         },
         "openvino": {
-          "threads": 32,
+          "threads": 40,
           "selected_by": "NUMA node 0 thread scaling sweep t{4,8,16,20,32,40}"
         },
         "onnxruntime": {
