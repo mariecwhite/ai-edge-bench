@@ -15,11 +15,12 @@ RUN apt-get update \
 
 # gguf-py is pinned to the same llama.cpp ref as the benchmark image so the
 # writer emits exactly the tensor types and metadata that build understands.
-ARG LLAMA_CPP_REF=b11259
+ARG LLAMA_CPP_REF=b12070
+ARG LITERT_LM_PYPI_VERSION=0.19.0
 RUN python3 -m venv /opt/aeb/venv \
  && /opt/aeb/venv/bin/pip install --no-cache-dir \
       "numpy==2.3.3" "matplotlib==3.10.6" "pyarrow==21.0.0" "tflite==2.18.0" \
-      "litert-lm==0.17.1" \
+      "litert-lm==${LITERT_LM_PYPI_VERSION}" \
       "huggingface_hub==0.36.0" \
       "gguf @ git+https://github.com/ggml-org/llama.cpp@${LLAMA_CPP_REF}#subdirectory=gguf-py"
 

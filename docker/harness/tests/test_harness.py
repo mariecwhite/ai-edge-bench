@@ -618,5 +618,152 @@ class SequenceReportTest(unittest.TestCase):
     self.assertIn('<tr class="best-row">', html_out)
 
 
+class LiteRtLmDriverTest(unittest.TestCase):
+  """Verify litert_lm_driver supports both >= v0.19.0 out-param FFI and <= v0.18.1 direct FFI."""
+
+  def _run_driver_case(self, out_param_mode: bool):
+    import argparse
+    import ctypes
+    import importlib
+    import types
+
+    toks_buf = (ctypes.c_int * 3)(10, 20, 30)
+    prefill_calls = []
+
+    class FakeLib:
+      def litert_lm_engine_settings_delete(self, _p): pass
+      def litert_lm_engine_delete(self, _p): pass
+      def litert_lm_tokenize_result_delete(self, _p): pass
+      def litert_lm_sampler_params_delete(self, _p): pass
+      def litert_lm_session_config_delete(self, _p): pass
+      def litert_lm_benchmark_info_delete(self, _p): pass
+      def litert_lm_input_data_delete(self, _p): pass
+      def litert_lm_session_delete(self, _p): pass
+
+      # Legacy direct-return methods (used when out_param_mode is False)
+      def litert_lm_engine_settings_create(self, *_a): return 101
+      def litert_lm_engine_settings_set_num_threads(self, *_a): return 0
+      def litert_lm_engine_settings_set_max_num_tokens(self, *_a): return 0
+      def litert_lm_engine_settings_set_enable_ynnpack(self, *_a): return 0
+      def litert_lm_engine_settings_enable_benchmark(self, *_a): return 0
+      def litert_lm_engine_create(self, *_a): return 102
+      def litert_lm_engine_tokenize(self, *_a): return 103
+      def litert_lm_tokenize_result_get_num_tokens(self, _r): return 3
+      def litert_lm_tokenize_result_get_tokens(self, _r): return toks_buf
+      def litert_lm_session_config_create(self): return 104
+      def litert_lm_session_config_set_apply_prompt_template(self, *_a): return 0
+      def litert_lm_session_config_set_max_output_tokens(self, *_a): return 0
+      def litert_lm_sampler_params_create(self, *_a): return 105
+      def litert_lm_sampler_params_set_top_k(self, *_a): return 0
+      def litert_lm_sampler_params_set_top_p(self, *_a): return 0
+      def litert_lm_sampler_params_set_temperature(self, *_a): return 0
+      def litert_lm_sampler_params_set_seed(self, *_a): return 0
+      def litert_lm_session_config_set_sampler_params(self, *_a): return 0
+      def litert_lm_engine_create_session(self, *_a): return 106
+      def litert_lm_input_data_create(self, _t, data, n):
+        prefill_calls.append(bytes(data[:n]))
+        return 107
+      def litert_lm_session_run_prefill(self, *_a): return 0
+      def litert_lm_session_run_decode_async(self, _s, cb, _u):
+        cb(None, 201)
+        cb(None, 202)
+        return 0
+      def litert_lm_stream_chunk_get_error(self, _c): return None
+      def litert_lm_stream_chunk_get_text(self, c):
+        return b"Hel" if c == 201 else b"lo"
+      def litert_lm_stream_chunk_is_final(self, c): return c == 202
+      def litert_lm_session_get_benchmark_info(self, _s): return 108
+      def litert_lm_benchmark_info_get_num_prefill_turns(self, _i):
+        return len(prefill_calls)
+      def litert_lm_benchmark_info_get_num_decode_turns(self, _i): return 1
+      def litert_lm_benchmark_info_get_time_to_first_token(self, _i): return 0.05
+      def litert_lm_benchmark_info_get_prefill_token_count_at(self, _i, idx):
+        return 12 if idx == 0 else 4
+      def litert_lm_benchmark_info_get_prefill_tokens_per_sec_at(self, _i, _idx):
+        return 500.0
+      def litert_lm_benchmark_info_get_decode_token_count_at(self, _i, _idx):
+        return 2
+      def litert_lm_benchmark_info_get_decode_tokens_per_sec_at(self, _i, _idx):
+        return 40.0
+
+    fake_lib = FakeLib()
+    fake_ffi = types.ModuleType("litert_lm._ffi")
+    fake_ffi.InputDataType = types.SimpleNamespace(TEXT=0)
+    fake_ffi.SamplerType = types.SimpleNamespace(TOP_P=2, GREEDY=3)
+    fake_ffi.LogSeverity = types.SimpleNamespace(ERROR=4)
+    fake_ffi.STREAM_CALLBACK_TYPE = lambda fn: fn
+    fake_ffi._get_lib = lambda: fake_lib
+    fake_ffi.set_min_log_severity = lambda _sev: None
+
+    if out_param_mode:
+      def call_checked(lib, name, *args):
+        rc = getattr(lib, name)(*args)
+        if rc != 0:
+          raise RuntimeError(f"{name} failed")
+
+      def create_checked(lib, name, *args):
+        return getattr(lib, name)(*args)
+
+      def get_checked(lib, name, _out_type, *args):
+        return getattr(lib, name)(*args)
+
+      fake_ffi.call_checked = call_checked
+      fake_ffi.create_checked = create_checked
+      fake_ffi.create_optional_checked = create_checked
+      fake_ffi.get_checked = get_checked
+
+    fake_pkg = types.ModuleType("litert_lm")
+    fake_pkg._ffi = fake_ffi
+    saved_pkg = sys.modules.get("litert_lm")
+    saved_ffi = sys.modules.get("litert_lm._ffi")
+    saved_drv = sys.modules.pop("aeb.drivers.litert_lm_driver", None)
+    sys.modules["litert_lm"] = fake_pkg
+    sys.modules["litert_lm._ffi"] = fake_ffi
+    try:
+      drv_mod = importlib.import_module("aeb.drivers.litert_lm_driver")
+      self.assertEqual(drv_mod._OUT_PARAM_FFI, out_param_mode)
+      args = argparse.Namespace(
+          model="/tmp/m.litertlm", threads=4, ctx=4096, cache_dir="",
+          ynnpack=True, fixed_decode_tokens=0, cache_prefix=True,
+          backend="cpu", gpu_decode_steps_per_sync=0, sampler="top_p_k1",
+      )
+      drv = drv_mod.Driver(args)
+      self.assertEqual(drv.tokenize("hi", add_bos=True), [2, 10, 20, 30])
+      out = drv.generate({
+          "prompt": "prefix suffix",
+          "prefix_text": "prefix ",
+          "suffix_text": "suffix",
+          "cache_prefix": True,
+          "max_tokens": 8,
+          "return_prompt_ids": True,
+      })
+      self.assertTrue(out["ok"])
+      self.assertEqual(out["text"], "Hello")
+      self.assertEqual(out["n_cached"], 12)
+      self.assertEqual(out["n_prefilled"], 4)
+      self.assertEqual(out["n_prompt"], 16)
+      self.assertEqual(out["n_gen"], 2)
+      self.assertEqual(out["prompt_ids"], [2, 10, 20, 30])
+    finally:
+      if saved_pkg is None:
+        sys.modules.pop("litert_lm", None)
+      else:
+        sys.modules["litert_lm"] = saved_pkg
+      if saved_ffi is None:
+        sys.modules.pop("litert_lm._ffi", None)
+      else:
+        sys.modules["litert_lm._ffi"] = saved_ffi
+      if saved_drv is not None:
+        sys.modules["aeb.drivers.litert_lm_driver"] = saved_drv
+      else:
+        sys.modules.pop("aeb.drivers.litert_lm_driver", None)
+
+  def test_v019_out_param_ffi(self):
+    self._run_driver_case(out_param_mode=True)
+
+  def test_legacy_direct_ffi(self):
+    self._run_driver_case(out_param_mode=False)
+
+
 if __name__ == "__main__":
   unittest.main()

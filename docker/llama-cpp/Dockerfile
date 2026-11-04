@@ -31,7 +31,7 @@ ENV CC=gcc-14 CXX=g++-14 CUDAHOSTCXX=g++-14
 
 # Pin the upstream revision. Bump deliberately: changing it changes results.
 ARG LLAMA_CPP_REPO=https://github.com/ggml-org/llama.cpp
-ARG LLAMA_CPP_REF=b11259
+ARG LLAMA_CPP_REF=b12070
 
 WORKDIR /src
 RUN git init -q . \

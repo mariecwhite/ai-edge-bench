@@ -35,11 +35,68 @@ FLASH_ATTN_MAP = {
 
 
 class _ModelParams(ctypes.Structure):
-  _fields_ = [("raw", ctypes.c_uint64 * 10)]
+  _fields_ = [
+      ("devices", ctypes.c_void_p),
+      ("tensor_buft_overrides", ctypes.c_void_p),
+      ("n_gpu_layers", ctypes.c_int32),
+      ("split_mode", ctypes.c_int32),
+      ("load_mode", ctypes.c_int32),
+      ("lazy_mode", ctypes.c_int32),
+      ("main_gpu", ctypes.c_int32),
+      ("tensor_split", ctypes.c_void_p),
+      ("progress_callback", ctypes.c_void_p),
+      ("progress_callback_user_data", ctypes.c_void_p),
+      ("kv_overrides", ctypes.c_void_p),
+      ("vocab_only", ctypes.c_bool),
+      ("check_tensors", ctypes.c_bool),
+      ("use_extra_bufts", ctypes.c_bool),
+      ("no_host", ctypes.c_bool),
+      ("no_alloc", ctypes.c_bool),
+      ("load_mtp", ctypes.c_bool),
+  ]
 
 
 class _ContextParams(ctypes.Structure):
-  _fields_ = [("raw", ctypes.c_uint64 * 20)]
+  _fields_ = [
+      ("n_ctx", ctypes.c_uint32),
+      ("n_batch", ctypes.c_uint32),
+      ("n_ubatch", ctypes.c_uint32),
+      ("n_seq_max", ctypes.c_uint32),
+      ("n_rs_seq", ctypes.c_uint32),
+      ("n_outputs_max", ctypes.c_uint32),
+      ("n_outputs_max_per_seq", ctypes.c_uint32),
+      ("n_threads", ctypes.c_int32),
+      ("n_threads_batch", ctypes.c_int32),
+      ("ctx_type", ctypes.c_int32),
+      ("rope_scaling_type", ctypes.c_int32),
+      ("pooling_type", ctypes.c_int32),
+      ("attention_type", ctypes.c_int32),
+      ("flash_attn_type", ctypes.c_int32),
+      ("rope_freq_base", ctypes.c_float),
+      ("rope_freq_scale", ctypes.c_float),
+      ("yarn_ext_factor", ctypes.c_float),
+      ("yarn_attn_factor", ctypes.c_float),
+      ("yarn_beta_fast", ctypes.c_float),
+      ("yarn_beta_slow", ctypes.c_float),
+      ("yarn_orig_ctx", ctypes.c_uint32),
+      ("defrag_thold", ctypes.c_float),
+      ("cb_eval", ctypes.c_void_p),
+      ("cb_eval_user_data", ctypes.c_void_p),
+      ("type_k", ctypes.c_int32),
+      ("type_v", ctypes.c_int32),
+      ("moe_cache_size", ctypes.c_size_t),
+      ("abort_callback", ctypes.c_void_p),
+      ("abort_callback_data", ctypes.c_void_p),
+      ("embeddings", ctypes.c_bool),
+      ("offload_kqv", ctypes.c_bool),
+      ("no_perf", ctypes.c_bool),
+      ("op_offload", ctypes.c_bool),
+      ("swa_full", ctypes.c_bool),
+      ("kv_unified", ctypes.c_bool),
+      ("samplers", ctypes.c_void_p),
+      ("n_samplers", ctypes.c_size_t),
+      ("ctx_other", ctypes.c_void_p),
+  ]
 
 
 class _LlamaBatch(ctypes.Structure):
@@ -55,6 +112,8 @@ class _PerfContextData(ctypes.Structure):
       ("n_p_eval", ctypes.c_int32),
       ("n_eval", ctypes.c_int32),
       ("n_reused", ctypes.c_int32),
+      ("n_reallocs_same", ctypes.c_int32),
+      ("n_reallocs_diff", ctypes.c_int32),
       ("_pad", ctypes.c_int32),
   ]
 
@@ -105,10 +164,10 @@ class LlamaCppEngine:
     self.lib.llama_backend_init()
 
     mp = self.lib.llama_model_default_params()
-    ctypes.c_int32.from_buffer(mp.raw, 0x20).value = 0  # n_gpu_layers = 0
-    ctypes.c_bool.from_buffer(mp.raw, 0x4D).value = bool(args.repack)
+    mp.n_gpu_layers = 0
+    mp.use_extra_bufts = bool(args.repack)
     if not args.mmap:
-      ctypes.c_int32.from_buffer(mp.raw, 0x48).value = 0  # LLAMA_LOAD_MODE_NONE
+      mp.load_mode = 0  # LLAMA_LOAD_MODE_NONE
 
     self.model = self.lib.llama_model_load_from_file(
         args.model.encode("utf-8"), mp
@@ -117,23 +176,17 @@ class LlamaCppEngine:
       raise RuntimeError(f"failed to load model: {args.model}")
 
     cp = self.lib.llama_context_default_params()
-    ctypes.c_uint32.from_buffer(cp.raw, 0x00).value = int(args.ctx)
-    ctypes.c_uint32.from_buffer(cp.raw, 0x04).value = int(args.batch)
-    ctypes.c_uint32.from_buffer(cp.raw, 0x08).value = int(args.ubatch)
-    ctypes.c_uint32.from_buffer(cp.raw, 0x0C).value = 1  # n_seq_max
-    ctypes.c_int32.from_buffer(cp.raw, 0x1C).value = int(args.threads)
-    ctypes.c_int32.from_buffer(cp.raw, 0x20).value = int(args.threads_batch)
-    ctypes.c_int32.from_buffer(cp.raw, 0x34).value = FLASH_ATTN_MAP.get(
-        args.flash_attn, -1
-    )
-    ctypes.c_int32.from_buffer(cp.raw, 0x68).value = GGML_TYPE_MAP[
-        args.cache_type_k
-    ]
-    ctypes.c_int32.from_buffer(cp.raw, 0x6C).value = GGML_TYPE_MAP[
-        args.cache_type_v
-    ]
-    ctypes.c_bool.from_buffer(cp.raw, 0x82).value = False  # no_perf
-    ctypes.c_bool.from_buffer(cp.raw, 0x84).value = bool(args.swa_full)
+    cp.n_ctx = int(args.ctx)
+    cp.n_batch = int(args.batch)
+    cp.n_ubatch = int(args.ubatch)
+    cp.n_seq_max = 1
+    cp.n_threads = int(args.threads)
+    cp.n_threads_batch = int(args.threads_batch)
+    cp.flash_attn_type = FLASH_ATTN_MAP.get(args.flash_attn, -1)
+    cp.type_k = GGML_TYPE_MAP[args.cache_type_k]
+    cp.type_v = GGML_TYPE_MAP[args.cache_type_v]
+    cp.no_perf = False
+    cp.swa_full = bool(args.swa_full)
 
     self.ctx = self.lib.llama_init_from_model(self.model, cp)
     if not self.ctx:

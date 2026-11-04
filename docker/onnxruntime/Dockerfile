@@ -8,8 +8,8 @@ ARG AEB_BASE_IMAGE=aeb/base:latest
 FROM ${AEB_BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG ONNXRUNTIME_VERSION=1.30.0
-ARG ONNXRUNTIME_GENAI_VERSION=0.17.1
+ARG ONNXRUNTIME_VERSION=1.31.1
+ARG ONNXRUNTIME_GENAI_VERSION=0.19.0
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libgomp1 python3-pip \
