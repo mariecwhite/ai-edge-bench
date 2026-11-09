@@ -49,14 +49,14 @@ x-aeb-harness-service: &aeb-harness-service
 
 services:
   # ------------------------------------------------------------------ base
-  # Harness-only image. Build it first: the framework images copy /opt/aeb
-  # from it, which is what keeps them composable across different runtime
-  # bases (plain Ubuntu, nvidia/cuda, ...).
+  # Shared base image (../../docker/base/Dockerfile). Build it first: the
+  # framework images copy /opt/aeb from it and layer the model harness on top,
+  # keeping them composable across different runtime bases (Ubuntu, nvidia/cuda, ...).
   base:
     profiles: ["build", "base"]
     image: ${AEB_BASE_IMAGE:-aeb/base:latest}
     build:
-      context: ./docker
+      context: ../docker
       dockerfile: base/Dockerfile
       args:
         BASE_IMAGE: ${AEB_BASE_OS_IMAGE:-ubuntu:24.04}
@@ -71,7 +71,7 @@ services:
     profiles: ["models"]
     image: ${AEB_BASE_IMAGE:-aeb/base:latest}
     build:
-      context: ./docker
+      context: ../docker
       dockerfile: base/Dockerfile
       args:
         BASE_IMAGE: ${AEB_BASE_OS_IMAGE:-ubuntu:24.04}

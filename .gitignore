@@ -1,8 +1,17 @@
-# Local inputs and generated benchmark output (keep small examples in docs/).
-/.cache/
+# Local inputs and generated benchmark output (at root or within kernel/, layer/, model/).
+.cache/
 /models/
 /datasets/
 /results/
+/kernel/models/
+/kernel/datasets/
+/kernel/results/
+/layer/models/
+/layer/datasets/
+/layer/results/
+/model/models/
+/model/datasets/
+/model/results/
 *.gguf
 *.litertlm
 *.safetensors
@@ -17,9 +26,9 @@ __pycache__/
 .ruff_cache/
 
 # Native builds and JavaScript tooling.
-/build/
-/dist/
-/bazel-*
+build/
+dist/
+bazel-*
 CMakeFiles/
 node_modules/
 

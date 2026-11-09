@@ -7,6 +7,10 @@
 ARG AEB_BASE_IMAGE=aeb/base:latest
 FROM ${AEB_BASE_IMAGE}
 
+COPY bin/ /opt/aeb/bin/
+COPY harness/ /opt/aeb/harness/
+RUN chmod -R 0755 /opt/aeb/bin
+
 ARG DEBIAN_FRONTEND=noninteractive
 ARG ONNXRUNTIME_VERSION=1.31.1
 ARG ONNXRUNTIME_GENAI_VERSION=0.19.0

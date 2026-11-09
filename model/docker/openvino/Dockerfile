@@ -5,6 +5,10 @@
 ARG AEB_BASE_IMAGE=aeb/base:latest
 FROM ${AEB_BASE_IMAGE}
 
+COPY bin/ /opt/aeb/bin/
+COPY harness/ /opt/aeb/harness/
+RUN chmod -R 0755 /opt/aeb/bin
+
 ARG DEBIAN_FRONTEND=noninteractive
 ARG OPENVINO_VERSION=2026.4.1
 ARG OPENVINO_GENAI_VERSION=2026.4.1.0

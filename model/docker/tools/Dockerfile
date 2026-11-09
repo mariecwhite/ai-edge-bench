@@ -8,6 +8,10 @@
 ARG AEB_BASE_IMAGE=aeb/base:latest
 FROM ${AEB_BASE_IMAGE}
 
+COPY bin/ /opt/aeb/bin/
+COPY harness/ /opt/aeb/harness/
+RUN chmod -R 0755 /opt/aeb/bin
+
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3-venv git \

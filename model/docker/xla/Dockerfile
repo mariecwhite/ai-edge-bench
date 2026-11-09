@@ -7,6 +7,10 @@
 ARG AEB_BASE_IMAGE=aeb/base:latest
 FROM ${AEB_BASE_IMAGE}
 
+COPY bin/ /opt/aeb/bin/
+COPY harness/ /opt/aeb/harness/
+RUN chmod -R 0755 /opt/aeb/bin
+
 ARG DEBIAN_FRONTEND=noninteractive
 ARG JAX_VERSION=0.12.0.1
 ARG FLAX_VERSION=0.12.12
