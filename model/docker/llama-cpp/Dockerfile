@@ -96,6 +96,9 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=aebbase /opt/aeb /opt/aeb
+COPY bin/ /opt/aeb/bin/
+COPY harness/ /opt/aeb/harness/
+RUN chmod -R 0755 /opt/aeb/bin
 COPY --from=build /opt/llama.cpp /opt/llama.cpp
 
 ARG LLAMA_CPP_REF

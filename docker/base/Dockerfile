@@ -1,11 +1,12 @@
 # syntax=docker/dockerfile:1.7
 #
-# aeb/base - the composable layer shared by every benchmark container.
+# aeb/base - the composable base layer shared across kernel, layer, and model
+# benchmark containers.
 #
-# This image carries no inference framework. It provides the harness scripts,
-# the /models and /results contract, and the metadata collection used to make a
-# run reproducible. Framework images copy /opt/aeb out of this image, which
-# lets them keep a framework-specific runtime base (e.g. nvidia/cuda).
+# This image carries no inference framework. It provides the shared environment
+# scripts (/opt/aeb/bin), the /models and /results contract, and the system
+# metadata collection (aeb-sysinfo) used to make runs reproducible. Tier-specific
+# images copy /opt/aeb out of this image or layer their own harness on top.
 
 ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE}
@@ -26,10 +27,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY bin/ /opt/aeb/bin/
-# Framework-neutral orchestration (stdlib-only Python): runners, resource
-# monitor, accuracy evals and the litert-lm driver. See harness/README.md.
-COPY harness/ /opt/aeb/harness/
-RUN chmod -R 0755 /opt/aeb/bin
+RUN chmod -R 0755 /opt/aeb/bin /opt/aeb/harness 2>/dev/null || chmod -R 0755 /opt/aeb/bin
 
 ENV PATH="/opt/aeb/bin:${PATH}" \
     PYTHONPATH="/opt/aeb/harness" \

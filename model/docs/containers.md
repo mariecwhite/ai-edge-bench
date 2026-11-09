@@ -13,10 +13,10 @@ framework-neutral harness that runs inside the same images (see
 
 | Path | Purpose |
 | --- | --- |
-| [docker/base/Dockerfile](../docker/base/Dockerfile) | Harness-only image: run scripts, `/models` + `/results` contract, metadata capture. Carries no framework. |
+| [docker/base/Dockerfile](../../docker/base/Dockerfile) | Shared base image (`aeb/base:latest`): core OS utilities, `/models` + `/results` contract, metadata capture (`aeb-sysinfo`). Carries no framework. |
 | [docker/llama-cpp/Dockerfile](../docker/llama-cpp/Dockerfile) | Builds `llama-bench`. CPU, CUDA and Vulkan variants come from build arguments. |
 | [docker/litert-lm/Dockerfile](../docker/litert-lm/Dockerfile) | Builds `litert_lm_main` (and `litert_lm_advanced_main` when available) with Bazel. |
-| [docker/bin/](../docker/bin) | Shell entry points: `aeb-fetch-model`, `aeb-sysinfo`, `aeb-bench-llama-cpp`, `aeb-bench-litert-lm` (native tools), `aeb-prep-matched-gguf`. |
+| [docker/bin/](../../docker/bin) & [model/docker/bin/](../docker/bin) | Shell entry points: shared `aeb-sysinfo`, `aeb-fetch-model`, `aeb-entrypoint` (in root `docker/bin/`) and model-tier `aeb-bench-llama-cpp`, `aeb-bench-litert-lm`, `aeb-prep-matched-gguf` (in `model/docker/bin/`). |
 | [docker/harness/](../docker/harness) | Framework-neutral Python harness (drivers, runners, monitor, report); see [harness.md](harness.md). |
 | [docker/tools/Dockerfile](../docker/tools/Dockerfile) | Offline tools image: model re-encoding, dataset staging, reports. Never timed. |
 | [compose.yaml](../compose.yaml) | *What* is benchmarked: frameworks, variants, workload. |
