@@ -270,7 +270,8 @@ class SuiteTest(unittest.TestCase):
       raise unittest.SkipTest("suites/ not mounted")
     for path in (suites / "gemma4-e2b-cpu.json",
                  suites / "gemma4-e2b-cpu-arm-runtimes.json",
-                 suites / "gemma4-e2b-cpu-sapphire-rapids.json"):
+                 suites / "gemma4-e2b-cpu-sapphire-rapids.json",
+                 suites / "gemma4-31b-cpu-sapphire-rapids.json"):
       data = json.loads(path.read_text())
       for machine in data["machines"]:
         s, ctx = suite_mod.load(path, machine)

@@ -1,0 +1,245 @@
+{
+  "name": "gemma4-31b-cpu-sapphire-rapids",
+  "description": "Gemma 4 31B (dense 60-layer, 50 sliding-window + 10 global attention layers) on Intel(R) Xeon(R) Sapphire Rapids (AVX-512 + AMX) across CPU runtimes (LiteRT-LM XNNPACK & YNNPACK, llama.cpp, OpenVINO, XLA/PJRT CPU) grouped by precision track (INT4, INT8, BF16).",
+  "model": "google/gemma-4-31B-it",
+  "reference_accuracy": "references/gemma-4-31B-it.json",
+  "rounds": 3,
+  "accuracy_select_fastest_by_dtype": true,
+  "workload": {
+    "prompt_tokens": 1024,
+    "gen_tokens": 128,
+    "warmup": 2,
+    "repetitions": 5,
+    "cooldown_s": 2,
+    "ctx": 4096
+  },
+  "prefix_cache": {
+    "prompt_tokens": 1024,
+    "prefix_tokens": 896,
+    "gen_tokens": 128,
+    "warmup": 2,
+    "repetitions": 5,
+    "cooldown_s": 2,
+    "ctx": 4096,
+    "rounds": 3,
+    "only": [
+      "llama.cpp/matched",
+      "llama.cpp/fastest",
+      "litert-lm/matched",
+      "litert-lm/fastest",
+      "litert-lm/ynnpack",
+      "openvino/matched",
+      "openvino/fastest"
+    ]
+  },
+  "repro": {
+    "repeats": 3,
+    "max_tokens": 128,
+    "slots": [
+      ["greedy", null, 1.0, 0],
+      ["seeded", 1234, 1.0, 0],
+      ["greedy", null, 1.0, 1],
+      ["seeded", 1234, 1.0, 1]
+    ]
+  },
+  "sequence_sweep": {
+    "prompt_tokens": [16, 64, 128, 256, 512, 1024, 2048, 4096],
+    "gen_tokens": 128,
+    "ctx": 8192,
+    "warmup": 1,
+    "repetitions": 1,
+    "cooldown_s": 2,
+    "rounds": 1,
+    "select_fastest_by_dtype": true,
+    "min_accuracy": {
+      "mmlu": 0.40,
+      "gsm8k": 0.40
+    }
+  },
+  "multimodal": {
+    "vision": {
+      "enabled": true,
+      "encoder_layers": 27,
+      "hidden_size": 1152,
+      "intermediate_size": 4304,
+      "num_attention_heads": 16,
+      "head_dim": 72,
+      "patch_size": 16,
+      "pooling_kernel_size": 3,
+      "adapter_output_dim": 5376,
+      "soft_token_budgets": [
+        {"id": "vis_70", "soft_tokens": 70, "num_patches": 630, "input_shape": [1, 630, 768], "output_shape": [1, 70, 5376]},
+        {"id": "vis_140", "soft_tokens": 140, "num_patches": 1260, "input_shape": [1, 1260, 768], "output_shape": [1, 140, 5376]},
+        {"id": "vis_280", "soft_tokens": 280, "num_patches": 2520, "input_shape": [1, 2520, 768], "output_shape": [1, 280, 5376]},
+        {"id": "vis_560", "soft_tokens": 560, "num_patches": 5040, "input_shape": [1, 5040, 768], "output_shape": [1, 560, 5376]},
+        {"id": "vis_1120", "soft_tokens": 1120, "num_patches": 10080, "input_shape": [1, 10080, 768], "output_shape": [1, 1120, 5376]}
+      ]
+    },
+    "audio": {
+      "enabled_in_31b": false,
+      "note": "Official google/gemma-4-31B-it has audio_config: null (only Gemma 4 E2B and E4B include model.audio_tower). Gemma 4 Conformer audio kernel profiling uses gemma-4-E2B-it.litertlm (audio_204: [1, 816, 128] -> [1, 204, 1536]) as reference."
+    }
+  },
+  "models": {
+    "gguf_q4_0": "/models/ggml-org/gemma-4-31B-it-GGUF/gemma-4-31B-it-Q4_0.gguf",
+    "gguf_qat_q4_0": "/models/google/gemma-4-31B-it-qat-q4_0-gguf/gemma-4-31B_q4_0-it.gguf",
+    "gguf_q8_0": "/models/ggml-org/gemma-4-31B-it-GGUF/gemma-4-31B-it-Q8_0.gguf",
+    "gguf_bf16": "/models/ggml-org/gemma-4-31B-it-GGUF/gemma-4-31B-it-BF16.gguf",
+    "litert": "/models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it.litertlm",
+    "hf_bf16": "/models/google/gemma-4-31B-it",
+    "hf_qat_q4_0": "/models/google/gemma-4-31B-it-qat-q4_0-unquantized",
+    "ov_int4": "/models/OpenVINO/gemma-4-31B-it-int4-ov",
+    "ov_int8": "/models/OpenVINO/gemma-4-31B-it-int8-ov"
+  },
+  "machines": {
+    "sapphire-rapids": {
+      "threads": 32,
+      "fastest": {
+        "llama.cpp": {"threads": 32, "batch": 2048, "ubatch": 512},
+        "litert-lm": {"threads": 56},
+        "xla": {"threads": 56},
+        "openvino": {"threads": 56}
+      }
+    }
+  },
+  "configs": [
+    {
+      "id": "llama.cpp/matched",
+      "framework": "llama.cpp",
+      "dtype": "int4",
+      "track": "matched",
+      "quant_note": "Official Google QAT Q4_0 GGUF (google/gemma-4-31B-it-qat-q4_0-gguf, 32 threads on Socket 0)",
+      "args": ["--model", "{gguf_qat_q4_0}", "--threads", "{threads}", "--ctx", "{ctx}"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "llama.cpp/fastest",
+      "framework": "llama.cpp",
+      "dtype": "int4",
+      "track": "fastest",
+      "quant_note": "Official ggml-org Q4_0 GGUF (ggml-org/gemma-4-31B-it-GGUF) with flash-attn + batch=2048",
+      "args": [
+        "--model", "{gguf_q4_0}",
+        "--threads", "{fastest.llama.cpp.threads}",
+        "--ctx", "{ctx}",
+        "--batch", "{fastest.llama.cpp.batch}",
+        "--ubatch", "{fastest.llama.cpp.ubatch}",
+        "--flash-attn"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "litert-lm/matched",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "matched",
+      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32 exported from google/gemma-4-31B-it-qat-q4_0-unquantized via litert-torch) with XNNPACK delegate (AVX-512 VNNI + AMX, 32 threads)",
+      "args": ["--model", "{litert}", "--threads", "{threads}", "--ctx", "{ctx}", "--cache-dir", "/results/.cache/litert-lm-31b"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "litert-lm/fastest",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "fastest",
+      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32) with XNNPACK delegate (AVX-512 VNNI + AMX, 56 physical cores on Socket 0)",
+      "args": ["--model", "{litert}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--cache-dir", "/results/.cache/litert-lm-31b"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "litert-lm/ynnpack",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32) with experimental YNNPACK delegate (--ynnpack / --enable_ynnpack=true, AVX-512 + AMX, 32 threads)",
+      "args": ["--model", "{litert}", "--threads", "{threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b-ynn"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "litert-lm/ynnpack-fastest",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32) with experimental YNNPACK delegate (--ynnpack / --enable_ynnpack=true, AVX-512 + AMX, 56 physical cores on Socket 0)",
+      "args": ["--model", "{litert}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b-ynn"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "openvino/matched",
+      "framework": "openvino",
+      "dtype": "int4",
+      "track": "matched",
+      "quant_note": "Official OpenVINO INT4 model (OpenVINO/gemma-4-31B-it-int4-ov) with oneDNN AMX/AVX-512 at 32 threads",
+      "args": ["--model", "{ov_int4}", "--threads", "{threads}", "--ctx", "{ctx}", "--dtype", "int4", "--cache-dir", "/results/.cache/openvino-31b"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "openvino/fastest",
+      "framework": "openvino",
+      "dtype": "int4",
+      "track": "fastest",
+      "quant_note": "Official OpenVINO INT4 model (OpenVINO/gemma-4-31B-it-int4-ov) with oneDNN AMX/AVX-512 across all 56 physical cores on Socket 0",
+      "args": ["--model", "{ov_int4}", "--threads", "{fastest.openvino.threads}", "--ctx", "{ctx}", "--dtype", "int4", "--cache-dir", "/results/.cache/openvino-31b"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "llama.cpp/q8_0",
+      "framework": "llama.cpp",
+      "dtype": "int8",
+      "track": "reference",
+      "quant_note": "Official ggml-org Q8_0 GGUF (ggml-org/gemma-4-31B-it-GGUF)",
+      "args": [
+        "--model", "{gguf_q8_0}",
+        "--threads", "{fastest.llama.cpp.threads}",
+        "--ctx", "{ctx}",
+        "--batch", "{fastest.llama.cpp.batch}",
+        "--ubatch", "{fastest.llama.cpp.ubatch}",
+        "--flash-attn"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "openvino/int8",
+      "framework": "openvino",
+      "dtype": "int8",
+      "track": "reference",
+      "quant_note": "Official OpenVINO INT8 model (OpenVINO/gemma-4-31B-it-int8-ov) with oneDNN AMX-INT8",
+      "args": ["--model", "{ov_int8}", "--threads", "{fastest.openvino.threads}", "--ctx", "{ctx}", "--dtype", "int8", "--cache-dir", "/results/.cache/openvino-31b"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "llama.cpp/bf16",
+      "framework": "llama.cpp",
+      "dtype": "bf16",
+      "track": "reference",
+      "quant_note": "Official ggml-org BF16 GGUF (ggml-org/gemma-4-31B-it-GGUF) with Sapphire Rapids AMX BF16 kernels",
+      "args": [
+        "--model", "{gguf_bf16}",
+        "--threads", "{fastest.llama.cpp.threads}",
+        "--ctx", "{ctx}",
+        "--batch", "{fastest.llama.cpp.batch}",
+        "--ubatch", "{fastest.llama.cpp.ubatch}",
+        "--flash-attn"
+      ],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "xla/bf16-ynnpack",
+      "framework": "xla",
+      "dtype": "bf16",
+      "track": "reference",
+      "quant_note": "Official Google BF16 safetensors (google/gemma-4-31B-it) on XLA:CPU Next with YNNPACK fusion + AMX BF16",
+      "args": ["--model", "{hf_bf16}", "--threads", "{fastest.xla.threads}", "--ctx", "{ctx}", "--dtype", "bf16"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    },
+    {
+      "id": "xla/bf16-onednn",
+      "framework": "xla",
+      "dtype": "bf16",
+      "track": "reference",
+      "quant_note": "Official Google BF16 safetensors (google/gemma-4-31B-it) on XLA:CPU Next with oneDNN custom-call AMX BF16",
+      "args": ["--model", "{hf_bf16}", "--threads", "{fastest.xla.threads}", "--ctx", "{ctx}", "--dtype", "bf16", "--onednn"],
+      "accuracy": {"mmlu_limit": 2000, "gsm8k_limit": 250}
+    }
+  ]
+}

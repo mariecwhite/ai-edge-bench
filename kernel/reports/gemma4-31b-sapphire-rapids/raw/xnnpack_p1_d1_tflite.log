@@ -1,0 +1,961 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794232839.381138 2280202 litert_lm_lib.cc:728] Choose backend: cpu
+I0000 00:00:1794232839.381202 2280202 litert_lm_lib.cc:967] executor_settings: backend: CPU
+backend_config:
+kv_increment_size: 16
+prefill_chunk_size: -1
+number_of_threads: 28
+enable_ynnpack: false
+
+max_tokens: 1024
+activation_data_type: Not set
+max_num_images: 0
+lora_rank: 0
+pad_token_id: -1
+cache_dir: /run/aeb_litert_cache/xnnpack_p128
+cache_file: Not set
+litert_dispatch_lib_dir: Not set
+model_assets: model_path: /models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it.litertlm
+fake_weights_mode: FAKE_WEIGHTS_NONE
+
+advanced_settings: prefill_batch_sizes: [1]
+num_output_candidates: 1
+configure_magic_numbers: true
+verify_magic_numbers: false
+clear_kv_cache_before_prefill: true
+num_logits_to_print_after_decode: 0
+gpu_madvise_original_shared_tensors: true
+gpu_enable_metal_residency_set: false
+is_benchmark: true
+enable_profiling: true
+preferred_device_substr: 
+num_threads_to_upload: -1
+num_threads_to_compile: -1
+convert_weights_on_gpu: true
+wait_for_weights_conversion_complete_in_benchmark: true
+optimize_shader_compilation: true
+cache_compiled_shaders_only: false
+share_constant_tensors: true
+sampler_handles_input: true
+allow_src_quantized_fc_conv_ops: Not set
+hint_waiting_for_completion: Not set
+gpu_context_low_priority: Not set
+enable_speculative_decoding: false
+disable_delegate_clustering: false
+hint_kernel_batch_size: Not set
+error_on_invalid_sampled_token_id: false
+mtp_gating_config: Not set
+
+speculative_decoding_config: SpeculativeDecodingConfig{mode: Not set}
+
+I0000 00:00:1794232839.381238 2280202 litert_lm_lib.cc:974] vision_executor_settings: not set
+I0000 00:00:1794232839.381239 2280202 litert_lm_lib.cc:980] audio_executor_settings: not set
+I0000 00:00:1794232839.381246 2280202 litert_lm_lib.cc:1003] Creating engine
+W0000 00:00:1794232839.382231 2280202 litert_lm_loader.cc:532] TFLite model type: tf_lite_vision_encoder not found for backend constraints. Skipping.
+W0000 00:00:1794232839.382238 2280202 litert_lm_loader.cc:532] TFLite model type: tf_lite_audio_encoder_hw not found for backend constraints. Skipping.
+W0000 00:00:1794232839.382240 2280202 litert_lm_loader.cc:550] TFLite model type: tf_lite_vision_encoder not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+W0000 00:00:1794232839.382242 2280202 litert_lm_loader.cc:550] TFLite model type: tf_lite_audio_encoder_hw not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+INFO: [environment.cc:36] Creating LiteRT environment with options
+WARNING: [npu_registry.cc:34] NPU accelerator could not be loaded and registered: kLiteRtStatusErrorNotFound.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596f46caf00, name=GPU WebGPU
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTexture
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTextureFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferPacked
+INFO: [gpu_registry.cc:121] Statically linked GPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596f46cb1b0, name=YNNPackAccelerator
+INFO: [cpu_registry.cc:59] YNNPACK CPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596f46cb210, name=CpuAccelerator
+INFO: [cpu_registry.cc:73] XNNPACK CPU accelerator registered.
+W0000 00:00:1794232839.398370 2280219 litert_lm_loader.cc:407] Section not found: SP_Tokenizer
+W0000 00:00:1794232839.398385 2280219 litert_lm_loader.cc:407] Section not found: SP_Tokenizer
+W0000 00:00:1794232839.398387 2280219 litert_lm_loader.cc:407] Section not found: HF_Tokenizer_Zlib
+W0000 00:00:1794232839.420874 2280202 magic_number_configs_helper.cc:339] Too many prefill batch sizes=1 for magic numbers of prefill lengths=0. 1 small prefill batch sizes won't be used.
+INFO: [environment.cc:36] Creating LiteRT environment with options
+WARNING: [npu_registry.cc:34] NPU accelerator could not be loaded and registered: kLiteRtStatusErrorNotFound.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596f480fef0, name=GPU WebGPU
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTexture
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTextureFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferPacked
+INFO: [gpu_registry.cc:121] Statically linked GPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596f4b55ed0, name=YNNPackAccelerator
+INFO: [cpu_registry.cc:59] YNNPACK CPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596f4e0ea70, name=CpuAccelerator
+INFO: [cpu_registry.cc:73] XNNPACK CPU accelerator registered.
+INFO: [magic_number_utils.cc:101] Loaded: num_subgraphs=1256, num_signatures=3
+INFO: [magic_number_utils.cc:109]   signature=decode, subgraph_index=0, num_tensors=3739, num_inputs=123, num_outputs=121, num_ops=2767
+INFO: [magic_number_utils.cc:109]   signature=prefill_1024, subgraph_index=1, num_tensors=3878, num_inputs=123, num_outputs=120, num_ops=2916
+INFO: [magic_number_utils.cc:109]   signature=prefill_128, subgraph_index=2, num_tensors=3878, num_inputs=123, num_outputs=120, num_ops=2916
+INFO: [magic_number_utils.cc:113] Magic number configs: num_configs=1
+INFO: [magic_number_utils.cc:120]   config[0]: magic_number=32771, target_number=1024, signature_prefix=null
+INFO: [magic_number_utils.cc:536] 429 tensors of signature decode have been updated for magic number  32771 to target number 1024
+INFO: [magic_number_utils.cc:536] 426 tensors of signature prefill_1024 have been updated for magic number  32771 to target number 1024
+INFO: [magic_number_utils.cc:536] 426 tensors of signature prefill_128 have been updated for magic number  32771 to target number 1024
+INFO: [compiled_model.cc:963] Flatbuffer model initialized directly from incoming litert model.
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+VERBOSE: XNNPack weight cache loaded from '/run/aeb_litert_cache/xnnpack_p128/gemma-4-31B-it.litertlm_1794230908_16224487280.xnnpack_cache'.
+VERBOSE: Replacing 2214 out of 2767 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 968 partitions for subgraph 0 (decode).
+VERBOSE: Replacing 2367 out of 2916 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 957 partitions for subgraph 2 (prefill_128).
+W0000 00:00:1794232839.653065 2280202 litert_lm_loader.cc:407] Section not found: TFLiteModel
+W0000 00:00:1794232839.653096 2280202 litert_lm_loader.cc:497] TFLite model for type: tf_lite_end_of_audio not found. Skipping.
+W0000 00:00:1794232839.653103 2280202 litert_lm_loader.cc:407] Section not found: TFLiteModel
+W0000 00:00:1794232839.653112 2280202 litert_lm_loader.cc:497] TFLite model for type: tf_lite_end_of_vision not found. Skipping.
+INFO: [magic_number_utils.cc:101] Loaded: num_subgraphs=1, num_signatures=1
+INFO: [magic_number_utils.cc:109]   signature=embedder, subgraph_index=0, num_tensors=11, num_inputs=1, num_outputs=1, num_ops=5
+INFO: [magic_number_utils.cc:113] Magic number configs: num_configs=1
+INFO: [magic_number_utils.cc:120]   config[0]: magic_number=32771, target_number=1024, signature_prefix=null
+INFO: [compiled_model.cc:963] Flatbuffer model initialized directly from incoming litert model.
+VERBOSE: Replacing 2 out of 5 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 2 partitions for subgraph 0 (main).
+W0000 00:00:1794232839.656360 2280202 litert_lm_loader.cc:407] Section not found: TFLiteModel
+W0000 00:00:1794232839.656366 2280202 litert_lm_loader.cc:497] TFLite model for type: tf_lite_per_layer_embedder not found. Skipping.
+INFO: [environment.cc:36] Creating LiteRT environment with options
+WARNING: [npu_registry.cc:34] NPU accelerator could not be loaded and registered: kLiteRtStatusErrorNotFound.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596fbaacea0, name=GPU WebGPU
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTexture
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTextureFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferPacked
+INFO: [gpu_registry.cc:121] Statically linked GPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596fbaa75d0, name=YNNPackAccelerator
+INFO: [cpu_registry.cc:59] YNNPACK CPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5596fbf9efd0, name=CpuAccelerator
+INFO: [cpu_registry.cc:73] XNNPACK CPU accelerator registered.
+VERBOSE: Replacing 4920 out of 5052 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 126 partitions for subgraph 0 (decode).
+W0000 00:00:1794232840.407584 2280202 litert_lm_loader.cc:532] TFLite model type: tf_lite_vision_encoder not found for backend constraints. Skipping.
+W0000 00:00:1794232840.407627 2280202 litert_lm_loader.cc:532] TFLite model type: tf_lite_audio_encoder_hw not found for backend constraints. Skipping.
+W0000 00:00:1794232840.407629 2280202 litert_lm_loader.cc:550] TFLite model type: tf_lite_vision_encoder not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+W0000 00:00:1794232840.407631 2280202 litert_lm_loader.cc:550] TFLite model type: tf_lite_audio_encoder_hw not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+I0000 00:00:1794232840.408587 2280202 litert_lm_lib.cc:1298] Creating conversation
+W0000 00:00:1794232840.410942 2280202 mel_filterbank.cc:163] Missing 10 bands  starting at 0 in mel-frequency design. Perhaps too many channels or not enough frequency resolution in spectrum. (fft_length: 257 sample_rate: 16000 mel_channel_count: 128 lower_frequency_limit: 0 upper_frequency_limit: 8000
+I0000 00:00:1794232840.411007 2280202 litert_lm_lib.cc:1310] Running single-turn conversation
+I0000 00:00:1794232840.982116 2280202 litert_lm_lib.cc:461] BenchmarkInfo:
+  Init Phases (7):
+    - Init Conversation: 1.26 ms
+    - Init Executor: 631.41 ms
+    - Init LLM metadata: 0.04 ms
+    - Init Model assets: 0.67 ms
+    - Init Tokenizer: 1023.02 ms
+    - Init Total: 1027.31 ms
+--------------------------------------------------
+  Time to first token: 0.57 s
+--------------------------------------------------
+  Prefill Turns (Total 1 turns):
+    Prefill Turn 1: Processed 1 tokens in 517.802us duration.
+      Prefill Speed: 1931.24 tokens/sec.
+--------------------------------------------------
+  Decode Turns (Total 1 turns):
+    Decode Turn 1: Processed 1 tokens in 567.536726ms duration.
+      Decode Speed: 1.76 tokens/sec.
+--------------------------------------------------
+  TextToTokenIds Turns (Total 0 turns):
+    No text to token ids turns recorded.
+--------------------------------------------------
+  Profile Summary:
+===================================================================== Run Order ======================================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+                                                     RESHAPE      0.000      0.008      0.008     0.001%     0.001%      0.000              1   [Builtin]:0
+                                                         SUB      0.009      0.003      0.003     0.001%     0.002%      0.000              1   [Builtin]:1
+                                                     GREATER      0.012      0.008      0.008     0.001%     0.003%      0.000              1   [Builtin]:2
+                                                         ADD      0.021      0.179      0.179     0.032%     0.036%      0.000              1   [Builtin]:3
+                                                        LESS      0.200      0.001      0.001     0.000%     0.036%      0.000              1   [Builtin]:4
+                                                 LOGICAL_AND      0.202      0.002      0.002     0.000%     0.036%      0.000              1   [Builtin]:5
+                                                   SELECT_V2      0.204      0.007      0.007     0.001%     0.038%      0.000              1   [Builtin]:6
+                                           Delegate/Add (ND)      0.000      0.009      0.010     0.004%     0.041%      0.000              2   [Delegate]:0
+                                                        CAST      0.555      0.007      0.007     0.001%     0.043%      0.000              1   [Builtin]:8
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%     0.043%      0.000              1   [Delegate]:0
+                                     Delegate/Copy (NC, X32)      0.000      0.000      0.000     0.000%     0.043%      0.000              1   [Delegate]:1
+                                        Delegate/Cosine (NC)      0.000      0.005      0.005     0.001%     0.044%      0.000              1   [Delegate]:2
+                                          Delegate/Sine (NC)      0.000      0.001      0.001     0.000%     0.044%      0.000              1   [Delegate]:3
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%     0.044%      0.000              1   [Delegate]:4
+                                     Delegate/Copy (NC, X32)      0.000      0.000      0.000     0.000%     0.044%      0.000              1   [Delegate]:5
+                                        Delegate/Cosine (NC)      0.000      0.000      0.000     0.000%     0.044%      0.000              1   [Delegate]:6
+                                          Delegate/Sine (NC)      0.000      0.000      0.000     0.000%     0.044%      0.000              1   [Delegate]:7
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.003      0.002     0.001%     0.044%      0.000              2   [Delegate]:8
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     0.044%      0.000              2   [Delegate]:9
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     0.044%      0.000              2   [Delegate]:10
+                                      Delegate/Multiply (ND)      0.000      0.006      0.008     0.090%     0.134%      0.000             60   [Delegate]:11
+                                      Delegate/Multiply (ND)      0.000      0.015      0.012     0.004%     0.138%      0.000              2   [Delegate]:12
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.842      0.842     0.152%     0.291%      0.000              1   [Delegate]:13
+                                Delegate/Static Reshape (NC)      0.000      0.004      0.004     0.001%     0.291%      0.000              1   [Delegate]:14
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.014      0.014     0.003%     0.294%      0.000              1   [Delegate]:15
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     0.294%      0.000              1   [Delegate]:16
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%     0.294%      0.000              1   [Delegate]:17
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     0.294%      0.000              1   [Delegate]:18
+                                      Delegate/Multiply (ND)      0.000      0.005      0.006     0.002%     0.296%      0.000              2   [Delegate]:19
+                                      Delegate/Multiply (ND)      0.000      0.009      0.009     0.002%     0.298%      0.000              1   [Delegate]:20
+                                      Delegate/Multiply (ND)      0.000      0.004      0.006     0.065%     0.363%      0.000             59   [Delegate]:21
+                                    Delegate/Slice (ND, X32)      0.000      0.015      0.015     0.003%     0.366%      0.000              1   [Delegate]:22
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.002%     0.368%      0.000              1   [Delegate]:23
+                                      Delegate/Multiply (ND)      0.000      0.001      0.002     0.001%     0.368%      0.000              2   [Delegate]:24
+                                     Delegate/Copy (NC, X32)      0.000      0.003      0.003     0.001%     0.369%      0.000              1   [Delegate]:25
+                                      Delegate/Multiply (ND)      0.000      0.005      0.003     0.028%     0.397%      0.000             59   [Delegate]:26
+                                           Delegate/Add (ND)      0.000      0.013      0.013     0.002%     0.399%      0.000              1   [Delegate]:27
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.370      0.370     0.067%     0.466%      0.000              1   [Delegate]:28
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.000%     0.466%      0.000              1   [Delegate]:29
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.380      0.380     0.069%     0.535%      0.000              1   [Delegate]:30
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.000%     0.535%      0.000              1   [Delegate]:31
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.006      0.006     0.001%     0.536%      0.000              1   [Delegate]:32
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     0.536%      0.000              1   [Delegate]:33
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.003     0.001%     0.537%      0.000              2   [Delegate]:34
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     0.537%      0.000              1   [Delegate]:35
+                                      Delegate/Multiply (ND)      0.000      0.001      0.011     0.004%     0.541%      0.000              2   [Delegate]:36
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%     0.541%      0.000              1   [Delegate]:37
+                                      Delegate/Multiply (ND)      0.000      0.002      0.055     0.020%     0.561%      0.000              2   [Delegate]:38
+                                    Delegate/Slice (ND, X32)      0.000      0.008      0.008     0.001%     0.562%      0.000              1   [Delegate]:39
+                                    Delegate/Slice (ND, X32)      0.000      0.006      0.006     0.001%     0.563%      0.000              1   [Delegate]:40
+                                      Delegate/Multiply (ND)      0.000      0.000      0.006     0.063%     0.627%      0.000             59   [Delegate]:41
+                                     Delegate/Copy (NC, X32)      0.000      0.002      0.002     0.000%     0.627%      0.000              1   [Delegate]:42
+                                      Delegate/Multiply (ND)      0.000      0.000      0.005     0.054%     0.681%      0.000             59   [Delegate]:43
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     0.681%      0.000              1   [Delegate]:44
+                                Delegate/Static Reshape (NC)      0.000      0.006      0.006     0.001%     0.682%      0.000              1   [Delegate]:45
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.004      0.004     0.001%     0.683%      0.000              1   [Delegate]:46
+                                           Delegate/Add (ND)      0.000      0.000      0.003     0.001%     0.684%      0.000              2   [Delegate]:47
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%     0.684%      0.000              1   [Delegate]:48
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     0.684%      0.000              1   [Delegate]:49
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%     0.684%      0.000              1   [Delegate]:50
+                                      Delegate/Multiply (ND)      0.000      0.003      0.003     0.001%     0.684%      0.000              1   [Delegate]:51
+                                Delegate/Static Reshape (NC)      0.000      0.006      0.004     0.001%     0.686%      0.000              2   [Delegate]:52
+                                                     RESHAPE      2.555      0.001      0.001     0.000%     0.686%      0.000              1   [Builtin]:43
+                                                        PACK      2.556      0.006      0.006     0.001%     0.687%      0.000              1   [Builtin]:44
+                                        DYNAMIC_UPDATE_SLICE      2.563      0.006      0.006     0.001%     0.688%      0.000              1   [Builtin]:45
+                                                        PACK      2.570      0.001      0.001     0.000%     0.688%      0.000              1   [Builtin]:46
+                                        DYNAMIC_UPDATE_SLICE      2.571      0.106      0.106     0.019%     0.707%      0.000              1   [Builtin]:47
+                                Delegate/Static Reshape (NC)      0.000      0.007      0.006     0.060%     0.768%      0.000             60   [Delegate]:0
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.244      0.169     1.829%     2.596%      0.000             60   [Delegate]:1
+                                     Delegate/Copy (NC, X32)      0.000      0.003      0.003     0.001%     2.597%      0.000              1   [Delegate]:2
+                                           Delegate/Add (ND)      0.000      0.008      0.008     0.001%     2.598%      0.000              1   [Delegate]:3
+                                  Delegate/Softmax (NC, F32)      0.000      0.015      0.015     0.003%     2.601%      0.000              1   [Delegate]:4
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.135      0.135     0.024%     2.626%      0.000              1   [Delegate]:5
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%     2.626%      0.000              1   [Delegate]:6
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.721      0.721     0.130%     2.756%      0.000              1   [Delegate]:7
+                                           Delegate/Add (ND)      0.000      0.003      0.003     0.001%     2.757%      0.000              1   [Delegate]:13
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%     2.757%      0.000              1   [Delegate]:14
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     2.757%      0.000              1   [Delegate]:15
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     2.757%      0.000              1   [Delegate]:16
+                                      Delegate/Multiply (ND)      0.000      0.005      0.007     0.076%     2.832%      0.000             59   [Delegate]:17
+                                      Delegate/Multiply (ND)      0.000      0.007      0.007     0.001%     2.834%      0.000              1   [Delegate]:18
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.864      1.864     0.337%     3.171%      0.000              1   [Delegate]:19
+                                    Delegate/ApproxGELU (NC)      0.000      0.008      0.008     0.001%     3.172%      0.000              1   [Delegate]:20
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.972      1.972     0.357%     3.529%      0.000              1   [Delegate]:21
+                                      Delegate/Multiply (ND)      0.000      0.009      0.009     0.002%     3.531%      0.000              1   [Delegate]:22
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.875      1.875     0.339%     3.870%      0.000              1   [Delegate]:23
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%     3.870%      0.000              1   [Delegate]:24
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     3.870%      0.000              1   [Delegate]:25
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     3.870%      0.000              1   [Delegate]:26
+                                      Delegate/Multiply (ND)      0.000      0.002      0.008     0.085%     3.955%      0.000             60   [Delegate]:27
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%     3.956%      0.000              1   [Delegate]:28
+                                           Delegate/Add (ND)      0.000      0.001      0.001     0.000%     3.956%      0.000              2   [Delegate]:29
+                                      Delegate/Multiply (ND)      0.000      0.006      0.006     0.001%     3.957%      0.000              1   [Delegate]:30
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.000     0.000%     3.957%      0.000              1   [Delegate]:31
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     3.957%      0.000              1   [Delegate]:32
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     3.957%      0.000              1   [Delegate]:33
+                                      Delegate/Multiply (ND)      0.000      0.002      0.010     0.112%     4.069%      0.000             59   [Delegate]:34
+                                      Delegate/Multiply (ND)      0.000      0.010      0.010     0.002%     4.071%      0.000              1   [Delegate]:35
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.729      0.729     0.132%     4.203%      0.000              1   [Delegate]:36
+                                Delegate/Static Reshape (NC)      0.000      0.004      0.002     0.001%     4.203%      0.000              2   [Delegate]:37
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.010      0.010     0.002%     4.205%      0.000              1   [Delegate]:38
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     4.205%      0.000              1   [Delegate]:39
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%     4.205%      0.000              1   [Delegate]:40
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     4.205%      0.000              1   [Delegate]:41
+                                      Delegate/Multiply (ND)      0.000      0.006      0.007     0.078%     4.283%      0.000             58   [Delegate]:42
+                                      Delegate/Multiply (ND)      0.000      0.005      0.003     0.001%     4.284%      0.000              2   [Delegate]:44
+                                    Delegate/Slice (ND, X32)      0.000      0.009      0.011     0.118%     4.403%      0.000             58   [Delegate]:45
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.002%     4.405%      0.000              1   [Delegate]:46
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%     4.405%      0.000              1   [Delegate]:47
+                                     Delegate/Copy (NC, X32)      0.000      0.004      0.004     0.001%     4.406%      0.000              1   [Delegate]:48
+                                      Delegate/Multiply (ND)      0.000      0.004      0.004     0.001%     4.406%      0.000              1   [Delegate]:49
+                                           Delegate/Add (ND)      0.000      0.004      0.004     0.001%     4.407%      0.000              1   [Delegate]:50
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.388      0.388     0.070%     4.477%      0.000              1   [Delegate]:51
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.390      0.390     0.071%     4.548%      0.000              1   [Delegate]:53
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.000     0.000%     4.548%      0.000             12   [Delegate]:54
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.007      0.007     0.001%     4.549%      0.000              1   [Delegate]:55
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     4.549%      0.000              1   [Delegate]:56
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%     4.549%      0.000              1   [Delegate]:57
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.001      0.001     0.000%     4.549%      0.000              1   [Delegate]:58
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.009%     4.559%      0.000             48   [Delegate]:59
+                                      Delegate/Multiply (ND)      0.000      0.000      0.002     0.017%     4.576%      0.000             48   [Delegate]:60
+                                      Delegate/Multiply (ND)      0.000      0.002      0.000     0.000%     4.576%      0.000             12   [Delegate]:61
+                                    Delegate/Slice (ND, X32)      0.000      0.008      0.007     0.062%     4.638%      0.000             48   [Delegate]:62
+                                    Delegate/Slice (ND, X32)      0.000      0.006      0.006     0.001%     4.639%      0.000              1   [Delegate]:63
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%     4.639%      0.000              1   [Delegate]:64
+                                     Delegate/Copy (NC, X32)      0.000      0.001      0.001     0.000%     4.639%      0.000              1   [Delegate]:65
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%     4.639%      0.000              1   [Delegate]:66
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     4.639%      0.000             12   [Delegate]:67
+                                Delegate/Static Reshape (NC)      0.000      0.007      0.001     0.001%     4.640%      0.000             12   [Delegate]:68
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.006      0.006     0.001%     4.641%      0.000              1   [Delegate]:69
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%     4.641%      0.000              1   [Delegate]:70
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%     4.641%      0.000              1   [Delegate]:71
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%     4.641%      0.000              1   [Delegate]:72
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.001%     4.642%      0.000             48   [Delegate]:73
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%     4.642%      0.000              1   [Delegate]:74
+                                Delegate/Static Reshape (NC)      0.000      0.004      0.004     0.001%     4.643%      0.000              1   [Delegate]:75
+                                        DYNAMIC_UPDATE_SLICE     11.293      0.007      0.007     0.001%     4.644%      0.000              1   [Builtin]:93
+                                        DYNAMIC_UPDATE_SLICE     11.301      0.092      0.092     0.017%     4.661%      0.000              1   [Builtin]:94
+                                           Delegate/Add (ND)      0.000      0.008      0.007     0.076%     4.737%      0.000             58   [Delegate]:2
+                                  Delegate/Softmax (NC, F32)      0.000      0.012      0.013     0.132%     4.869%      0.000             58   [Delegate]:3
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.132      0.135     1.414%     6.283%      0.000             58   [Delegate]:4
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%     6.283%      0.000             58   [Delegate]:5
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.772      0.875     9.185%    15.468%      0.000             58   [Delegate]:6
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.014%    15.482%      0.000             58   [Delegate]:7
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.001%    15.483%      0.000             58   [Delegate]:8
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    15.483%      0.000             58   [Delegate]:9
+                                      Delegate/Multiply (ND)      0.000      0.003      0.003     0.034%    15.516%      0.000             58   [Delegate]:10
+                                           Delegate/Add (ND)      0.000      0.002      0.002     0.023%    15.539%      0.000             59   [Delegate]:12
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.001     0.006%    15.545%      0.000             58   [Delegate]:13
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    15.545%      0.000             58   [Delegate]:14
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    15.545%      0.000             58   [Delegate]:15
+                                      Delegate/Multiply (ND)      0.000      0.001      0.002     0.019%    15.565%      0.000             58   [Delegate]:16
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.911      1.921    20.504%    36.069%      0.000             59   [Delegate]:18
+                                    Delegate/ApproxGELU (NC)      0.000      0.006      0.008     0.081%    36.150%      0.000             58   [Delegate]:19
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      2.006      1.940    20.710%    56.860%      0.000             59   [Delegate]:20
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.977      1.943    20.382%    77.241%      0.000             58   [Delegate]:22
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.013%    77.255%      0.000             58   [Delegate]:23
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    77.255%      0.000             58   [Delegate]:24
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    77.255%      0.000             58   [Delegate]:25
+                                           Delegate/Add (ND)      0.000      0.001      0.001     0.013%    77.267%      0.000             58   [Delegate]:28
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.018%    77.286%      0.000             58   [Delegate]:29
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.000     0.000%    77.286%      0.000             58   [Delegate]:30
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.001%    77.287%      0.000             58   [Delegate]:31
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    77.287%      0.000             58   [Delegate]:32
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.018%    77.305%      0.000             58   [Delegate]:33
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.728      1.250    13.117%    90.421%      0.000             58   [Delegate]:35
+                                Delegate/Static Reshape (NC)      0.000      0.003      0.005     0.049%    90.471%      0.000             57   [Delegate]:36
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.012      0.011     0.118%    90.588%      0.000             57   [Delegate]:37
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    90.588%      0.000             57   [Delegate]:38
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%    90.588%      0.000             57   [Delegate]:39
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    90.589%      0.000             57   [Delegate]:40
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.118%    90.707%      0.000             57   [Delegate]:44
+                                      Delegate/Multiply (ND)      0.000      0.001      0.002     0.020%    90.727%      0.000             58   [Delegate]:46
+                                     Delegate/Copy (NC, X32)      0.000      0.004      0.005     0.052%    90.779%      0.000             57   [Delegate]:47
+                                      Delegate/Multiply (ND)      0.000      0.005      0.005     0.052%    90.831%      0.000             57   [Delegate]:48
+                                           Delegate/Add (ND)      0.000      0.006      0.005     0.057%    90.888%      0.000             57   [Delegate]:49
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.371      0.353     3.704%    94.592%      0.000             58   [Delegate]:50
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.010%    94.602%      0.000             58   [Delegate]:51
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.374      0.388     3.302%    97.904%      0.000             47   [Delegate]:52
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.009%    97.913%      0.000             47   [Delegate]:53
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.007      0.007     0.060%    97.972%      0.000             47   [Delegate]:54
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    97.972%      0.000             47   [Delegate]:55
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%    97.972%      0.000             47   [Delegate]:56
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    97.972%      0.000             47   [Delegate]:57
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.011%    97.983%      0.000             58   [Delegate]:58
+                                    Delegate/Slice (ND, X32)      0.000      0.007      0.007     0.063%    98.046%      0.000             47   [Delegate]:61
+                                      Delegate/Multiply (ND)      0.000      0.001      0.000     0.001%    98.047%      0.000             58   [Delegate]:63
+                                     Delegate/Copy (NC, X32)      0.000      0.001      0.001     0.010%    98.058%      0.000             47   [Delegate]:64
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%    98.058%      0.000             47   [Delegate]:65
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    98.058%      0.000             47   [Delegate]:66
+                                Delegate/Static Reshape (NC)      0.000      0.003      0.000     0.002%    98.059%      0.000             47   [Delegate]:67
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.005      0.005     0.042%    98.102%      0.000             47   [Delegate]:68
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    98.102%      0.000             47   [Delegate]:69
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%    98.102%      0.000             47   [Delegate]:70
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.102%      0.000             47   [Delegate]:71
+                                      Delegate/Multiply (ND)      0.000      0.000      0.001     0.007%    98.108%      0.000             47   [Delegate]:72
+                                Delegate/Static Reshape (NC)      0.000      0.009      0.000     0.002%    98.110%      0.000             47   [Delegate]:74
+                                        DYNAMIC_UPDATE_SLICE     20.139      0.006      0.006     0.001%    98.111%      0.000              1   [Builtin]:139
+                                        DYNAMIC_UPDATE_SLICE     20.146      0.101      0.101     0.018%    98.129%      0.000              1   [Builtin]:140
+                                        DYNAMIC_UPDATE_SLICE     28.667      0.007      0.007     0.001%    98.131%      0.000              1   [Builtin]:185
+                                        DYNAMIC_UPDATE_SLICE     28.675      0.099      0.099     0.018%    98.149%      0.000              1   [Builtin]:186
+                                        DYNAMIC_UPDATE_SLICE     37.524      0.008      0.008     0.001%    98.150%      0.000              1   [Builtin]:231
+                                        DYNAMIC_UPDATE_SLICE     37.533      0.108      0.108     0.020%    98.170%      0.000              1   [Builtin]:232
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.003      0.004     0.008%    98.178%      0.000             11   [Delegate]:52
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    98.178%      0.000             11   [Delegate]:53
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.178%      0.000             11   [Delegate]:55
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%    98.178%      0.000             11   [Delegate]:56
+                                      Delegate/Multiply (ND)      0.000      0.002      0.001     0.003%    98.181%      0.000             11   [Delegate]:57
+                                    Delegate/Slice (ND, X32)      0.000      0.002      0.003     0.006%    98.186%      0.000             11   [Delegate]:59
+                                    Delegate/Slice (ND, X32)      0.000      0.002      0.003     0.005%    98.192%      0.000             11   [Delegate]:60
+                                     Delegate/Copy (NC, X32)      0.000      0.000      0.000     0.000%    98.192%      0.000             11   [Delegate]:62
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    98.192%      0.000             11   [Delegate]:64
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.001     0.001%    98.193%      0.000             11   [Delegate]:65
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.002      0.002     0.005%    98.198%      0.000             11   [Delegate]:66
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.198%      0.000             11   [Delegate]:69
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%    98.199%      0.000             11   [Delegate]:70
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%    98.199%      0.000             11   [Delegate]:71
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.001     0.001%    98.200%      0.000             11   [Delegate]:72
+                                        DYNAMIC_UPDATE_SLICE     46.345      0.003      0.003     0.001%    98.201%      0.000              1   [Builtin]:275
+                                        DYNAMIC_UPDATE_SLICE     46.349      0.050      0.050     0.009%    98.210%      0.000              1   [Builtin]:276
+                                               CONCATENATION     46.535      0.009      0.009     0.002%    98.211%      0.000              1   [Builtin]:279
+                                  Delegate/Softmax (NC, F32)      0.000      0.015      0.015     0.003%    98.214%      0.000              1   [Delegate]:1
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.110      0.110     0.020%    98.234%      0.000              1   [Delegate]:2
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%    98.234%      0.000              1   [Delegate]:3
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.468      1.468     0.266%    98.500%      0.000              1   [Delegate]:4
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%    98.500%      0.000              1   [Delegate]:5
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    98.500%      0.000              1   [Delegate]:6
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.500%      0.000              1   [Delegate]:7
+                                      Delegate/Multiply (ND)      0.000      0.005      0.005     0.001%    98.501%      0.000              1   [Delegate]:8
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    98.502%      0.000              1   [Delegate]:9
+                                           Delegate/Add (ND)      0.000      0.003      0.003     0.001%    98.503%      0.000              1   [Delegate]:10
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%    98.503%      0.000              1   [Delegate]:11
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.503%      0.000              1   [Delegate]:13
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.000%    98.503%      0.000              1   [Delegate]:14
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    98.505%      0.000              1   [Delegate]:15
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.908      1.908     0.345%    98.850%      0.000              1   [Delegate]:16
+                                    Delegate/ApproxGELU (NC)      0.000      0.007      0.007     0.001%    98.851%      0.000              1   [Delegate]:17
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%    98.851%      0.000              1   [Delegate]:21
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    98.851%      0.000              1   [Delegate]:22
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.851%      0.000              1   [Delegate]:23
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    98.853%      0.000              1   [Delegate]:25
+                                           Delegate/Add (ND)      0.000      0.001      0.001     0.000%    98.853%      0.000              1   [Delegate]:26
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.000     0.000%    98.853%      0.000              1   [Delegate]:28
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.853%      0.000              1   [Delegate]:30
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.000%    98.853%      0.000              1   [Delegate]:31
+                                      Delegate/Multiply (ND)      0.000      0.010      0.010     0.002%    98.855%      0.000              1   [Delegate]:32
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.733      0.733     0.133%    98.988%      0.000              1   [Delegate]:33
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.010      0.010     0.002%    98.989%      0.000              1   [Delegate]:35
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%    98.989%      0.000              1   [Delegate]:36
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    98.989%      0.000              1   [Delegate]:38
+                                      Delegate/Multiply (ND)      0.000      0.007      0.007     0.001%    98.991%      0.000              1   [Delegate]:39
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    98.992%      0.000              1   [Delegate]:40
+                                    Delegate/Slice (ND, X32)      0.000      0.010      0.010     0.002%    98.994%      0.000              1   [Delegate]:42
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.002%    98.996%      0.000              1   [Delegate]:43
+                                     Delegate/Copy (NC, X32)      0.000      0.003      0.003     0.001%    98.996%      0.000              1   [Delegate]:45
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.384      0.384     0.069%    99.066%      0.000              1   [Delegate]:48
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.000%    99.066%      0.000              1   [Delegate]:49
+                                        DYNAMIC_UPDATE_SLICE     55.728      0.006      0.006     0.001%    99.067%      0.000              1   [Builtin]:322
+                                        DYNAMIC_UPDATE_SLICE     55.735      0.103      0.103     0.019%    99.086%      0.000              1   [Builtin]:323
+                                        DYNAMIC_UPDATE_SLICE     64.407      0.006      0.006     0.001%    99.087%      0.000              1   [Builtin]:368
+                                        DYNAMIC_UPDATE_SLICE     64.413      0.103      0.103     0.019%    99.105%      0.000              1   [Builtin]:369
+                                        DYNAMIC_UPDATE_SLICE     73.331      0.005      0.005     0.001%    99.106%      0.000              1   [Builtin]:414
+                                        DYNAMIC_UPDATE_SLICE     73.337      0.103      0.103     0.019%    99.125%      0.000              1   [Builtin]:415
+                                        DYNAMIC_UPDATE_SLICE     82.036      0.006      0.006     0.001%    99.126%      0.000              1   [Builtin]:460
+                                        DYNAMIC_UPDATE_SLICE     82.043      0.100      0.100     0.018%    99.144%      0.000              1   [Builtin]:461
+                                        DYNAMIC_UPDATE_SLICE     90.766      0.006      0.006     0.001%    99.145%      0.000              1   [Builtin]:506
+                                        DYNAMIC_UPDATE_SLICE     90.772      0.098      0.098     0.018%    99.163%      0.000              1   [Builtin]:507
+                                        DYNAMIC_UPDATE_SLICE     99.570      0.003      0.003     0.001%    99.164%      0.000              1   [Builtin]:550
+                                        DYNAMIC_UPDATE_SLICE     99.574      0.053      0.053     0.010%    99.173%      0.000              1   [Builtin]:551
+                                        DYNAMIC_UPDATE_SLICE    108.984      0.009      0.009     0.002%    99.175%      0.000              1   [Builtin]:596
+                                        DYNAMIC_UPDATE_SLICE    108.993      0.134      0.134     0.024%    99.199%      0.000              1   [Builtin]:597
+                                        DYNAMIC_UPDATE_SLICE    117.937      0.006      0.006     0.001%    99.200%      0.000              1   [Builtin]:642
+                                        DYNAMIC_UPDATE_SLICE    117.944      0.084      0.084     0.015%    99.215%      0.000              1   [Builtin]:643
+                                        DYNAMIC_UPDATE_SLICE    126.821      0.007      0.007     0.001%    99.217%      0.000              1   [Builtin]:688
+                                        DYNAMIC_UPDATE_SLICE    126.828      0.088      0.088     0.016%    99.232%      0.000              1   [Builtin]:689
+                                        DYNAMIC_UPDATE_SLICE    135.677      0.006      0.006     0.001%    99.234%      0.000              1   [Builtin]:734
+                                        DYNAMIC_UPDATE_SLICE    135.683      0.089      0.089     0.016%    99.250%      0.000              1   [Builtin]:735
+                                        DYNAMIC_UPDATE_SLICE    144.400      0.007      0.007     0.001%    99.251%      0.000              1   [Builtin]:780
+                                        DYNAMIC_UPDATE_SLICE    144.408      0.094      0.094     0.017%    99.268%      0.000              1   [Builtin]:781
+                                        DYNAMIC_UPDATE_SLICE    153.119      0.003      0.003     0.001%    99.268%      0.000              1   [Builtin]:824
+                                        DYNAMIC_UPDATE_SLICE    153.123      0.042      0.042     0.008%    99.276%      0.000              1   [Builtin]:825
+                                        DYNAMIC_UPDATE_SLICE    162.598      0.006      0.006     0.001%    99.277%      0.000              1   [Builtin]:870
+                                        DYNAMIC_UPDATE_SLICE    162.605      0.089      0.089     0.016%    99.293%      0.000              1   [Builtin]:871
+                                        DYNAMIC_UPDATE_SLICE    171.496      0.007      0.007     0.001%    99.295%      0.000              1   [Builtin]:916
+                                        DYNAMIC_UPDATE_SLICE    171.503      0.086      0.086     0.016%    99.310%      0.000              1   [Builtin]:917
+                                        DYNAMIC_UPDATE_SLICE    180.166      0.006      0.006     0.001%    99.311%      0.000              1   [Builtin]:962
+                                        DYNAMIC_UPDATE_SLICE    180.173      0.086      0.086     0.016%    99.327%      0.000              1   [Builtin]:963
+                                        DYNAMIC_UPDATE_SLICE    188.874      0.007      0.007     0.001%    99.328%      0.000              1   [Builtin]:1008
+                                        DYNAMIC_UPDATE_SLICE    188.881      0.132      0.132     0.024%    99.352%      0.000              1   [Builtin]:1009
+                                        DYNAMIC_UPDATE_SLICE    197.836      0.007      0.007     0.001%    99.353%      0.000              1   [Builtin]:1054
+                                        DYNAMIC_UPDATE_SLICE    197.844      0.087      0.087     0.016%    99.369%      0.000              1   [Builtin]:1055
+                                        DYNAMIC_UPDATE_SLICE    206.459      0.004      0.004     0.001%    99.370%      0.000              1   [Builtin]:1098
+                                        DYNAMIC_UPDATE_SLICE    206.464      0.043      0.043     0.008%    99.377%      0.000              1   [Builtin]:1099
+                                        DYNAMIC_UPDATE_SLICE    215.816      0.005      0.005     0.001%    99.378%      0.000              1   [Builtin]:1144
+                                        DYNAMIC_UPDATE_SLICE    215.822      0.088      0.088     0.016%    99.394%      0.000              1   [Builtin]:1145
+                                        DYNAMIC_UPDATE_SLICE    224.601      0.007      0.007     0.001%    99.395%      0.000              1   [Builtin]:1190
+                                        DYNAMIC_UPDATE_SLICE    224.609      0.086      0.086     0.016%    99.411%      0.000              1   [Builtin]:1191
+                                        DYNAMIC_UPDATE_SLICE    233.400      0.006      0.006     0.001%    99.412%      0.000              1   [Builtin]:1236
+                                        DYNAMIC_UPDATE_SLICE    233.407      0.093      0.093     0.017%    99.429%      0.000              1   [Builtin]:1237
+                                        DYNAMIC_UPDATE_SLICE    242.123      0.007      0.007     0.001%    99.430%      0.000              1   [Builtin]:1282
+                                        DYNAMIC_UPDATE_SLICE    242.131      0.086      0.086     0.016%    99.446%      0.000              1   [Builtin]:1283
+                                        DYNAMIC_UPDATE_SLICE    250.984      0.006      0.006     0.001%    99.447%      0.000              1   [Builtin]:1328
+                                        DYNAMIC_UPDATE_SLICE    250.992      0.086      0.086     0.016%    99.462%      0.000              1   [Builtin]:1329
+                                        DYNAMIC_UPDATE_SLICE    259.789      0.002      0.002     0.000%    99.463%      0.000              1   [Builtin]:1372
+                                        DYNAMIC_UPDATE_SLICE    259.792      0.043      0.043     0.008%    99.471%      0.000              1   [Builtin]:1373
+                                        DYNAMIC_UPDATE_SLICE    268.829      0.006      0.006     0.001%    99.472%      0.000              1   [Builtin]:1418
+                                        DYNAMIC_UPDATE_SLICE    268.837      0.087      0.087     0.016%    99.487%      0.000              1   [Builtin]:1419
+                                        DYNAMIC_UPDATE_SLICE    277.632      0.007      0.007     0.001%    99.489%      0.000              1   [Builtin]:1464
+                                        DYNAMIC_UPDATE_SLICE    277.641      0.085      0.085     0.015%    99.504%      0.000              1   [Builtin]:1465
+                                        DYNAMIC_UPDATE_SLICE    286.368      0.005      0.005     0.001%    99.505%      0.000              1   [Builtin]:1510
+                                        DYNAMIC_UPDATE_SLICE    286.374      0.092      0.092     0.017%    99.522%      0.000              1   [Builtin]:1511
+                                        DYNAMIC_UPDATE_SLICE    295.060      0.006      0.006     0.001%    99.523%      0.000              1   [Builtin]:1556
+                                        DYNAMIC_UPDATE_SLICE    295.067      0.088      0.088     0.016%    99.539%      0.000              1   [Builtin]:1557
+                                        DYNAMIC_UPDATE_SLICE    303.828      0.005      0.005     0.001%    99.539%      0.000              1   [Builtin]:1602
+                                        DYNAMIC_UPDATE_SLICE    303.834      0.087      0.087     0.016%    99.555%      0.000              1   [Builtin]:1603
+                                        DYNAMIC_UPDATE_SLICE    312.770      0.002      0.002     0.000%    99.556%      0.000              1   [Builtin]:1646
+                                        DYNAMIC_UPDATE_SLICE    312.773      0.042      0.042     0.008%    99.563%      0.000              1   [Builtin]:1647
+                                        DYNAMIC_UPDATE_SLICE    322.052      0.007      0.007     0.001%    99.564%      0.000              1   [Builtin]:1692
+                                        DYNAMIC_UPDATE_SLICE    322.060      0.087      0.087     0.016%    99.580%      0.000              1   [Builtin]:1693
+                                        DYNAMIC_UPDATE_SLICE    330.775      0.007      0.007     0.001%    99.581%      0.000              1   [Builtin]:1738
+                                        DYNAMIC_UPDATE_SLICE    330.783      0.088      0.088     0.016%    99.597%      0.000              1   [Builtin]:1739
+                                        DYNAMIC_UPDATE_SLICE    339.508      0.006      0.006     0.001%    99.598%      0.000              1   [Builtin]:1784
+                                        DYNAMIC_UPDATE_SLICE    339.515      0.091      0.091     0.016%    99.615%      0.000              1   [Builtin]:1785
+                                        DYNAMIC_UPDATE_SLICE    348.306      0.006      0.006     0.001%    99.616%      0.000              1   [Builtin]:1830
+                                        DYNAMIC_UPDATE_SLICE    348.313      0.230      0.230     0.042%    99.658%      0.000              1   [Builtin]:1831
+                                        DYNAMIC_UPDATE_SLICE    357.253      0.007      0.007     0.001%    99.659%      0.000              1   [Builtin]:1876
+                                        DYNAMIC_UPDATE_SLICE    357.262      0.102      0.102     0.018%    99.677%      0.000              1   [Builtin]:1877
+                                        DYNAMIC_UPDATE_SLICE    366.147      0.003      0.003     0.001%    99.678%      0.000              1   [Builtin]:1920
+                                        DYNAMIC_UPDATE_SLICE    366.150      0.045      0.045     0.008%    99.686%      0.000              1   [Builtin]:1921
+                                        DYNAMIC_UPDATE_SLICE    375.501      0.006      0.006     0.001%    99.687%      0.000              1   [Builtin]:1966
+                                        DYNAMIC_UPDATE_SLICE    375.508      0.085      0.085     0.015%    99.702%      0.000              1   [Builtin]:1967
+                                        DYNAMIC_UPDATE_SLICE    384.337      0.007      0.007     0.001%    99.704%      0.000              1   [Builtin]:2012
+                                        DYNAMIC_UPDATE_SLICE    384.344      0.087      0.087     0.016%    99.719%      0.000              1   [Builtin]:2013
+                                        DYNAMIC_UPDATE_SLICE    393.113      0.006      0.006     0.001%    99.721%      0.000              1   [Builtin]:2058
+                                        DYNAMIC_UPDATE_SLICE    393.120      0.087      0.087     0.016%    99.736%      0.000              1   [Builtin]:2059
+                                        DYNAMIC_UPDATE_SLICE    401.922      0.008      0.008     0.001%    99.738%      0.000              1   [Builtin]:2104
+                                        DYNAMIC_UPDATE_SLICE    401.931      0.086      0.086     0.016%    99.753%      0.000              1   [Builtin]:2105
+                                        DYNAMIC_UPDATE_SLICE    410.529      0.007      0.007     0.001%    99.755%      0.000              1   [Builtin]:2150
+                                        DYNAMIC_UPDATE_SLICE    410.537      0.084      0.084     0.015%    99.770%      0.000              1   [Builtin]:2151
+                                        DYNAMIC_UPDATE_SLICE    419.316      0.003      0.003     0.001%    99.770%      0.000              1   [Builtin]:2194
+                                        DYNAMIC_UPDATE_SLICE    419.320      0.042      0.042     0.008%    99.778%      0.000              1   [Builtin]:2195
+                                        DYNAMIC_UPDATE_SLICE    428.674      0.006      0.006     0.001%    99.779%      0.000              1   [Builtin]:2240
+                                        DYNAMIC_UPDATE_SLICE    428.680      0.085      0.085     0.015%    99.794%      0.000              1   [Builtin]:2241
+                                        DYNAMIC_UPDATE_SLICE    437.262      0.006      0.006     0.001%    99.795%      0.000              1   [Builtin]:2286
+                                        DYNAMIC_UPDATE_SLICE    437.269      0.098      0.098     0.018%    99.813%      0.000              1   [Builtin]:2287
+                                        DYNAMIC_UPDATE_SLICE    446.086      0.007      0.007     0.001%    99.814%      0.000              1   [Builtin]:2332
+                                        DYNAMIC_UPDATE_SLICE    446.093      0.221      0.221     0.040%    99.854%      0.000              1   [Builtin]:2333
+                                        DYNAMIC_UPDATE_SLICE    454.729      0.008      0.008     0.001%    99.856%      0.000              1   [Builtin]:2378
+                                        DYNAMIC_UPDATE_SLICE    454.738      0.090      0.090     0.016%    99.872%      0.000              1   [Builtin]:2379
+                                        DYNAMIC_UPDATE_SLICE    463.598      0.007      0.007     0.001%    99.873%      0.000              1   [Builtin]:2424
+                                        DYNAMIC_UPDATE_SLICE    463.606      0.089      0.089     0.016%    99.889%      0.000              1   [Builtin]:2425
+                                        DYNAMIC_UPDATE_SLICE    472.378      0.003      0.003     0.001%    99.890%      0.000              1   [Builtin]:2468
+                                        DYNAMIC_UPDATE_SLICE    472.382      0.043      0.043     0.008%    99.898%      0.000              1   [Builtin]:2469
+                                        DYNAMIC_UPDATE_SLICE    481.382      0.006      0.006     0.001%    99.899%      0.000              1   [Builtin]:2514
+                                        DYNAMIC_UPDATE_SLICE    481.388      0.093      0.093     0.017%    99.916%      0.000              1   [Builtin]:2515
+                                        DYNAMIC_UPDATE_SLICE    490.096      0.006      0.006     0.001%    99.917%      0.000              1   [Builtin]:2560
+                                        DYNAMIC_UPDATE_SLICE    490.104      0.088      0.088     0.016%    99.933%      0.000              1   [Builtin]:2561
+                                        DYNAMIC_UPDATE_SLICE    498.891      0.005      0.005     0.001%    99.934%      0.000              1   [Builtin]:2606
+                                        DYNAMIC_UPDATE_SLICE    498.898      0.088      0.088     0.016%    99.950%      0.000              1   [Builtin]:2607
+                                        DYNAMIC_UPDATE_SLICE    507.716      0.007      0.007     0.001%    99.951%      0.000              1   [Builtin]:2652
+                                        DYNAMIC_UPDATE_SLICE    507.724      0.088      0.088     0.016%    99.967%      0.000              1   [Builtin]:2653
+                                        DYNAMIC_UPDATE_SLICE    516.552      0.008      0.008     0.001%    99.968%      0.000              1   [Builtin]:2698
+                                        DYNAMIC_UPDATE_SLICE    516.562      0.089      0.089     0.016%    99.984%      0.000              1   [Builtin]:2699
+                                        DYNAMIC_UPDATE_SLICE    525.547      0.004      0.004     0.001%    99.985%      0.000              1   [Builtin]:2742
+                                        DYNAMIC_UPDATE_SLICE    525.552      0.042      0.042     0.008%    99.993%      0.000              1   [Builtin]:2743
+                                          Delegate/TanH (NC)      0.000      0.041      0.041     0.007%   100.000%      0.000              1   [Delegate]:37
+
+============================================================== Top by Computation Time ===============================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      2.006      1.940    20.710%    20.710%      0.000             59   [Delegate]:20
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.911      1.921    20.504%    41.214%      0.000             59   [Delegate]:18
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.977      1.943    20.382%    61.596%      0.000             58   [Delegate]:22
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.728      1.250    13.117%    74.712%      0.000             58   [Delegate]:35
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.772      0.875     9.185%    83.897%      0.000             58   [Delegate]:6
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.371      0.353     3.704%    87.601%      0.000             58   [Delegate]:50
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.374      0.388     3.302%    90.903%      0.000             47   [Delegate]:52
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.244      0.169     1.829%    92.732%      0.000             60   [Delegate]:1
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.132      0.135     1.414%    94.145%      0.000             58   [Delegate]:4
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.972      1.972     0.357%    94.502%      0.000              1   [Delegate]:21
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.908      1.908     0.345%    94.847%      0.000              1   [Delegate]:16
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.875      1.875     0.339%    95.187%      0.000              1   [Delegate]:23
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.864      1.864     0.337%    95.524%      0.000              1   [Delegate]:19
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      1.468      1.468     0.266%    95.789%      0.000              1   [Delegate]:4
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.842      0.842     0.152%    95.942%      0.000              1   [Delegate]:13
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.733      0.733     0.133%    96.074%      0.000              1   [Delegate]:33
+                                  Delegate/Softmax (NC, F32)      0.000      0.012      0.013     0.132%    96.207%      0.000             58   [Delegate]:3
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.729      0.729     0.132%    96.338%      0.000              1   [Delegate]:36
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.721      0.721     0.130%    96.469%      0.000              1   [Delegate]:7
+                                    Delegate/Slice (ND, X32)      0.000      0.009      0.011     0.118%    96.587%      0.000             58   [Delegate]:45
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.118%    96.705%      0.000             57   [Delegate]:44
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.012      0.011     0.118%    96.823%      0.000             57   [Delegate]:37
+                                      Delegate/Multiply (ND)      0.000      0.002      0.010     0.112%    96.935%      0.000             59   [Delegate]:34
+                                      Delegate/Multiply (ND)      0.000      0.006      0.008     0.090%    97.024%      0.000             60   [Delegate]:11
+                                      Delegate/Multiply (ND)      0.000      0.002      0.008     0.085%    97.109%      0.000             60   [Delegate]:27
+                                    Delegate/ApproxGELU (NC)      0.000      0.006      0.008     0.081%    97.190%      0.000             58   [Delegate]:19
+                                      Delegate/Multiply (ND)      0.000      0.006      0.007     0.078%    97.269%      0.000             58   [Delegate]:42
+                                           Delegate/Add (ND)      0.000      0.008      0.007     0.076%    97.345%      0.000             58   [Delegate]:2
+                                      Delegate/Multiply (ND)      0.000      0.005      0.007     0.076%    97.420%      0.000             59   [Delegate]:17
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.390      0.390     0.071%    97.491%      0.000              1   [Delegate]:53
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.388      0.388     0.070%    97.561%      0.000              1   [Delegate]:51
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.384      0.384     0.069%    97.631%      0.000              1   [Delegate]:48
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.380      0.380     0.069%    97.699%      0.000              1   [Delegate]:30
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM      0.000      0.370      0.370     0.067%    97.766%      0.000              1   [Delegate]:28
+                                      Delegate/Multiply (ND)      0.000      0.004      0.006     0.065%    97.831%      0.000             59   [Delegate]:21
+                                      Delegate/Multiply (ND)      0.000      0.000      0.006     0.063%    97.895%      0.000             59   [Delegate]:41
+                                    Delegate/Slice (ND, X32)      0.000      0.007      0.007     0.063%    97.958%      0.000             47   [Delegate]:61
+                                    Delegate/Slice (ND, X32)      0.000      0.008      0.007     0.062%    98.019%      0.000             48   [Delegate]:62
+                                Delegate/Static Reshape (NC)      0.000      0.007      0.006     0.060%    98.079%      0.000             60   [Delegate]:0
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.007      0.007     0.060%    98.139%      0.000             47   [Delegate]:54
+                                           Delegate/Add (ND)      0.000      0.006      0.005     0.057%    98.195%      0.000             57   [Delegate]:49
+                                      Delegate/Multiply (ND)      0.000      0.000      0.005     0.054%    98.249%      0.000             59   [Delegate]:43
+                                     Delegate/Copy (NC, X32)      0.000      0.004      0.005     0.052%    98.301%      0.000             57   [Delegate]:47
+                                      Delegate/Multiply (ND)      0.000      0.005      0.005     0.052%    98.353%      0.000             57   [Delegate]:48
+                                Delegate/Static Reshape (NC)      0.000      0.003      0.005     0.049%    98.403%      0.000             57   [Delegate]:36
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.005      0.005     0.042%    98.445%      0.000             47   [Delegate]:68
+                                        DYNAMIC_UPDATE_SLICE    348.313      0.230      0.230     0.042%    98.486%      0.000              1   [Builtin]:1831
+                                        DYNAMIC_UPDATE_SLICE    446.093      0.221      0.221     0.040%    98.526%      0.000              1   [Builtin]:2333
+                                      Delegate/Multiply (ND)      0.000      0.003      0.003     0.034%    98.560%      0.000             58   [Delegate]:10
+                                                         ADD      0.021      0.179      0.179     0.032%    98.592%      0.000              1   [Builtin]:3
+                                      Delegate/Multiply (ND)      0.000      0.005      0.003     0.028%    98.620%      0.000             59   [Delegate]:26
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.135      0.135     0.024%    98.645%      0.000              1   [Delegate]:5
+                                        DYNAMIC_UPDATE_SLICE    108.993      0.134      0.134     0.024%    98.669%      0.000              1   [Builtin]:597
+                                        DYNAMIC_UPDATE_SLICE    188.881      0.132      0.132     0.024%    98.693%      0.000              1   [Builtin]:1009
+                                           Delegate/Add (ND)      0.000      0.002      0.002     0.023%    98.715%      0.000             59   [Delegate]:12
+                                      Delegate/Multiply (ND)      0.000      0.001      0.002     0.020%    98.736%      0.000             58   [Delegate]:46
+                                      Delegate/Multiply (ND)      0.000      0.002      0.055     0.020%    98.756%      0.000              2   [Delegate]:38
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM      0.000      0.110      0.110     0.020%    98.776%      0.000              1   [Delegate]:2
+                                        DYNAMIC_UPDATE_SLICE     37.533      0.108      0.108     0.020%    98.795%      0.000              1   [Builtin]:232
+                                      Delegate/Multiply (ND)      0.000      0.001      0.002     0.019%    98.815%      0.000             58   [Delegate]:16
+                                        DYNAMIC_UPDATE_SLICE      2.571      0.106      0.106     0.019%    98.834%      0.000              1   [Builtin]:47
+                                        DYNAMIC_UPDATE_SLICE     55.735      0.103      0.103     0.019%    98.852%      0.000              1   [Builtin]:323
+                                        DYNAMIC_UPDATE_SLICE     64.413      0.103      0.103     0.019%    98.871%      0.000              1   [Builtin]:369
+                                        DYNAMIC_UPDATE_SLICE     73.337      0.103      0.103     0.019%    98.890%      0.000              1   [Builtin]:415
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.018%    98.908%      0.000             58   [Delegate]:29
+                                        DYNAMIC_UPDATE_SLICE    357.262      0.102      0.102     0.018%    98.927%      0.000              1   [Builtin]:1877
+                                        DYNAMIC_UPDATE_SLICE     20.146      0.101      0.101     0.018%    98.945%      0.000              1   [Builtin]:140
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.018%    98.963%      0.000             58   [Delegate]:33
+                                        DYNAMIC_UPDATE_SLICE     82.043      0.100      0.100     0.018%    98.981%      0.000              1   [Builtin]:461
+                                        DYNAMIC_UPDATE_SLICE     28.675      0.099      0.099     0.018%    98.999%      0.000              1   [Builtin]:186
+                                        DYNAMIC_UPDATE_SLICE     90.772      0.098      0.098     0.018%    99.017%      0.000              1   [Builtin]:507
+                                        DYNAMIC_UPDATE_SLICE    437.269      0.098      0.098     0.018%    99.034%      0.000              1   [Builtin]:2287
+                                      Delegate/Multiply (ND)      0.000      0.000      0.002     0.017%    99.052%      0.000             48   [Delegate]:60
+                                        DYNAMIC_UPDATE_SLICE    144.408      0.094      0.094     0.017%    99.069%      0.000              1   [Builtin]:781
+                                        DYNAMIC_UPDATE_SLICE    233.407      0.093      0.093     0.017%    99.085%      0.000              1   [Builtin]:1237
+                                        DYNAMIC_UPDATE_SLICE    481.388      0.093      0.093     0.017%    99.102%      0.000              1   [Builtin]:2515
+                                        DYNAMIC_UPDATE_SLICE     11.301      0.092      0.092     0.017%    99.119%      0.000              1   [Builtin]:94
+                                        DYNAMIC_UPDATE_SLICE    286.374      0.092      0.092     0.017%    99.136%      0.000              1   [Builtin]:1511
+                                        DYNAMIC_UPDATE_SLICE    339.515      0.091      0.091     0.016%    99.152%      0.000              1   [Builtin]:1785
+                                        DYNAMIC_UPDATE_SLICE    454.738      0.090      0.090     0.016%    99.168%      0.000              1   [Builtin]:2379
+                                        DYNAMIC_UPDATE_SLICE    135.683      0.089      0.089     0.016%    99.184%      0.000              1   [Builtin]:735
+                                        DYNAMIC_UPDATE_SLICE    162.605      0.089      0.089     0.016%    99.200%      0.000              1   [Builtin]:871
+                                        DYNAMIC_UPDATE_SLICE    463.606      0.089      0.089     0.016%    99.217%      0.000              1   [Builtin]:2425
+                                        DYNAMIC_UPDATE_SLICE    516.562      0.089      0.089     0.016%    99.233%      0.000              1   [Builtin]:2699
+                                        DYNAMIC_UPDATE_SLICE    126.828      0.088      0.088     0.016%    99.249%      0.000              1   [Builtin]:689
+                                        DYNAMIC_UPDATE_SLICE    215.822      0.088      0.088     0.016%    99.265%      0.000              1   [Builtin]:1145
+                                        DYNAMIC_UPDATE_SLICE    295.067      0.088      0.088     0.016%    99.280%      0.000              1   [Builtin]:1557
+                                        DYNAMIC_UPDATE_SLICE    330.783      0.088      0.088     0.016%    99.296%      0.000              1   [Builtin]:1739
+                                        DYNAMIC_UPDATE_SLICE    490.104      0.088      0.088     0.016%    99.312%      0.000              1   [Builtin]:2561
+                                        DYNAMIC_UPDATE_SLICE    498.898      0.088      0.088     0.016%    99.328%      0.000              1   [Builtin]:2607
+                                        DYNAMIC_UPDATE_SLICE    507.724      0.088      0.088     0.016%    99.344%      0.000              1   [Builtin]:2653
+                                        DYNAMIC_UPDATE_SLICE    197.844      0.087      0.087     0.016%    99.360%      0.000              1   [Builtin]:1055
+                                        DYNAMIC_UPDATE_SLICE    268.837      0.087      0.087     0.016%    99.376%      0.000              1   [Builtin]:1419
+                                        DYNAMIC_UPDATE_SLICE    303.834      0.087      0.087     0.016%    99.391%      0.000              1   [Builtin]:1603
+                                        DYNAMIC_UPDATE_SLICE    322.060      0.087      0.087     0.016%    99.407%      0.000              1   [Builtin]:1693
+                                        DYNAMIC_UPDATE_SLICE    384.344      0.087      0.087     0.016%    99.423%      0.000              1   [Builtin]:2013
+                                        DYNAMIC_UPDATE_SLICE    393.120      0.087      0.087     0.016%    99.439%      0.000              1   [Builtin]:2059
+                                        DYNAMIC_UPDATE_SLICE    171.503      0.086      0.086     0.016%    99.454%      0.000              1   [Builtin]:917
+                                        DYNAMIC_UPDATE_SLICE    180.173      0.086      0.086     0.016%    99.470%      0.000              1   [Builtin]:963
+                                        DYNAMIC_UPDATE_SLICE    224.609      0.086      0.086     0.016%    99.485%      0.000              1   [Builtin]:1191
+                                        DYNAMIC_UPDATE_SLICE    242.131      0.086      0.086     0.016%    99.501%      0.000              1   [Builtin]:1283
+                                        DYNAMIC_UPDATE_SLICE    250.992      0.086      0.086     0.016%    99.516%      0.000              1   [Builtin]:1329
+                                        DYNAMIC_UPDATE_SLICE    401.931      0.086      0.086     0.016%    99.532%      0.000              1   [Builtin]:2105
+                                        DYNAMIC_UPDATE_SLICE    277.641      0.085      0.085     0.015%    99.547%      0.000              1   [Builtin]:1465
+                                        DYNAMIC_UPDATE_SLICE    375.508      0.085      0.085     0.015%    99.563%      0.000              1   [Builtin]:1967
+                                        DYNAMIC_UPDATE_SLICE    428.680      0.085      0.085     0.015%    99.578%      0.000              1   [Builtin]:2241
+                                        DYNAMIC_UPDATE_SLICE    117.944      0.084      0.084     0.015%    99.593%      0.000              1   [Builtin]:643
+                                        DYNAMIC_UPDATE_SLICE    410.537      0.084      0.084     0.015%    99.608%      0.000              1   [Builtin]:2151
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.014%    99.623%      0.000             58   [Delegate]:7
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.013%    99.636%      0.000             58   [Delegate]:23
+                                           Delegate/Add (ND)      0.000      0.001      0.001     0.013%    99.649%      0.000             58   [Delegate]:28
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.011%    99.659%      0.000             58   [Delegate]:58
+                                     Delegate/Copy (NC, X32)      0.000      0.001      0.001     0.010%    99.670%      0.000             47   [Delegate]:64
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.010%    99.680%      0.000             58   [Delegate]:51
+                                        DYNAMIC_UPDATE_SLICE     99.574      0.053      0.053     0.010%    99.689%      0.000              1   [Builtin]:551
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.009%    99.699%      0.000             48   [Delegate]:59
+                                        DYNAMIC_UPDATE_SLICE     46.349      0.050      0.050     0.009%    99.708%      0.000              1   [Builtin]:276
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.009%    99.717%      0.000             47   [Delegate]:53
+                                        DYNAMIC_UPDATE_SLICE    366.150      0.045      0.045     0.008%    99.725%      0.000              1   [Builtin]:1921
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.003      0.004     0.008%    99.733%      0.000             11   [Delegate]:52
+                                        DYNAMIC_UPDATE_SLICE    206.464      0.043      0.043     0.008%    99.741%      0.000              1   [Builtin]:1099
+                                        DYNAMIC_UPDATE_SLICE    259.792      0.043      0.043     0.008%    99.748%      0.000              1   [Builtin]:1373
+                                        DYNAMIC_UPDATE_SLICE    472.382      0.043      0.043     0.008%    99.756%      0.000              1   [Builtin]:2469
+                                        DYNAMIC_UPDATE_SLICE    153.123      0.042      0.042     0.008%    99.764%      0.000              1   [Builtin]:825
+                                        DYNAMIC_UPDATE_SLICE    312.773      0.042      0.042     0.008%    99.771%      0.000              1   [Builtin]:1647
+                                        DYNAMIC_UPDATE_SLICE    419.320      0.042      0.042     0.008%    99.779%      0.000              1   [Builtin]:2195
+                                        DYNAMIC_UPDATE_SLICE    525.552      0.042      0.042     0.008%    99.787%      0.000              1   [Builtin]:2743
+                                          Delegate/TanH (NC)      0.000      0.041      0.041     0.007%    99.794%      0.000              1   [Delegate]:37
+                                      Delegate/Multiply (ND)      0.000      0.000      0.001     0.007%    99.800%      0.000             47   [Delegate]:72
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.001     0.006%    99.806%      0.000             58   [Delegate]:13
+                                    Delegate/Slice (ND, X32)      0.000      0.002      0.003     0.006%    99.812%      0.000             11   [Delegate]:59
+                                    Delegate/Slice (ND, X32)      0.000      0.002      0.003     0.005%    99.817%      0.000             11   [Delegate]:60
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.002      0.002     0.005%    99.822%      0.000             11   [Delegate]:66
+                                      Delegate/Multiply (ND)      0.000      0.015      0.012     0.004%    99.827%      0.000              2   [Delegate]:12
+                                      Delegate/Multiply (ND)      0.000      0.001      0.011     0.004%    99.831%      0.000              2   [Delegate]:36
+                                           Delegate/Add (ND)      0.000      0.009      0.010     0.004%    99.834%      0.000              2   [Delegate]:0
+                                      Delegate/Multiply (ND)      0.000      0.002      0.001     0.003%    99.837%      0.000             11   [Delegate]:57
+                                    Delegate/Slice (ND, X32)      0.000      0.015      0.015     0.003%    99.840%      0.000              1   [Delegate]:22
+                                  Delegate/Softmax (NC, F32)      0.000      0.015      0.015     0.003%    99.843%      0.000              1   [Delegate]:4
+                                  Delegate/Softmax (NC, F32)      0.000      0.015      0.015     0.003%    99.845%      0.000              1   [Delegate]:1
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.014      0.014     0.003%    99.848%      0.000              1   [Delegate]:15
+                                           Delegate/Add (ND)      0.000      0.013      0.013     0.002%    99.850%      0.000              1   [Delegate]:27
+                                      Delegate/Multiply (ND)      0.000      0.005      0.006     0.002%    99.852%      0.000              2   [Delegate]:19
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.002%    99.854%      0.000              1   [Delegate]:23
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.002%    99.856%      0.000              1   [Delegate]:46
+                                    Delegate/Slice (ND, X32)      0.000      0.011      0.011     0.002%    99.858%      0.000              1   [Delegate]:43
+                                      Delegate/Multiply (ND)      0.000      0.010      0.010     0.002%    99.860%      0.000              1   [Delegate]:35
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.010      0.010     0.002%    99.862%      0.000              1   [Delegate]:38
+                                Delegate/Static Reshape (NC)      0.000      0.009      0.000     0.002%    99.864%      0.000             47   [Delegate]:74
+                                      Delegate/Multiply (ND)      0.000      0.010      0.010     0.002%    99.866%      0.000              1   [Delegate]:32
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.010      0.010     0.002%    99.867%      0.000              1   [Delegate]:35
+                                    Delegate/Slice (ND, X32)      0.000      0.010      0.010     0.002%    99.869%      0.000              1   [Delegate]:42
+                                      Delegate/Multiply (ND)      0.000      0.009      0.009     0.002%    99.871%      0.000              1   [Delegate]:20
+                                      Delegate/Multiply (ND)      0.000      0.009      0.009     0.002%    99.872%      0.000              1   [Delegate]:22
+                                Delegate/Static Reshape (NC)      0.000      0.003      0.000     0.002%    99.874%      0.000             47   [Delegate]:67
+                                               CONCATENATION     46.535      0.009      0.009     0.002%    99.876%      0.000              1   [Builtin]:279
+                                        DYNAMIC_UPDATE_SLICE    108.984      0.009      0.009     0.002%    99.877%      0.000              1   [Builtin]:596
+                                                     RESHAPE      0.000      0.008      0.008     0.001%    99.879%      0.000              1   [Builtin]:0
+                                                     GREATER      0.012      0.008      0.008     0.001%    99.880%      0.000              1   [Builtin]:2
+                                    Delegate/Slice (ND, X32)      0.000      0.008      0.008     0.001%    99.882%      0.000              1   [Delegate]:39
+                                           Delegate/Add (ND)      0.000      0.008      0.008     0.001%    99.883%      0.000              1   [Delegate]:3
+                                    Delegate/ApproxGELU (NC)      0.000      0.008      0.008     0.001%    99.885%      0.000              1   [Delegate]:20
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    99.886%      0.000              1   [Delegate]:28
+                                        DYNAMIC_UPDATE_SLICE     37.524      0.008      0.008     0.001%    99.887%      0.000              1   [Builtin]:231
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.001     0.001%    99.889%      0.000             11   [Delegate]:72
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    99.890%      0.000              1   [Delegate]:9
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    99.892%      0.000              1   [Delegate]:15
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    99.893%      0.000              1   [Delegate]:25
+                                      Delegate/Multiply (ND)      0.000      0.008      0.008     0.001%    99.895%      0.000              1   [Delegate]:40
+                                        DYNAMIC_UPDATE_SLICE    401.922      0.008      0.008     0.001%    99.896%      0.000              1   [Builtin]:2104
+                                        DYNAMIC_UPDATE_SLICE    454.729      0.008      0.008     0.001%    99.898%      0.000              1   [Builtin]:2378
+                                        DYNAMIC_UPDATE_SLICE    516.552      0.008      0.008     0.001%    99.899%      0.000              1   [Builtin]:2698
+                                                   SELECT_V2      0.204      0.007      0.007     0.001%    99.900%      0.000              1   [Builtin]:6
+                                                        CAST      0.555      0.007      0.007     0.001%    99.902%      0.000              1   [Builtin]:8
+                                Delegate/Static Reshape (NC)      0.000      0.006      0.004     0.001%    99.903%      0.000              2   [Delegate]:52
+                                      Delegate/Multiply (ND)      0.000      0.007      0.007     0.001%    99.904%      0.000              1   [Delegate]:18
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.007      0.007     0.001%    99.905%      0.000              1   [Delegate]:55
+                                Delegate/Static Reshape (NC)      0.000      0.007      0.001     0.001%    99.907%      0.000             12   [Delegate]:68
+                                        DYNAMIC_UPDATE_SLICE     11.293      0.007      0.007     0.001%    99.908%      0.000              1   [Builtin]:93
+                                      Delegate/Multiply (ND)      0.000      0.001      0.000     0.001%    99.909%      0.000             58   [Delegate]:63
+                                        DYNAMIC_UPDATE_SLICE     28.667      0.007      0.007     0.001%    99.910%      0.000              1   [Builtin]:185
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.001     0.001%    99.912%      0.000             11   [Delegate]:65
+                                    Delegate/ApproxGELU (NC)      0.000      0.007      0.007     0.001%    99.913%      0.000              1   [Delegate]:17
+                                      Delegate/Multiply (ND)      0.000      0.007      0.007     0.001%    99.914%      0.000              1   [Delegate]:39
+                                        DYNAMIC_UPDATE_SLICE    126.821      0.007      0.007     0.001%    99.916%      0.000              1   [Builtin]:688
+                                        DYNAMIC_UPDATE_SLICE    144.400      0.007      0.007     0.001%    99.917%      0.000              1   [Builtin]:780
+                                        DYNAMIC_UPDATE_SLICE    171.496      0.007      0.007     0.001%    99.918%      0.000              1   [Builtin]:916
+                                        DYNAMIC_UPDATE_SLICE    188.874      0.007      0.007     0.001%    99.919%      0.000              1   [Builtin]:1008
+                                        DYNAMIC_UPDATE_SLICE    197.836      0.007      0.007     0.001%    99.921%      0.000              1   [Builtin]:1054
+                                        DYNAMIC_UPDATE_SLICE    224.601      0.007      0.007     0.001%    99.922%      0.000              1   [Builtin]:1190
+                                        DYNAMIC_UPDATE_SLICE    242.123      0.007      0.007     0.001%    99.923%      0.000              1   [Builtin]:1282
+                                        DYNAMIC_UPDATE_SLICE    277.632      0.007      0.007     0.001%    99.924%      0.000              1   [Builtin]:1464
+                                        DYNAMIC_UPDATE_SLICE    322.052      0.007      0.007     0.001%    99.926%      0.000              1   [Builtin]:1692
+                                        DYNAMIC_UPDATE_SLICE    330.775      0.007      0.007     0.001%    99.927%      0.000              1   [Builtin]:1738
+                                        DYNAMIC_UPDATE_SLICE    357.253      0.007      0.007     0.001%    99.928%      0.000              1   [Builtin]:1876
+                                        DYNAMIC_UPDATE_SLICE    384.337      0.007      0.007     0.001%    99.929%      0.000              1   [Builtin]:2012
+                                        DYNAMIC_UPDATE_SLICE    410.529      0.007      0.007     0.001%    99.931%      0.000              1   [Builtin]:2150
+                                        DYNAMIC_UPDATE_SLICE    446.086      0.007      0.007     0.001%    99.932%      0.000              1   [Builtin]:2332
+                                        DYNAMIC_UPDATE_SLICE    463.598      0.007      0.007     0.001%    99.933%      0.000              1   [Builtin]:2424
+                                        DYNAMIC_UPDATE_SLICE    507.716      0.007      0.007     0.001%    99.935%      0.000              1   [Builtin]:2652
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.006      0.006     0.001%    99.936%      0.000              1   [Delegate]:32
+                                    Delegate/Slice (ND, X32)      0.000      0.006      0.006     0.001%    99.937%      0.000              1   [Delegate]:40
+                                Delegate/Static Reshape (NC)      0.000      0.006      0.006     0.001%    99.938%      0.000              1   [Delegate]:45
+                                                        PACK      2.556      0.006      0.006     0.001%    99.939%      0.000              1   [Builtin]:44
+                                        DYNAMIC_UPDATE_SLICE      2.563      0.006      0.006     0.001%    99.940%      0.000              1   [Builtin]:45
+                                      Delegate/Multiply (ND)      0.000      0.006      0.006     0.001%    99.941%      0.000              1   [Delegate]:30
+                                      Delegate/Multiply (ND)      0.000      0.005      0.003     0.001%    99.942%      0.000              2   [Delegate]:44
+                                    Delegate/Slice (ND, X32)      0.000      0.006      0.006     0.001%    99.943%      0.000              1   [Delegate]:63
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.006      0.006     0.001%    99.944%      0.000              1   [Delegate]:69
+                                        DYNAMIC_UPDATE_SLICE     20.139      0.006      0.006     0.001%    99.945%      0.000              1   [Builtin]:139
+                                        DYNAMIC_UPDATE_SLICE     55.728      0.006      0.006     0.001%    99.946%      0.000              1   [Builtin]:322
+                                        DYNAMIC_UPDATE_SLICE     64.407      0.006      0.006     0.001%    99.948%      0.000              1   [Builtin]:368
+                                        DYNAMIC_UPDATE_SLICE     82.036      0.006      0.006     0.001%    99.949%      0.000              1   [Builtin]:460
+                                        DYNAMIC_UPDATE_SLICE     90.766      0.006      0.006     0.001%    99.950%      0.000              1   [Builtin]:506
+                                        DYNAMIC_UPDATE_SLICE    117.937      0.006      0.006     0.001%    99.951%      0.000              1   [Builtin]:642
+                                        DYNAMIC_UPDATE_SLICE    135.677      0.006      0.006     0.001%    99.952%      0.000              1   [Builtin]:734
+                                        DYNAMIC_UPDATE_SLICE    162.598      0.006      0.006     0.001%    99.953%      0.000              1   [Builtin]:870
+                                        DYNAMIC_UPDATE_SLICE    180.166      0.006      0.006     0.001%    99.954%      0.000              1   [Builtin]:962
+                                        DYNAMIC_UPDATE_SLICE    233.400      0.006      0.006     0.001%    99.955%      0.000              1   [Builtin]:1236
+                                        DYNAMIC_UPDATE_SLICE    250.984      0.006      0.006     0.001%    99.956%      0.000              1   [Builtin]:1328
+                                        DYNAMIC_UPDATE_SLICE    268.829      0.006      0.006     0.001%    99.957%      0.000              1   [Builtin]:1418
+                                        DYNAMIC_UPDATE_SLICE    295.060      0.006      0.006     0.001%    99.958%      0.000              1   [Builtin]:1556
+                                        DYNAMIC_UPDATE_SLICE    339.508      0.006      0.006     0.001%    99.959%      0.000              1   [Builtin]:1784
+                                        DYNAMIC_UPDATE_SLICE    348.306      0.006      0.006     0.001%    99.961%      0.000              1   [Builtin]:1830
+                                        DYNAMIC_UPDATE_SLICE    375.501      0.006      0.006     0.001%    99.962%      0.000              1   [Builtin]:1966
+                                        DYNAMIC_UPDATE_SLICE    393.113      0.006      0.006     0.001%    99.963%      0.000              1   [Builtin]:2058
+                                        DYNAMIC_UPDATE_SLICE    428.674      0.006      0.006     0.001%    99.964%      0.000              1   [Builtin]:2240
+                                        DYNAMIC_UPDATE_SLICE    437.262      0.006      0.006     0.001%    99.965%      0.000              1   [Builtin]:2286
+                                        DYNAMIC_UPDATE_SLICE    481.382      0.006      0.006     0.001%    99.966%      0.000              1   [Builtin]:2514
+                                        DYNAMIC_UPDATE_SLICE    490.096      0.006      0.006     0.001%    99.967%      0.000              1   [Builtin]:2560
+                                        Delegate/Cosine (NC)      0.000      0.005      0.005     0.001%    99.968%      0.000              1   [Delegate]:2
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.003     0.001%    99.969%      0.000              2   [Delegate]:34
+                                           Delegate/Add (ND)      0.000      0.000      0.003     0.001%    99.970%      0.000              2   [Delegate]:47
+                                      Delegate/Multiply (ND)      0.000      0.005      0.005     0.001%    99.971%      0.000              1   [Delegate]:8
+                                        DYNAMIC_UPDATE_SLICE     73.331      0.005      0.005     0.001%    99.972%      0.000              1   [Builtin]:414
+                                        DYNAMIC_UPDATE_SLICE    215.816      0.005      0.005     0.001%    99.973%      0.000              1   [Builtin]:1144
+                                        DYNAMIC_UPDATE_SLICE    286.368      0.005      0.005     0.001%    99.973%      0.000              1   [Builtin]:1510
+                                        DYNAMIC_UPDATE_SLICE    303.828      0.005      0.005     0.001%    99.974%      0.000              1   [Builtin]:1602
+                                        DYNAMIC_UPDATE_SLICE    498.891      0.005      0.005     0.001%    99.975%      0.000              1   [Builtin]:2606
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.003      0.002     0.001%    99.976%      0.000              2   [Delegate]:8
+                                Delegate/Static Reshape (NC)      0.000      0.004      0.004     0.001%    99.977%      0.000              1   [Delegate]:14
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.004      0.004     0.001%    99.977%      0.000              1   [Delegate]:46
+                                Delegate/Static Reshape (NC)      0.000      0.004      0.002     0.001%    99.978%      0.000              2   [Delegate]:37
+                                     Delegate/Copy (NC, X32)      0.000      0.004      0.004     0.001%    99.979%      0.000              1   [Delegate]:48
+                                      Delegate/Multiply (ND)      0.000      0.004      0.004     0.001%    99.980%      0.000              1   [Delegate]:49
+                                           Delegate/Add (ND)      0.000      0.004      0.004     0.001%    99.980%      0.000              1   [Delegate]:50
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.001%    99.981%      0.000             48   [Delegate]:73
+                                Delegate/Static Reshape (NC)      0.000      0.004      0.004     0.001%    99.982%      0.000              1   [Delegate]:75
+                                        DYNAMIC_UPDATE_SLICE    206.459      0.004      0.004     0.001%    99.982%      0.000              1   [Builtin]:1098
+                                        DYNAMIC_UPDATE_SLICE    525.547      0.004      0.004     0.001%    99.983%      0.000              1   [Builtin]:2742
+                                                         SUB      0.009      0.003      0.003     0.001%    99.984%      0.000              1   [Builtin]:1
+                                      Delegate/Multiply (ND)      0.000      0.001      0.002     0.001%    99.984%      0.000              2   [Delegate]:24
+                                     Delegate/Copy (NC, X32)      0.000      0.003      0.003     0.001%    99.985%      0.000              1   [Delegate]:25
+                                      Delegate/Multiply (ND)      0.000      0.003      0.003     0.001%    99.985%      0.000              1   [Delegate]:51
+                                     Delegate/Copy (NC, X32)      0.000      0.003      0.003     0.001%    99.986%      0.000              1   [Delegate]:2
+                                           Delegate/Add (ND)      0.000      0.003      0.003     0.001%    99.986%      0.000              1   [Delegate]:13
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.001%    99.987%      0.000             58   [Delegate]:8
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.001%    99.988%      0.000             58   [Delegate]:31
+                                        DYNAMIC_UPDATE_SLICE     46.345      0.003      0.003     0.001%    99.988%      0.000              1   [Builtin]:275
+                                           Delegate/Add (ND)      0.000      0.003      0.003     0.001%    99.989%      0.000              1   [Delegate]:10
+                                     Delegate/Copy (NC, X32)      0.000      0.003      0.003     0.001%    99.989%      0.000              1   [Delegate]:45
+                                        DYNAMIC_UPDATE_SLICE     99.570      0.003      0.003     0.001%    99.990%      0.000              1   [Builtin]:550
+                                        DYNAMIC_UPDATE_SLICE    153.119      0.003      0.003     0.001%    99.990%      0.000              1   [Builtin]:824
+                                        DYNAMIC_UPDATE_SLICE    366.147      0.003      0.003     0.001%    99.991%      0.000              1   [Builtin]:1920
+                                        DYNAMIC_UPDATE_SLICE    419.316      0.003      0.003     0.001%    99.991%      0.000              1   [Builtin]:2194
+                                        DYNAMIC_UPDATE_SLICE    472.378      0.003      0.003     0.001%    99.992%      0.000              1   [Builtin]:2468
+                                                 LOGICAL_AND      0.202      0.002      0.002     0.000%    99.992%      0.000              1   [Builtin]:5
+                                     Delegate/Copy (NC, X32)      0.000      0.002      0.002     0.000%    99.993%      0.000              1   [Delegate]:42
+                                      Delegate/Multiply (ND)      0.000      0.002      0.000     0.000%    99.993%      0.000             12   [Delegate]:61
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%    99.993%      0.000             11   [Delegate]:56
+                                     Delegate/Copy (NC, X32)      0.000      0.000      0.000     0.000%    99.994%      0.000             11   [Delegate]:62
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.000%    99.994%      0.000              1   [Delegate]:14
+                                      Delegate/Multiply (ND)      0.000      0.002      0.002     0.000%    99.994%      0.000              1   [Delegate]:31
+                                        DYNAMIC_UPDATE_SLICE    259.789      0.002      0.002     0.000%    99.995%      0.000              1   [Builtin]:1372
+                                        DYNAMIC_UPDATE_SLICE    312.770      0.002      0.002     0.000%    99.995%      0.000              1   [Builtin]:1646
+                                                        LESS      0.200      0.001      0.001     0.000%    99.995%      0.000              1   [Builtin]:4
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%    99.995%      0.000              1   [Delegate]:0
+                                          Delegate/Sine (NC)      0.000      0.001      0.001     0.000%    99.996%      0.000              1   [Delegate]:3
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.000%    99.996%      0.000              1   [Delegate]:29
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.000%    99.996%      0.000              1   [Delegate]:31
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%    99.996%      0.000              1   [Delegate]:37
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%    99.996%      0.000              1   [Delegate]:50
+                                                     RESHAPE      2.555      0.001      0.001     0.000%    99.997%      0.000              1   [Builtin]:43
+                                                        PACK      2.570      0.001      0.001     0.000%    99.997%      0.000              1   [Builtin]:46
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%    99.997%      0.000              1   [Delegate]:14
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%    99.997%      0.000              1   [Delegate]:24
+                                           Delegate/Add (ND)      0.000      0.001      0.001     0.000%    99.997%      0.000              2   [Delegate]:29
+                                      Delegate/Multiply (ND)      0.000      0.001      0.001     0.000%    99.997%      0.000              1   [Delegate]:47
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.000     0.000%    99.998%      0.000             12   [Delegate]:54
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.001      0.001     0.000%    99.998%      0.000              1   [Delegate]:58
+                                     Delegate/Copy (NC, X32)      0.000      0.001      0.001     0.000%    99.998%      0.000              1   [Delegate]:65
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    99.998%      0.000             58   [Delegate]:15
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.000     0.000%    99.998%      0.000             58   [Delegate]:30
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%    99.999%      0.000             57   [Delegate]:40
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%    99.999%      0.000             47   [Delegate]:70
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%    99.999%      0.000             11   [Delegate]:70
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%    99.999%      0.000             11   [Delegate]:71
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%    99.999%      0.000              1   [Delegate]:5
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%    99.999%      0.000              1   [Delegate]:11
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.001      0.001     0.000%   100.000%      0.000              1   [Delegate]:21
+                                           Delegate/Add (ND)      0.000      0.001      0.001     0.000%   100.000%      0.000              1   [Delegate]:26
+                                Delegate/Static Reshape (NC)      0.000      0.001      0.001     0.000%   100.000%      0.000              1   [Delegate]:49
+                                     Delegate/Copy (NC, X32)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:1
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:4
+                                     Delegate/Copy (NC, X32)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:5
+                                        Delegate/Cosine (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:6
+                                          Delegate/Sine (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:7
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              2   [Delegate]:9
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              2   [Delegate]:10
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:16
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:17
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:18
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:33
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:35
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:44
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:48
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:49
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:6
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:15
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:16
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:25
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:26
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:31
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:32
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:33
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:39
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:40
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:41
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:56
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:57
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:64
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:66
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             12   [Delegate]:67
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:70
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:71
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:72
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:74
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             58   [Delegate]:5
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             58   [Delegate]:9
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             58   [Delegate]:14
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             58   [Delegate]:24
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             58   [Delegate]:25
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             58   [Delegate]:32
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             57   [Delegate]:38
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             57   [Delegate]:39
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             47   [Delegate]:55
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             47   [Delegate]:56
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             47   [Delegate]:57
+                                      Delegate/Multiply (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             47   [Delegate]:65
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             47   [Delegate]:66
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             47   [Delegate]:69
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             47   [Delegate]:71
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             11   [Delegate]:53
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             11   [Delegate]:55
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000             11   [Delegate]:64
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000             11   [Delegate]:69
+                                Delegate/Static Reshape (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:3
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:6
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:7
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:13
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:22
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:23
+                          Delegate/Mean Squared (ND) Reduce2      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:28
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:30
+                                           Delegate/Add (ND)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:36
+                        Delegate/Reciprocal Square Root (NC)      0.000      0.000      0.000     0.000%   100.000%      0.000              1   [Delegate]:38
+
+Number of nodes executed: 366
+
+====================================================== Summary by node type ======================================================
+                                                 [Node type]    [count]   [avg ms]    [avg %]    [cdf %]   [mem KB] [times called]
+          Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM         21      1.257    93.439%    93.439%      0.000            411
+               Delegate/Batch Matrix Multiply (NC, F32) GEMM          4      0.151     3.287%    96.727%      0.000            120
+                                        DYNAMIC_UPDATE_SLICE        120      0.048     1.034%    97.760%      0.000            120
+                                      Delegate/Multiply (ND)         58      0.004     0.915%    98.675%      0.000           1326
+                                    Delegate/Slice (ND, X32)         14      0.009     0.386%    99.061%      0.000            240
+                          Delegate/Mean Squared (ND) Reduce2         24      0.004     0.278%    99.339%      0.000            421
+                                           Delegate/Add (ND)         37      0.001     0.180%    99.519%      0.000            722
+                                Delegate/Static Reshape (NC)         30      0.001     0.142%    99.661%      0.000            590
+                                  Delegate/Softmax (NC, F32)          3      0.013     0.138%    99.799%      0.000             60
+                                    Delegate/ApproxGELU (NC)          3      0.008     0.084%    99.883%      0.000             60
+                                     Delegate/Copy (NC, X32)         11      0.003     0.066%    99.949%      0.000            123
+                                                         ADD          1      0.179     0.032%    99.981%      0.000              1
+                                          Delegate/TanH (NC)          1      0.041     0.007%    99.989%      0.000              1
+                                               CONCATENATION          1      0.009     0.002%    99.990%      0.000              1
+                                                     RESHAPE          2      0.004     0.002%    99.992%      0.000              2
+                                                     GREATER          1      0.008     0.001%    99.993%      0.000              1
+                                                        CAST          1      0.007     0.001%    99.995%      0.000              1
+                                                        PACK          2      0.004     0.001%    99.996%      0.000              2
+                                                   SELECT_V2          1      0.007     0.001%    99.997%      0.000              1
+                                        Delegate/Cosine (NC)          2      0.003     0.001%    99.998%      0.000              2
+                        Delegate/Reciprocal Square Root (NC)         24      0.000     0.001%    99.999%      0.000            421
+                                                         SUB          1      0.003     0.001%    99.999%      0.000              1
+                                                 LOGICAL_AND          1      0.002     0.000%   100.000%      0.000              1
+                                          Delegate/Sine (NC)          2      0.001     0.000%   100.000%      0.000              2
+                                                        LESS          1      0.001     0.000%   100.000%      0.000              1
+
+========================================================= Delegate Statistics =========================================================
+Op Name                                                                               Count    Avg(us)    Min(us)    Max(us)  Total(us)
+Delegate/Add (ND)                                                                       722       1.38          0         14        994
+Delegate/ApproxGELU (NC)                                                                 60       7.75          5         13        465
+Delegate/Batch Matrix Multiply (NC, F32) GEMM                                           120     151.43        106        244      18172
+Delegate/Copy (NC, X32)                                                                 123       2.97          0         13        365
+Delegate/Cosine (NC)                                                                      2       2.50          0          5          5
+Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM                                      411    1256.82        198      23813     516554
+Delegate/Mean Squared (ND) Reduce2                                                      421       3.65          0         18       1537
+Delegate/Multiply (ND)                                                                 1326       3.81          0        108       5057
+Delegate/Reciprocal Square Root (NC)                                                    421       0.01          0          1          3
+Delegate/Sine (NC)                                                                        2       0.50          0          1          1
+Delegate/Slice (ND, X32)                                                                240       8.89          2         15       2133
+Delegate/Softmax (NC, F32)                                                               60      12.70         11         15        762
+Delegate/Static Reshape (NC)                                                            590       1.33          0          9        786
+Delegate/TanH (NC)                                                                        1      41.00         41         41         41
+
+Timings (microseconds): count=366 curr=552822
+Memory (bytes): count=0
+366 nodes observed
+
+--------------------------------------------------
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5596f480fef0, name=GPU WebGPU
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5596f4b55ed0, name=YNNPackAccelerator
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5596f4e0ea70, name=CpuAccelerator
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5596fbaacea0, name=GPU WebGPU
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5596fbaa75d0, name=YNNPackAccelerator
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5596fbf9efd0, name=CpuAccelerator
+[ perf record: Woken up 2 times to write data ]
+[ perf record: Captured and wrote 0.641 MB /tmp/perf_xnnpack_p1_d1.data (16054 samples) ]

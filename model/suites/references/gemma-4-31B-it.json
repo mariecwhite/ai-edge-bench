@@ -1,0 +1,21 @@
+{
+  "model": "google/gemma-4-31B-it",
+  "retrieved": "2026-11-09",
+  "summary": "Google's Gemma 4 model card and technical report (arXiv 2607.02770, Table 5) report static benchmarks for Gemma 4 31B in thinking mode on bf16 weights; original 5-shot MMLU and GSM8K are not reported. The QAT model cards (google/gemma-4-31B-it-qat-q4_0-unquantized, google/gemma-4-31B-it-qat-q4_0-gguf) state that QAT preserves quality similar to bf16. None of the published setups matches this harness (zero-shot, non-thinking, greedy, answer-prefilled MMLU), so use these figures as an order-of-magnitude sanity check rather than a pass/fail threshold; the frameworks are judged against each other on identical items.",
+  "results": [
+    {"benchmark": "MMLU-Pro", "task_key": null, "value": 85.2, "variant": "gemma-4-31B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "MMLU-Pro (Gemma 3 27B-it baseline)", "task_key": null, "value": 67.6, "variant": "gemma-3-27b-it, bf16", "setup": "non-thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "MMMLU", "task_key": null, "value": 88.4, "variant": "gemma-4-31B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "GPQA Diamond", "task_key": null, "value": 84.3, "variant": "gemma-4-31B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "LiveCodeBench v6", "task_key": null, "value": 80.0, "variant": "gemma-4-31B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "BigBench Extra Hard", "task_key": null, "value": 74.4, "variant": "gemma-4-31B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "AIME 2026 (no tools)", "task_key": null, "value": 89.2, "variant": "gemma-4-31B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "Tau2 (average over 3)", "task_key": null, "value": 76.9, "variant": "gemma-4-31B-it, bf16", "setup": "thinking mode (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"},
+    {"benchmark": "MRCR v2 (8 needle 128k)", "task_key": null, "value": 66.4, "variant": "gemma-4-31B-it, bf16", "setup": "128k context average (Google)", "source_name": "Gemma 4 model card / tech report Table 5", "source": "https://huggingface.co/google/gemma-4-31B-it"}
+  ],
+  "notes": [
+    "Google's Table 5 reports all Gemma 4 31B numbers with thinking mode enabled on bf16 weights; this harness evaluates with thinking disabled (`enable_thinking=False`) for deterministic zero-shot comparison across CPU runtimes.",
+    "Original 5-shot MMLU is not in the Gemma 4 31B model card; MMLU-Pro (10 choices, reasoning-heavy) is 85.2% with thinking on, so zero-shot 4-choice MMLU on non-thinking 31B should comfortably exceed 75% on healthy checkpoints.",
+    "Unlike E2B and E4B, Gemma 4 31B has no Per-Layer Embeddings (`hidden_size_per_layer_input = 0`) and uses uniform 4-bit quantization (`dynamic_wi4_afp32` in LiteRT-LM, `Q4_0` in GGUF, `int4-ov` in OpenVINO) rather than mixed 2-bit/4-bit mobile QAT."
+  ]
+}

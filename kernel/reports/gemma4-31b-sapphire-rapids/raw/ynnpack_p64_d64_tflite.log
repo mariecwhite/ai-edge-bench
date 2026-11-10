@@ -1,0 +1,978 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794234915.978532 2291743 litert_lm_lib.cc:728] Choose backend: cpu
+I0000 00:00:1794234915.978595 2291743 litert_lm_lib.cc:967] executor_settings: backend: CPU
+backend_config:
+kv_increment_size: 16
+prefill_chunk_size: -1
+number_of_threads: 28
+enable_ynnpack: true
+
+max_tokens: 1024
+activation_data_type: Not set
+max_num_images: 0
+lora_rank: 0
+pad_token_id: -1
+cache_dir: 
+cache_file: Not set
+litert_dispatch_lib_dir: Not set
+model_assets: model_path: /models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it.litertlm
+fake_weights_mode: FAKE_WEIGHTS_NONE
+
+advanced_settings: prefill_batch_sizes: [64]
+num_output_candidates: 1
+configure_magic_numbers: true
+verify_magic_numbers: false
+clear_kv_cache_before_prefill: true
+num_logits_to_print_after_decode: 0
+gpu_madvise_original_shared_tensors: true
+gpu_enable_metal_residency_set: false
+is_benchmark: true
+enable_profiling: true
+preferred_device_substr: 
+num_threads_to_upload: -1
+num_threads_to_compile: -1
+convert_weights_on_gpu: true
+wait_for_weights_conversion_complete_in_benchmark: true
+optimize_shader_compilation: true
+cache_compiled_shaders_only: false
+share_constant_tensors: true
+sampler_handles_input: true
+allow_src_quantized_fc_conv_ops: Not set
+hint_waiting_for_completion: Not set
+gpu_context_low_priority: Not set
+enable_speculative_decoding: false
+disable_delegate_clustering: false
+hint_kernel_batch_size: Not set
+error_on_invalid_sampled_token_id: false
+mtp_gating_config: Not set
+
+speculative_decoding_config: SpeculativeDecodingConfig{mode: Not set}
+
+I0000 00:00:1794234915.978635 2291743 litert_lm_lib.cc:974] vision_executor_settings: not set
+I0000 00:00:1794234915.978637 2291743 litert_lm_lib.cc:980] audio_executor_settings: not set
+I0000 00:00:1794234915.978642 2291743 litert_lm_lib.cc:1003] Creating engine
+W0000 00:00:1794234915.979511 2291743 litert_lm_loader.cc:532] TFLite model type: tf_lite_vision_encoder not found for backend constraints. Skipping.
+W0000 00:00:1794234915.979520 2291743 litert_lm_loader.cc:532] TFLite model type: tf_lite_audio_encoder_hw not found for backend constraints. Skipping.
+W0000 00:00:1794234915.979521 2291743 litert_lm_loader.cc:550] TFLite model type: tf_lite_vision_encoder not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+W0000 00:00:1794234915.979523 2291743 litert_lm_loader.cc:550] TFLite model type: tf_lite_audio_encoder_hw not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+W0000 00:00:1794234915.994175 2291759 litert_lm_loader.cc:407] Section not found: SP_Tokenizer
+W0000 00:00:1794234915.994190 2291759 litert_lm_loader.cc:407] Section not found: SP_Tokenizer
+W0000 00:00:1794234915.994192 2291759 litert_lm_loader.cc:407] Section not found: HF_Tokenizer_Zlib
+INFO: [environment.cc:36] Creating LiteRT environment with options
+WARNING: [npu_registry.cc:34] NPU accelerator could not be loaded and registered: kLiteRtStatusErrorNotFound.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5627dd91d730, name=GPU WebGPU
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTexture
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTextureFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferPacked
+INFO: [gpu_registry.cc:121] Statically linked GPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5627dd91d9e0, name=YNNPackAccelerator
+INFO: [cpu_registry.cc:59] YNNPACK CPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5627dd91da40, name=CpuAccelerator
+INFO: [cpu_registry.cc:73] XNNPACK CPU accelerator registered.
+W0000 00:00:1794234916.014578 2291743 magic_number_configs_helper.cc:339] Too many prefill batch sizes=1 for magic numbers of prefill lengths=0. 1 small prefill batch sizes won't be used.
+INFO: [environment.cc:36] Creating LiteRT environment with options
+WARNING: [npu_registry.cc:34] NPU accelerator could not be loaded and registered: kLiteRtStatusErrorNotFound.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5627dda43c10, name=GPU WebGPU
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTexture
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTextureFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferPacked
+INFO: [gpu_registry.cc:121] Statically linked GPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5627ddd89e60, name=YNNPackAccelerator
+INFO: [cpu_registry.cc:59] YNNPACK CPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5627de0429e0, name=CpuAccelerator
+INFO: [cpu_registry.cc:73] XNNPACK CPU accelerator registered.
+INFO: [magic_number_utils.cc:101] Loaded: num_subgraphs=1256, num_signatures=3
+INFO: [magic_number_utils.cc:109]   signature=decode, subgraph_index=0, num_tensors=3739, num_inputs=123, num_outputs=121, num_ops=2767
+INFO: [magic_number_utils.cc:109]   signature=prefill_1024, subgraph_index=1, num_tensors=3878, num_inputs=123, num_outputs=120, num_ops=2916
+INFO: [magic_number_utils.cc:109]   signature=prefill_128, subgraph_index=2, num_tensors=3878, num_inputs=123, num_outputs=120, num_ops=2916
+INFO: [magic_number_utils.cc:113] Magic number configs: num_configs=1
+INFO: [magic_number_utils.cc:120]   config[0]: magic_number=32771, target_number=1024, signature_prefix=null
+INFO: [magic_number_utils.cc:536] 429 tensors of signature decode have been updated for magic number  32771 to target number 1024
+INFO: [magic_number_utils.cc:536] 426 tensors of signature prefill_1024 have been updated for magic number  32771 to target number 1024
+INFO: [magic_number_utils.cc:536] 426 tensors of signature prefill_128 have been updated for magic number  32771 to target number 1024
+INFO: [compiled_model.cc:963] Flatbuffer model initialized directly from incoming litert model.
+INFO: YNNPackDelegate delegate: 4926 nodes delegated out of 5052 nodes with 63 partitions.
+
+VERBOSE: Replacing 4926 out of 5052 node(s) with delegate (YNNPackDelegate) node, yielding 125 partitions for subgraph 0 (decode).
+VERBOSE: Replacing 5286 out of 5412 node(s) with delegate (YNNPackDelegate) node, yielding 124 partitions for subgraph 2 (prefill_128).
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1794234937.370927 2291743 litert_lm_loader.cc:407] Section not found: TFLiteModel
+W0000 00:00:1794234937.370939 2291743 litert_lm_loader.cc:497] TFLite model for type: tf_lite_end_of_audio not found. Skipping.
+W0000 00:00:1794234937.370944 2291743 litert_lm_loader.cc:407] Section not found: TFLiteModel
+W0000 00:00:1794234937.370946 2291743 litert_lm_loader.cc:497] TFLite model for type: tf_lite_end_of_vision not found. Skipping.
+INFO: [magic_number_utils.cc:101] Loaded: num_subgraphs=1, num_signatures=1
+INFO: [magic_number_utils.cc:109]   signature=embedder, subgraph_index=0, num_tensors=11, num_inputs=1, num_outputs=1, num_ops=5
+INFO: [magic_number_utils.cc:113] Magic number configs: num_configs=1
+INFO: [magic_number_utils.cc:120]   config[0]: magic_number=32771, target_number=1024, signature_prefix=null
+INFO: [compiled_model.cc:963] Flatbuffer model initialized directly from incoming litert model.
+VERBOSE: Replacing 2 out of 5 node(s) with delegate (TfLiteXNNPackDelegate) node, yielding 2 partitions for subgraph 0 (main).
+W0000 00:00:1794234937.375419 2291743 litert_lm_loader.cc:407] Section not found: TFLiteModel
+W0000 00:00:1794234937.375431 2291743 litert_lm_loader.cc:497] TFLite model for type: tf_lite_per_layer_embedder not found. Skipping.
+INFO: [environment.cc:36] Creating LiteRT environment with options
+WARNING: [npu_registry.cc:34] NPU accelerator could not be loaded and registered: kLiteRtStatusErrorNotFound.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5628b42c08c0, name=GPU WebGPU
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTexture
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuTextureFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBuffer
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuImageBufferFp16
+VERBOSE: [tensor_buffer_registry.cc:54] Custom tensor buffer handler is registered for buffer type WebGpuBufferPacked
+INFO: [gpu_registry.cc:121] Statically linked GPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5628b38e2230, name=YNNPackAccelerator
+INFO: [cpu_registry.cc:59] YNNPACK CPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5628b42d9fa0, name=CpuAccelerator
+INFO: [cpu_registry.cc:73] XNNPACK CPU accelerator registered.
+W0000 00:00:1794234937.662611 2291743 litert_lm_loader.cc:532] TFLite model type: tf_lite_vision_encoder not found for backend constraints. Skipping.
+W0000 00:00:1794234937.662625 2291743 litert_lm_loader.cc:532] TFLite model type: tf_lite_audio_encoder_hw not found for backend constraints. Skipping.
+W0000 00:00:1794234937.662627 2291743 litert_lm_loader.cc:550] TFLite model type: tf_lite_vision_encoder not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+W0000 00:00:1794234937.662628 2291743 litert_lm_loader.cc:550] TFLite model type: tf_lite_audio_encoder_hw not found for prefer activation type. Use system's default backend activation type. System's default activation type for Text decoder is fp16. Vision encoder and audio encoder default is fp32.
+I0000 00:00:1794234937.664883 2291743 litert_lm_lib.cc:1288] Creating session
+I0000 00:00:1794234937.665025 2291743 session_advanced.cc:75] Benchmark has num_prefill_tokens > 0; forcing apply_prompt_template_in_session to false.
+I0000 00:00:1794234948.098055 2291743 litert_lm_lib.cc:461] BenchmarkInfo:
+  Init Phases (6):
+    - Init Executor: 21683.04 ms
+    - Init LLM metadata: 0.03 ms
+    - Init Model assets: 0.59 ms
+    - Init Session: 0.28 ms
+    - Init Tokenizer: 1021.19 ms
+    - Init Total: 21686.22 ms
+--------------------------------------------------
+  Time to first token: 1.32 s
+--------------------------------------------------
+  Prefill Turns (Total 1 turns):
+    Prefill Turn 1: Processed 64 tokens in 1.177524537s duration.
+      Prefill Speed: 54.35 tokens/sec.
+--------------------------------------------------
+  Decode Turns (Total 1 turns):
+    Decode Turn 1: Processed 64 tokens in 9.251850054s duration.
+      Decode Speed: 6.92 tokens/sec.
+--------------------------------------------------
+  TextToTokenIds Turns (Total 0 turns):
+    No text to token ids turns recorded.
+--------------------------------------------------
+  Profile Summary:
+===================================================================== Run Order ======================================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+                                             YNNPackDelegate      0.000      0.237      0.237     0.002%     0.002%      0.000              1   [Builtin]:5828
+                                                     GREATER      0.240      0.043      0.043     0.000%     0.003%      0.000              1   [Builtin]:2
+                                             YNNPackDelegate      0.283      0.003      0.003     0.000%     0.003%      0.000              1   [Builtin]:5829
+                                                        LESS      0.287      0.041      0.041     0.000%     0.003%      0.000              1   [Builtin]:4
+                                                 LOGICAL_AND      0.329      0.179      0.179     0.002%     0.005%      0.000              1   [Builtin]:5
+                                                   SELECT_V2      0.509      0.234      0.234     0.002%     0.008%      0.000              1   [Builtin]:6
+                                             YNNPackDelegate      0.743      6.258      6.258     0.064%     0.071%      0.000              1   [Builtin]:5830
+                                                        PACK      7.003      0.009      0.009     0.000%     0.071%      0.000              1   [Builtin]:48
+                                        DYNAMIC_UPDATE_SLICE      7.013      0.326      0.326     0.003%     0.075%      0.000              1   [Builtin]:49
+                                                        PACK      7.340      0.003      0.003     0.000%     0.075%      0.000              1   [Builtin]:50
+                                        DYNAMIC_UPDATE_SLICE      7.343      0.563      0.563     0.006%     0.080%      0.000              1   [Builtin]:51
+                                             YNNPackDelegate      7.907     23.784     23.784     0.242%     0.323%      0.000              1   [Builtin]:5831
+                                        DYNAMIC_UPDATE_SLICE     31.693      0.342      0.342     0.003%     0.326%      0.000              1   [Builtin]:100
+                                        DYNAMIC_UPDATE_SLICE     32.036      0.564      0.564     0.006%     0.332%      0.000              1   [Builtin]:101
+                                             YNNPackDelegate     32.602     19.518     19.518     0.199%     0.531%      0.000              1   [Builtin]:5832
+                                        DYNAMIC_UPDATE_SLICE     52.123      0.369      0.369     0.004%     0.535%      0.000              1   [Builtin]:149
+                                        DYNAMIC_UPDATE_SLICE     52.494      0.594      0.594     0.006%     0.541%      0.000              1   [Builtin]:150
+                                             YNNPackDelegate     53.090     18.706     18.706     0.191%     0.732%      0.000              1   [Builtin]:5833
+                                        DYNAMIC_UPDATE_SLICE     71.798      0.335      0.335     0.003%     0.735%      0.000              1   [Builtin]:198
+                                        DYNAMIC_UPDATE_SLICE     72.135      0.598      0.598     0.006%     0.741%      0.000              1   [Builtin]:199
+                                             YNNPackDelegate     72.735     18.713     18.713     0.191%     0.932%      0.000              1   [Builtin]:5834
+                                        DYNAMIC_UPDATE_SLICE     91.449      0.335      0.335     0.003%     0.935%      0.000              1   [Builtin]:247
+                                        DYNAMIC_UPDATE_SLICE     91.786      0.601      0.601     0.006%     0.941%      0.000              1   [Builtin]:248
+                                             YNNPackDelegate     92.389     18.845     18.845     0.192%     1.133%      0.000              1   [Builtin]:5835
+                                        DYNAMIC_UPDATE_SLICE    111.235      0.167      0.167     0.002%     1.135%      0.000              1   [Builtin]:296
+                                        DYNAMIC_UPDATE_SLICE    111.403      0.299      0.299     0.003%     1.138%      0.000              1   [Builtin]:297
+                                             YNNPackDelegate    111.704     23.420     23.420     0.239%     1.377%      0.000              1   [Builtin]:5836
+                                        DYNAMIC_UPDATE_SLICE    135.127      0.345      0.345     0.004%     1.380%      0.000              1   [Builtin]:346
+                                        DYNAMIC_UPDATE_SLICE    135.473      0.596      0.596     0.006%     1.387%      0.000              1   [Builtin]:347
+                                             YNNPackDelegate    136.071     19.168     19.168     0.195%     1.582%      0.000              1   [Builtin]:5837
+                                        DYNAMIC_UPDATE_SLICE    155.241      0.336      0.336     0.003%     1.585%      0.000              1   [Builtin]:395
+                                        DYNAMIC_UPDATE_SLICE    155.579      0.594      0.594     0.006%     1.591%      0.000              1   [Builtin]:396
+                                             YNNPackDelegate    156.175     18.387     18.387     0.187%     1.779%      0.000              1   [Builtin]:5838
+                                        DYNAMIC_UPDATE_SLICE    174.563      0.322      0.322     0.003%     1.782%      0.000              1   [Builtin]:444
+                                        DYNAMIC_UPDATE_SLICE    174.886      0.602      0.602     0.006%     1.788%      0.000              1   [Builtin]:445
+                                             YNNPackDelegate    175.489     17.768     17.768     0.181%     1.969%      0.000              1   [Builtin]:5839
+                                        DYNAMIC_UPDATE_SLICE    193.258      0.316      0.316     0.003%     1.973%      0.000              1   [Builtin]:493
+                                        DYNAMIC_UPDATE_SLICE    193.575      0.595      0.595     0.006%     1.979%      0.000              1   [Builtin]:494
+                                             YNNPackDelegate    194.172     17.623     17.623     0.180%     2.158%      0.000              1   [Builtin]:5840
+                                        DYNAMIC_UPDATE_SLICE    211.796      0.327      0.327     0.003%     2.162%      0.000              1   [Builtin]:542
+                                        DYNAMIC_UPDATE_SLICE    212.125      0.599      0.599     0.006%     2.168%      0.000              1   [Builtin]:543
+                                             YNNPackDelegate    212.725     17.566     17.566     0.179%     2.347%      0.000              1   [Builtin]:5841
+                                        DYNAMIC_UPDATE_SLICE    230.292      0.170      0.170     0.002%     2.348%      0.000              1   [Builtin]:589
+                                        DYNAMIC_UPDATE_SLICE    230.463      0.304      0.304     0.003%     2.352%      0.000              1   [Builtin]:590
+                                             YNNPackDelegate    230.769     21.947     21.947     0.224%     2.575%      0.000              1   [Builtin]:5842
+                                        DYNAMIC_UPDATE_SLICE    252.718      0.324      0.324     0.003%     2.579%      0.000              1   [Builtin]:638
+                                        DYNAMIC_UPDATE_SLICE    253.043      0.600      0.600     0.006%     2.585%      0.000              1   [Builtin]:639
+                                             YNNPackDelegate    253.644     18.703     18.703     0.191%     2.775%      0.000              1   [Builtin]:5843
+                                        DYNAMIC_UPDATE_SLICE    272.349      0.339      0.339     0.003%     2.779%      0.000              1   [Builtin]:687
+                                        DYNAMIC_UPDATE_SLICE    272.690      0.610      0.610     0.006%     2.785%      0.000              1   [Builtin]:688
+                                             YNNPackDelegate    273.301     17.730     17.730     0.181%     2.966%      0.000              1   [Builtin]:5844
+                                        DYNAMIC_UPDATE_SLICE    291.033      0.337      0.337     0.003%     2.969%      0.000              1   [Builtin]:736
+                                        DYNAMIC_UPDATE_SLICE    291.371      0.599      0.599     0.006%     2.975%      0.000              1   [Builtin]:737
+                                             YNNPackDelegate    291.972     17.630     17.630     0.180%     3.155%      0.000              1   [Builtin]:5845
+                                        DYNAMIC_UPDATE_SLICE    309.605      0.351      0.351     0.004%     3.159%      0.000              1   [Builtin]:785
+                                        DYNAMIC_UPDATE_SLICE    309.956      0.583      0.583     0.006%     3.165%      0.000              1   [Builtin]:786
+                                             YNNPackDelegate    310.540     17.992     17.992     0.183%     3.348%      0.000              1   [Builtin]:5846
+                                        DYNAMIC_UPDATE_SLICE    328.533      0.339      0.339     0.003%     3.351%      0.000              1   [Builtin]:834
+                                        DYNAMIC_UPDATE_SLICE    328.873      0.596      0.596     0.006%     3.357%      0.000              1   [Builtin]:835
+                                             YNNPackDelegate    329.471     17.844     17.844     0.182%     3.539%      0.000              1   [Builtin]:5847
+                                        DYNAMIC_UPDATE_SLICE    347.316      0.172      0.172     0.002%     3.541%      0.000              1   [Builtin]:881
+                                        DYNAMIC_UPDATE_SLICE    347.489      0.300      0.300     0.003%     3.544%      0.000              1   [Builtin]:882
+                                             YNNPackDelegate    347.791     20.770     20.770     0.212%     3.756%      0.000              1   [Builtin]:5848
+                                        DYNAMIC_UPDATE_SLICE    368.563      0.342      0.342     0.003%     3.759%      0.000              1   [Builtin]:930
+                                        DYNAMIC_UPDATE_SLICE    368.906      0.594      0.594     0.006%     3.765%      0.000              1   [Builtin]:931
+                                             YNNPackDelegate    369.502     17.928     17.928     0.183%     3.948%      0.000              1   [Builtin]:5849
+                                        DYNAMIC_UPDATE_SLICE    387.432      0.325      0.325     0.003%     3.951%      0.000              1   [Builtin]:979
+                                        DYNAMIC_UPDATE_SLICE    387.758      0.587      0.587     0.006%     3.957%      0.000              1   [Builtin]:980
+                                             YNNPackDelegate    388.347     17.989     17.989     0.183%     4.141%      0.000              1   [Builtin]:5850
+                                        DYNAMIC_UPDATE_SLICE    406.338      0.336      0.336     0.003%     4.144%      0.000              1   [Builtin]:1028
+                                        DYNAMIC_UPDATE_SLICE    406.675      0.574      0.574     0.006%     4.150%      0.000              1   [Builtin]:1029
+                                             YNNPackDelegate    407.251     17.863     17.863     0.182%     4.332%      0.000              1   [Builtin]:5851
+                                        DYNAMIC_UPDATE_SLICE    425.116      0.322      0.322     0.003%     4.335%      0.000              1   [Builtin]:1077
+                                        DYNAMIC_UPDATE_SLICE    425.439      0.546      0.546     0.006%     4.341%      0.000              1   [Builtin]:1078
+                                             YNNPackDelegate    425.987     18.223     18.223     0.186%     4.527%      0.000              1   [Builtin]:5852
+                                        DYNAMIC_UPDATE_SLICE    444.213      0.336      0.336     0.003%     4.530%      0.000              1   [Builtin]:1126
+                                        DYNAMIC_UPDATE_SLICE    444.551      0.584      0.584     0.006%     4.536%      0.000              1   [Builtin]:1127
+                                             YNNPackDelegate    445.137     17.604     17.604     0.179%     4.716%      0.000              1   [Builtin]:5853
+                                        DYNAMIC_UPDATE_SLICE    462.743      0.165      0.165     0.002%     4.717%      0.000              1   [Builtin]:1173
+                                        DYNAMIC_UPDATE_SLICE    462.909      0.288      0.288     0.003%     4.720%      0.000              1   [Builtin]:1174
+                                             YNNPackDelegate    463.198     21.594     21.594     0.220%     4.940%      0.000              1   [Builtin]:5854
+                                        DYNAMIC_UPDATE_SLICE    484.793      0.331      0.331     0.003%     4.944%      0.000              1   [Builtin]:1222
+                                        DYNAMIC_UPDATE_SLICE    485.125      0.562      0.562     0.006%     4.949%      0.000              1   [Builtin]:1223
+                                             YNNPackDelegate    485.688     19.126     19.126     0.195%     5.144%      0.000              1   [Builtin]:5855
+                                        DYNAMIC_UPDATE_SLICE    504.816      0.346      0.346     0.004%     5.148%      0.000              1   [Builtin]:1271
+                                        DYNAMIC_UPDATE_SLICE    505.163      0.573      0.573     0.006%     5.154%      0.000              1   [Builtin]:1272
+                                             YNNPackDelegate    505.738     17.668     17.668     0.180%     5.334%      0.000              1   [Builtin]:5856
+                                        DYNAMIC_UPDATE_SLICE    523.408      0.329      0.329     0.003%     5.337%      0.000              1   [Builtin]:1320
+                                        DYNAMIC_UPDATE_SLICE    523.738      0.539      0.539     0.005%     5.343%      0.000              1   [Builtin]:1321
+                                             YNNPackDelegate    524.279     18.030     18.030     0.184%     5.526%      0.000              1   [Builtin]:5857
+                                        DYNAMIC_UPDATE_SLICE    542.312      0.335      0.335     0.003%     5.530%      0.000              1   [Builtin]:1369
+                                        DYNAMIC_UPDATE_SLICE    542.648      0.558      0.558     0.006%     5.536%      0.000              1   [Builtin]:1370
+                                             YNNPackDelegate    543.208     17.871     17.871     0.182%     5.718%      0.000              1   [Builtin]:5858
+                                        DYNAMIC_UPDATE_SLICE    561.080      0.336      0.336     0.003%     5.721%      0.000              1   [Builtin]:1418
+                                        DYNAMIC_UPDATE_SLICE    561.417      0.569      0.569     0.006%     5.727%      0.000              1   [Builtin]:1419
+                                             YNNPackDelegate    561.988     18.559     18.559     0.189%     5.916%      0.000              1   [Builtin]:5859
+                                        DYNAMIC_UPDATE_SLICE    580.550      0.167      0.167     0.002%     5.918%      0.000              1   [Builtin]:1465
+                                        DYNAMIC_UPDATE_SLICE    580.718      0.278      0.278     0.003%     5.921%      0.000              1   [Builtin]:1466
+                                             YNNPackDelegate    580.997     20.947     20.947     0.214%     6.134%      0.000              1   [Builtin]:5860
+                                        DYNAMIC_UPDATE_SLICE    601.946      0.335      0.335     0.003%     6.138%      0.000              1   [Builtin]:1514
+                                        DYNAMIC_UPDATE_SLICE    602.282      0.533      0.533     0.005%     6.143%      0.000              1   [Builtin]:1515
+                                             YNNPackDelegate    602.817     18.066     18.066     0.184%     6.327%      0.000              1   [Builtin]:5861
+                                        DYNAMIC_UPDATE_SLICE    620.885      0.371      0.371     0.004%     6.331%      0.000              1   [Builtin]:1563
+                                        DYNAMIC_UPDATE_SLICE    621.257      0.548      0.548     0.006%     6.336%      0.000              1   [Builtin]:1564
+                                             YNNPackDelegate    621.806     18.010     18.010     0.184%     6.520%      0.000              1   [Builtin]:5862
+                                        DYNAMIC_UPDATE_SLICE    639.818      0.346      0.346     0.004%     6.524%      0.000              1   [Builtin]:1612
+                                        DYNAMIC_UPDATE_SLICE    640.165      0.585      0.585     0.006%     6.530%      0.000              1   [Builtin]:1613
+                                             YNNPackDelegate    640.751     17.939     17.939     0.183%     6.712%      0.000              1   [Builtin]:5863
+                                        DYNAMIC_UPDATE_SLICE    658.692      0.352      0.352     0.004%     6.716%      0.000              1   [Builtin]:1661
+                                        DYNAMIC_UPDATE_SLICE    659.044      0.589      0.589     0.006%     6.722%      0.000              1   [Builtin]:1662
+                                             YNNPackDelegate    659.635     18.574     18.574     0.189%     6.911%      0.000              1   [Builtin]:5864
+                                        DYNAMIC_UPDATE_SLICE    678.211      0.368      0.368     0.004%     6.915%      0.000              1   [Builtin]:1710
+                                        DYNAMIC_UPDATE_SLICE    678.580      0.600      0.600     0.006%     6.921%      0.000              1   [Builtin]:1711
+                                             YNNPackDelegate    679.183     18.746     18.746     0.191%     7.112%      0.000              1   [Builtin]:5865
+                                        DYNAMIC_UPDATE_SLICE    697.931      0.166      0.166     0.002%     7.114%      0.000              1   [Builtin]:1757
+                                        DYNAMIC_UPDATE_SLICE    698.098      0.305      0.305     0.003%     7.117%      0.000              1   [Builtin]:1758
+                                             YNNPackDelegate    698.405     21.395     21.395     0.218%     7.335%      0.000              1   [Builtin]:5866
+                                        DYNAMIC_UPDATE_SLICE    719.801      0.334      0.334     0.003%     7.339%      0.000              1   [Builtin]:1806
+                                        DYNAMIC_UPDATE_SLICE    720.136      0.592      0.592     0.006%     7.345%      0.000              1   [Builtin]:1807
+                                             YNNPackDelegate    720.730     17.730     17.730     0.181%     7.525%      0.000              1   [Builtin]:5867
+                                        DYNAMIC_UPDATE_SLICE    738.462      0.333      0.333     0.003%     7.529%      0.000              1   [Builtin]:1855
+                                        DYNAMIC_UPDATE_SLICE    738.796      0.597      0.597     0.006%     7.535%      0.000              1   [Builtin]:1856
+                                             YNNPackDelegate    739.394     18.995     18.995     0.194%     7.728%      0.000              1   [Builtin]:5868
+                                        DYNAMIC_UPDATE_SLICE    758.390      0.333      0.333     0.003%     7.732%      0.000              1   [Builtin]:1904
+                                        DYNAMIC_UPDATE_SLICE    758.724      0.597      0.597     0.006%     7.738%      0.000              1   [Builtin]:1905
+                                             YNNPackDelegate    759.322     18.311     18.311     0.187%     7.925%      0.000              1   [Builtin]:5869
+                                        DYNAMIC_UPDATE_SLICE    777.635      0.338      0.338     0.003%     7.928%      0.000              1   [Builtin]:1953
+                                        DYNAMIC_UPDATE_SLICE    777.974      0.594      0.594     0.006%     7.934%      0.000              1   [Builtin]:1954
+                                             YNNPackDelegate    778.570     18.870     18.870     0.192%     8.126%      0.000              1   [Builtin]:5870
+                                        DYNAMIC_UPDATE_SLICE    797.443      0.351      0.351     0.004%     8.130%      0.000              1   [Builtin]:2002
+                                        DYNAMIC_UPDATE_SLICE    797.795      0.610      0.610     0.006%     8.136%      0.000              1   [Builtin]:2003
+                                             YNNPackDelegate    798.407     17.774     17.774     0.181%     8.317%      0.000              1   [Builtin]:5871
+                                        DYNAMIC_UPDATE_SLICE    816.183      0.172      0.172     0.002%     8.319%      0.000              1   [Builtin]:2049
+                                        DYNAMIC_UPDATE_SLICE    816.356      0.306      0.306     0.003%     8.322%      0.000              1   [Builtin]:2050
+                                             YNNPackDelegate    816.664     20.744     20.744     0.211%     8.534%      0.000              1   [Builtin]:5872
+                                        DYNAMIC_UPDATE_SLICE    837.411      0.344      0.344     0.004%     8.537%      0.000              1   [Builtin]:2098
+                                        DYNAMIC_UPDATE_SLICE    837.756      0.608      0.608     0.006%     8.543%      0.000              1   [Builtin]:2099
+                                             YNNPackDelegate    838.365     18.204     18.204     0.186%     8.729%      0.000              1   [Builtin]:5873
+                                        DYNAMIC_UPDATE_SLICE    856.572      0.333      0.333     0.003%     8.732%      0.000              1   [Builtin]:2147
+                                        DYNAMIC_UPDATE_SLICE    856.905      0.596      0.596     0.006%     8.738%      0.000              1   [Builtin]:2148
+                                             YNNPackDelegate    857.502     17.843     17.843     0.182%     8.920%      0.000              1   [Builtin]:5874
+                                        DYNAMIC_UPDATE_SLICE    875.347      0.334      0.334     0.003%     8.924%      0.000              1   [Builtin]:2196
+                                        DYNAMIC_UPDATE_SLICE    875.682      0.586      0.586     0.006%     8.930%      0.000              1   [Builtin]:2197
+                                             YNNPackDelegate    876.269     17.359     17.359     0.177%     9.107%      0.000              1   [Builtin]:5875
+                                        DYNAMIC_UPDATE_SLICE    893.630      0.336      0.336     0.003%     9.110%      0.000              1   [Builtin]:2245
+                                        DYNAMIC_UPDATE_SLICE    893.967      0.585      0.585     0.006%     9.116%      0.000              1   [Builtin]:2246
+                                             YNNPackDelegate    894.554     17.536     17.536     0.179%     9.295%      0.000              1   [Builtin]:5876
+                                        DYNAMIC_UPDATE_SLICE    912.092      0.341      0.341     0.003%     9.298%      0.000              1   [Builtin]:2294
+                                        DYNAMIC_UPDATE_SLICE    912.434      0.596      0.596     0.006%     9.304%      0.000              1   [Builtin]:2295
+                                             YNNPackDelegate    913.032     17.719     17.719     0.181%     9.485%      0.000              1   [Builtin]:5877
+                                        DYNAMIC_UPDATE_SLICE    930.753      0.175      0.175     0.002%     9.487%      0.000              1   [Builtin]:2341
+                                        DYNAMIC_UPDATE_SLICE    930.928      0.308      0.308     0.003%     9.490%      0.000              1   [Builtin]:2342
+                                             YNNPackDelegate    931.238     20.586     20.586     0.210%     9.700%      0.000              1   [Builtin]:5878
+                                        DYNAMIC_UPDATE_SLICE    951.826      0.349      0.349     0.004%     9.703%      0.000              1   [Builtin]:2390
+                                        DYNAMIC_UPDATE_SLICE    952.176      0.593      0.593     0.006%     9.709%      0.000              1   [Builtin]:2391
+                                             YNNPackDelegate    952.770     17.937     17.937     0.183%     9.892%      0.000              1   [Builtin]:5879
+                                        DYNAMIC_UPDATE_SLICE    970.709      0.338      0.338     0.003%     9.896%      0.000              1   [Builtin]:2439
+                                        DYNAMIC_UPDATE_SLICE    971.048      0.597      0.597     0.006%     9.902%      0.000              1   [Builtin]:2440
+                                             YNNPackDelegate    971.646     18.033     18.033     0.184%    10.085%      0.000              1   [Builtin]:5880
+                                        DYNAMIC_UPDATE_SLICE    989.680      0.331      0.331     0.003%    10.089%      0.000              1   [Builtin]:2488
+                                        DYNAMIC_UPDATE_SLICE    990.012      0.580      0.580     0.006%    10.095%      0.000              1   [Builtin]:2489
+                                             YNNPackDelegate    990.594     17.891     17.891     0.182%    10.277%      0.000              1   [Builtin]:5881
+                                        DYNAMIC_UPDATE_SLICE   1008.486      0.321      0.321     0.003%    10.280%      0.000              1   [Builtin]:2537
+                                        DYNAMIC_UPDATE_SLICE   1008.807      0.581      0.581     0.006%    10.286%      0.000              1   [Builtin]:2538
+                                             YNNPackDelegate   1009.390     19.046     19.046     0.194%    10.480%      0.000              1   [Builtin]:5882
+                                        DYNAMIC_UPDATE_SLICE   1028.437      0.329      0.329     0.003%    10.484%      0.000              1   [Builtin]:2586
+                                        DYNAMIC_UPDATE_SLICE   1028.767      0.579      0.579     0.006%    10.490%      0.000              1   [Builtin]:2587
+                                             YNNPackDelegate   1029.348     17.499     17.499     0.178%    10.668%      0.000              1   [Builtin]:5883
+                                        DYNAMIC_UPDATE_SLICE   1046.849      0.171      0.171     0.002%    10.670%      0.000              1   [Builtin]:2633
+                                        DYNAMIC_UPDATE_SLICE   1047.021      0.301      0.301     0.003%    10.673%      0.000              1   [Builtin]:2634
+                                             YNNPackDelegate   1047.323     20.241     20.241     0.206%    10.879%      0.000              1   [Builtin]:5884
+                                        DYNAMIC_UPDATE_SLICE   1067.565      0.328      0.328     0.003%    10.883%      0.000              1   [Builtin]:2682
+                                        DYNAMIC_UPDATE_SLICE   1067.894      0.560      0.560     0.006%    10.888%      0.000              1   [Builtin]:2683
+                                             YNNPackDelegate   1068.456     17.978     17.978     0.183%    11.071%      0.000              1   [Builtin]:5885
+                                        DYNAMIC_UPDATE_SLICE   1086.435      0.351      0.351     0.004%    11.075%      0.000              1   [Builtin]:2731
+                                        DYNAMIC_UPDATE_SLICE   1086.787      0.556      0.556     0.006%    11.081%      0.000              1   [Builtin]:2732
+                                             YNNPackDelegate   1087.345     17.892     17.892     0.182%    11.263%      0.000              1   [Builtin]:5886
+                                        DYNAMIC_UPDATE_SLICE   1105.238      0.336      0.336     0.003%    11.267%      0.000              1   [Builtin]:2780
+                                        DYNAMIC_UPDATE_SLICE   1105.575      0.604      0.604     0.006%    11.273%      0.000              1   [Builtin]:2781
+                                             YNNPackDelegate   1106.181     17.704     17.704     0.180%    11.453%      0.000              1   [Builtin]:5887
+                                        DYNAMIC_UPDATE_SLICE   1123.886      0.333      0.333     0.003%    11.457%      0.000              1   [Builtin]:2829
+                                        DYNAMIC_UPDATE_SLICE   1124.220      0.504      0.504     0.005%    11.462%      0.000              1   [Builtin]:2830
+                                             YNNPackDelegate   1124.726     17.688     17.688     0.180%    11.642%      0.000              1   [Builtin]:5888
+                                        DYNAMIC_UPDATE_SLICE   1142.415      0.322      0.322     0.003%    11.645%      0.000              1   [Builtin]:2878
+                                        DYNAMIC_UPDATE_SLICE   1142.738      0.566      0.566     0.006%    11.651%      0.000              1   [Builtin]:2879
+                                             YNNPackDelegate   1143.305     17.162     17.162     0.175%    11.826%      0.000              1   [Builtin]:5889
+                                        DYNAMIC_UPDATE_SLICE   1160.470      0.173      0.173     0.002%    11.828%      0.000              1   [Builtin]:2914
+                                        DYNAMIC_UPDATE_SLICE   1160.644      0.282      0.282     0.003%    11.831%      0.000              1   [Builtin]:2915
+                                             YNNPackDelegate   1170.251      0.014      0.005     0.003%    11.834%      0.000             64   [Builtin]:5473
+                                                     GREATER   1170.266      0.004      0.004     0.002%    11.836%      0.000             64   [Builtin]:2
+                                             YNNPackDelegate   1170.270      0.002      0.002     0.001%    11.837%      0.000             64   [Builtin]:5474
+                                                        LESS   1170.272      0.001      0.001     0.001%    11.838%      0.000             64   [Builtin]:4
+                                                 LOGICAL_AND   1170.274      0.002      0.003     0.002%    11.839%      0.000             64   [Builtin]:5
+                                                   SELECT_V2   1170.277      0.004      0.002     0.002%    11.841%      0.000             64   [Builtin]:6
+                                             YNNPackDelegate   1170.281      1.009      0.700     0.457%    12.298%      0.000             64   [Builtin]:5475
+                                                        PACK   1171.291      0.006      0.005     0.003%    12.301%      0.000             64   [Builtin]:44
+                                        DYNAMIC_UPDATE_SLICE   1171.298      0.007      0.006     0.004%    12.305%      0.000             64   [Builtin]:45
+                                                        PACK   1171.306      0.001      0.001     0.001%    12.305%      0.000             64   [Builtin]:46
+                                        DYNAMIC_UPDATE_SLICE   1171.307      0.091      0.087     0.057%    12.362%      0.000             64   [Builtin]:47
+                                             YNNPackDelegate   1171.400      2.373      2.221     1.449%    13.811%      0.000             64   [Builtin]:5476
+                                        DYNAMIC_UPDATE_SLICE   1173.773      0.012      0.008     0.005%    13.816%      0.000             64   [Builtin]:93
+                                        DYNAMIC_UPDATE_SLICE   1173.786      0.089      0.088     0.057%    13.874%      0.000             64   [Builtin]:94
+                                             YNNPackDelegate   1173.877      2.263      2.157     1.407%    15.281%      0.000             64   [Builtin]:5477
+                                        DYNAMIC_UPDATE_SLICE   1176.141      0.006      0.007     0.005%    15.286%      0.000             64   [Builtin]:139
+                                        DYNAMIC_UPDATE_SLICE   1176.149      0.092      0.088     0.058%    15.344%      0.000             64   [Builtin]:140
+                                             YNNPackDelegate   1176.242      2.228      2.130     1.389%    16.733%      0.000             64   [Builtin]:5478
+                                        DYNAMIC_UPDATE_SLICE   1178.470      0.008      0.007     0.005%    16.738%      0.000             64   [Builtin]:185
+                                        DYNAMIC_UPDATE_SLICE   1178.479      0.087      0.086     0.056%    16.794%      0.000             64   [Builtin]:186
+                                             YNNPackDelegate   1178.567      2.174      2.121     1.384%    18.178%      0.000             64   [Builtin]:5479
+                                        DYNAMIC_UPDATE_SLICE   1180.742      0.005      0.007     0.005%    18.183%      0.000             64   [Builtin]:231
+                                        DYNAMIC_UPDATE_SLICE   1180.748      0.090      0.088     0.058%    18.240%      0.000             64   [Builtin]:232
+                                             YNNPackDelegate   1180.840      2.211      2.093     1.366%    19.606%      0.000             64   [Builtin]:5480
+                                        DYNAMIC_UPDATE_SLICE   1183.052      0.002      0.004     0.002%    19.608%      0.000             64   [Builtin]:275
+                                        DYNAMIC_UPDATE_SLICE   1183.055      0.044      0.043     0.028%    19.636%      0.000             64   [Builtin]:276
+                                             YNNPackDelegate   1183.101      2.074      2.076     1.354%    20.990%      0.000             64   [Builtin]:5481
+                                        DYNAMIC_UPDATE_SLICE   1185.176      0.006      0.007     0.005%    20.995%      0.000             64   [Builtin]:322
+                                        DYNAMIC_UPDATE_SLICE   1185.183      0.089      0.091     0.059%    21.054%      0.000             64   [Builtin]:323
+                                             YNNPackDelegate   1185.274      2.214      2.124     1.385%    22.440%      0.000             64   [Builtin]:5482
+                                        DYNAMIC_UPDATE_SLICE   1187.489      0.006      0.007     0.005%    22.444%      0.000             64   [Builtin]:368
+                                        DYNAMIC_UPDATE_SLICE   1187.496      0.088      0.089     0.058%    22.502%      0.000             64   [Builtin]:369
+                                             YNNPackDelegate   1187.586      2.159      2.101     1.370%    23.872%      0.000             64   [Builtin]:5483
+                                        DYNAMIC_UPDATE_SLICE   1189.746      0.005      0.007     0.005%    23.877%      0.000             64   [Builtin]:414
+                                        DYNAMIC_UPDATE_SLICE   1189.752      0.090      0.088     0.057%    23.934%      0.000             64   [Builtin]:415
+                                             YNNPackDelegate   1189.843      2.179      2.104     1.373%    25.307%      0.000             64   [Builtin]:5484
+                                        DYNAMIC_UPDATE_SLICE   1192.023      0.006      0.007     0.005%    25.312%      0.000             64   [Builtin]:460
+                                        DYNAMIC_UPDATE_SLICE   1192.030      0.088      0.087     0.057%    25.369%      0.000             64   [Builtin]:461
+                                             YNNPackDelegate   1192.120      2.166      2.097     1.368%    26.737%      0.000             64   [Builtin]:5485
+                                        DYNAMIC_UPDATE_SLICE   1194.287      0.006      0.007     0.005%    26.741%      0.000             64   [Builtin]:506
+                                        DYNAMIC_UPDATE_SLICE   1194.294      0.088      0.089     0.058%    26.800%      0.000             64   [Builtin]:507
+                                             YNNPackDelegate   1194.384      2.162      2.094     1.366%    28.165%      0.000             64   [Builtin]:5486
+                                        DYNAMIC_UPDATE_SLICE   1196.546      0.003      0.003     0.002%    28.168%      0.000             64   [Builtin]:550
+                                        DYNAMIC_UPDATE_SLICE   1196.550      0.043      0.043     0.028%    28.196%      0.000             64   [Builtin]:551
+                                             YNNPackDelegate   1196.595      2.061      2.066     1.348%    29.544%      0.000             64   [Builtin]:5487
+                                        DYNAMIC_UPDATE_SLICE   1198.657      0.006      0.007     0.005%    29.548%      0.000             64   [Builtin]:596
+                                        DYNAMIC_UPDATE_SLICE   1198.664      0.088      0.089     0.058%    29.606%      0.000             64   [Builtin]:597
+                                             YNNPackDelegate   1198.754      2.242      2.117     1.381%    30.987%      0.000             64   [Builtin]:5488
+                                        DYNAMIC_UPDATE_SLICE   1200.997      0.006      0.007     0.005%    30.991%      0.000             64   [Builtin]:642
+                                        DYNAMIC_UPDATE_SLICE   1201.004      0.085      0.088     0.058%    31.049%      0.000             64   [Builtin]:643
+                                             YNNPackDelegate   1201.091      2.189      2.103     1.372%    32.421%      0.000             64   [Builtin]:5489
+                                        DYNAMIC_UPDATE_SLICE   1203.281      0.006      0.007     0.004%    32.425%      0.000             64   [Builtin]:688
+                                        DYNAMIC_UPDATE_SLICE   1203.288      0.090      0.089     0.058%    32.483%      0.000             64   [Builtin]:689
+                                             YNNPackDelegate   1203.380      2.185      2.103     1.372%    33.855%      0.000             64   [Builtin]:5490
+                                        DYNAMIC_UPDATE_SLICE   1205.566      0.006      0.007     0.004%    33.859%      0.000             64   [Builtin]:734
+                                        DYNAMIC_UPDATE_SLICE   1205.573      0.085      0.088     0.058%    33.917%      0.000             64   [Builtin]:735
+                                             YNNPackDelegate   1205.660      2.152      2.106     1.374%    35.291%      0.000             64   [Builtin]:5491
+                                        DYNAMIC_UPDATE_SLICE   1207.813      0.006      0.007     0.005%    35.296%      0.000             64   [Builtin]:780
+                                        DYNAMIC_UPDATE_SLICE   1207.820      0.084      0.088     0.058%    35.353%      0.000             64   [Builtin]:781
+                                             YNNPackDelegate   1207.906      2.130      2.096     1.367%    36.721%      0.000             64   [Builtin]:5492
+                                        DYNAMIC_UPDATE_SLICE   1210.037      0.003      0.004     0.003%    36.723%      0.000             64   [Builtin]:824
+                                        DYNAMIC_UPDATE_SLICE   1210.041      0.042      0.043     0.028%    36.751%      0.000             64   [Builtin]:825
+                                             YNNPackDelegate   1210.085      2.045      2.066     1.348%    38.099%      0.000             64   [Builtin]:5493
+                                        DYNAMIC_UPDATE_SLICE   1212.131      0.006      0.007     0.005%    38.103%      0.000             64   [Builtin]:870
+                                        DYNAMIC_UPDATE_SLICE   1212.138      0.094      0.088     0.057%    38.161%      0.000             64   [Builtin]:871
+                                             YNNPackDelegate   1212.234      2.157      2.115     1.380%    39.541%      0.000             64   [Builtin]:5494
+                                        DYNAMIC_UPDATE_SLICE   1214.392      0.006      0.007     0.005%    39.545%      0.000             64   [Builtin]:916
+                                        DYNAMIC_UPDATE_SLICE   1214.399      0.091      0.091     0.059%    39.604%      0.000             64   [Builtin]:917
+                                             YNNPackDelegate   1214.492      2.148      2.105     1.373%    40.977%      0.000             64   [Builtin]:5495
+                                        DYNAMIC_UPDATE_SLICE   1216.640      0.007      0.007     0.005%    40.982%      0.000             64   [Builtin]:962
+                                        DYNAMIC_UPDATE_SLICE   1216.648      0.087      0.088     0.057%    41.039%      0.000             64   [Builtin]:963
+                                             YNNPackDelegate   1216.737      2.113      2.110     1.376%    42.416%      0.000             64   [Builtin]:5496
+                                        DYNAMIC_UPDATE_SLICE   1218.851      0.006      0.007     0.005%    42.420%      0.000             64   [Builtin]:1008
+                                        DYNAMIC_UPDATE_SLICE   1218.858      0.084      0.090     0.058%    42.479%      0.000             64   [Builtin]:1009
+                                             YNNPackDelegate   1218.944      2.171      2.103     1.372%    43.851%      0.000             64   [Builtin]:5497
+                                        DYNAMIC_UPDATE_SLICE   1221.116      0.005      0.007     0.004%    43.855%      0.000             64   [Builtin]:1054
+                                        DYNAMIC_UPDATE_SLICE   1221.122      0.094      0.089     0.058%    43.913%      0.000             64   [Builtin]:1055
+                                             YNNPackDelegate   1221.218      2.117      2.097     1.368%    45.281%      0.000             64   [Builtin]:5498
+                                        DYNAMIC_UPDATE_SLICE   1223.336      0.003      0.003     0.002%    45.284%      0.000             64   [Builtin]:1098
+                                        DYNAMIC_UPDATE_SLICE   1223.340      0.042      0.044     0.028%    45.312%      0.000             64   [Builtin]:1099
+                                             YNNPackDelegate   1223.384      2.062      2.083     1.359%    46.671%      0.000             64   [Builtin]:5499
+                                        DYNAMIC_UPDATE_SLICE   1225.447      0.006      0.007     0.005%    46.675%      0.000             64   [Builtin]:1144
+                                        DYNAMIC_UPDATE_SLICE   1225.454      0.084      0.089     0.058%    46.733%      0.000             64   [Builtin]:1145
+                                             YNNPackDelegate   1225.540      2.176      2.126     1.387%    48.120%      0.000             64   [Builtin]:5500
+                                        DYNAMIC_UPDATE_SLICE   1227.717      0.006      0.007     0.005%    48.125%      0.000             64   [Builtin]:1190
+                                        DYNAMIC_UPDATE_SLICE   1227.724      0.087      0.088     0.057%    48.182%      0.000             64   [Builtin]:1191
+                                             YNNPackDelegate   1227.814      2.159      2.115     1.380%    49.562%      0.000             64   [Builtin]:5501
+                                        DYNAMIC_UPDATE_SLICE   1229.974      0.006      0.007     0.004%    49.567%      0.000             64   [Builtin]:1236
+                                        DYNAMIC_UPDATE_SLICE   1229.981      0.087      0.088     0.057%    49.624%      0.000             64   [Builtin]:1237
+                                             YNNPackDelegate   1230.070      2.123      2.104     1.373%    50.997%      0.000             64   [Builtin]:5502
+                                        DYNAMIC_UPDATE_SLICE   1232.194      0.006      0.007     0.005%    51.001%      0.000             64   [Builtin]:1282
+                                        DYNAMIC_UPDATE_SLICE   1232.201      0.086      0.088     0.058%    51.059%      0.000             64   [Builtin]:1283
+                                             YNNPackDelegate   1232.290      2.113      2.105     1.373%    52.432%      0.000             64   [Builtin]:5503
+                                        DYNAMIC_UPDATE_SLICE   1234.404      0.006      0.007     0.005%    52.437%      0.000             64   [Builtin]:1328
+                                        DYNAMIC_UPDATE_SLICE   1234.411      0.087      0.089     0.058%    52.494%      0.000             64   [Builtin]:1329
+                                             YNNPackDelegate   1234.500      2.154      2.103     1.372%    53.866%      0.000             64   [Builtin]:5504
+                                        DYNAMIC_UPDATE_SLICE   1236.654      0.003      0.003     0.002%    53.869%      0.000             64   [Builtin]:1372
+                                        DYNAMIC_UPDATE_SLICE   1236.657      0.044      0.043     0.028%    53.897%      0.000             64   [Builtin]:1373
+                                             YNNPackDelegate   1236.702      2.070      2.071     1.351%    55.248%      0.000             64   [Builtin]:5505
+                                        DYNAMIC_UPDATE_SLICE   1238.772      0.006      0.007     0.004%    55.252%      0.000             64   [Builtin]:1418
+                                        DYNAMIC_UPDATE_SLICE   1238.779      0.089      0.089     0.058%    55.310%      0.000             64   [Builtin]:1419
+                                             YNNPackDelegate   1238.870      2.188      2.117     1.381%    56.691%      0.000             64   [Builtin]:5506
+                                        DYNAMIC_UPDATE_SLICE   1241.058      0.005      0.007     0.005%    56.696%      0.000             64   [Builtin]:1464
+                                        DYNAMIC_UPDATE_SLICE   1241.064      0.094      0.089     0.058%    56.754%      0.000             64   [Builtin]:1465
+                                             YNNPackDelegate   1241.160      2.123      2.099     1.369%    58.124%      0.000             64   [Builtin]:5507
+                                        DYNAMIC_UPDATE_SLICE   1243.283      0.005      0.007     0.004%    58.128%      0.000             64   [Builtin]:1510
+                                        DYNAMIC_UPDATE_SLICE   1243.289      0.089      0.087     0.057%    58.185%      0.000             64   [Builtin]:1511
+                                             YNNPackDelegate   1243.380      2.207      2.100     1.370%    59.555%      0.000             64   [Builtin]:5508
+                                        DYNAMIC_UPDATE_SLICE   1245.588      0.005      0.007     0.005%    59.560%      0.000             64   [Builtin]:1556
+                                        DYNAMIC_UPDATE_SLICE   1245.594      0.088      0.088     0.057%    59.617%      0.000             64   [Builtin]:1557
+                                             YNNPackDelegate   1245.684      2.164      2.097     1.368%    60.985%      0.000             64   [Builtin]:5509
+                                        DYNAMIC_UPDATE_SLICE   1247.849      0.008      0.007     0.005%    60.990%      0.000             64   [Builtin]:1602
+                                        DYNAMIC_UPDATE_SLICE   1247.858      0.087      0.089     0.058%    61.047%      0.000             64   [Builtin]:1603
+                                             YNNPackDelegate   1247.947      2.143      2.093     1.365%    62.413%      0.000             64   [Builtin]:5510
+                                        DYNAMIC_UPDATE_SLICE   1250.090      0.003      0.004     0.002%    62.415%      0.000             64   [Builtin]:1646
+                                        DYNAMIC_UPDATE_SLICE   1250.094      0.043      0.044     0.029%    62.444%      0.000             64   [Builtin]:1647
+                                             YNNPackDelegate   1250.139      2.077      2.068     1.349%    63.793%      0.000             64   [Builtin]:5511
+                                        DYNAMIC_UPDATE_SLICE   1252.216      0.006      0.007     0.005%    63.797%      0.000             64   [Builtin]:1692
+                                        DYNAMIC_UPDATE_SLICE   1252.224      0.089      0.090     0.058%    63.856%      0.000             64   [Builtin]:1693
+                                             YNNPackDelegate   1252.315      2.145      2.118     1.382%    65.238%      0.000             64   [Builtin]:5512
+                                        DYNAMIC_UPDATE_SLICE   1254.461      0.006      0.007     0.005%    65.242%      0.000             64   [Builtin]:1738
+                                        DYNAMIC_UPDATE_SLICE   1254.468      0.090      0.088     0.058%    65.300%      0.000             64   [Builtin]:1739
+                                             YNNPackDelegate   1254.560      2.173      2.101     1.371%    66.671%      0.000             64   [Builtin]:5513
+                                        DYNAMIC_UPDATE_SLICE   1256.734      0.006      0.007     0.004%    66.675%      0.000             64   [Builtin]:1784
+                                        DYNAMIC_UPDATE_SLICE   1256.741      0.088      0.088     0.058%    66.733%      0.000             64   [Builtin]:1785
+                                             YNNPackDelegate   1256.831      2.138      2.098     1.369%    68.101%      0.000             64   [Builtin]:5514
+                                        DYNAMIC_UPDATE_SLICE   1258.969      0.007      0.007     0.004%    68.106%      0.000             64   [Builtin]:1830
+                                        DYNAMIC_UPDATE_SLICE   1258.977      0.088      0.089     0.058%    68.164%      0.000             64   [Builtin]:1831
+                                             YNNPackDelegate   1259.067      2.147      2.092     1.365%    69.529%      0.000             64   [Builtin]:5515
+                                        DYNAMIC_UPDATE_SLICE   1261.215      0.006      0.007     0.005%    69.534%      0.000             64   [Builtin]:1876
+                                        DYNAMIC_UPDATE_SLICE   1261.222      0.088      0.089     0.058%    69.592%      0.000             64   [Builtin]:1877
+                                             YNNPackDelegate   1261.312      2.100      2.084     1.360%    70.951%      0.000             64   [Builtin]:5516
+                                        DYNAMIC_UPDATE_SLICE   1263.413      0.003      0.003     0.002%    70.954%      0.000             64   [Builtin]:1920
+                                        DYNAMIC_UPDATE_SLICE   1263.417      0.044      0.043     0.028%    70.982%      0.000             64   [Builtin]:1921
+                                             YNNPackDelegate   1263.463      2.073      2.077     1.355%    72.337%      0.000             64   [Builtin]:5517
+                                        DYNAMIC_UPDATE_SLICE   1265.537      0.006      0.007     0.004%    72.341%      0.000             64   [Builtin]:1966
+                                        DYNAMIC_UPDATE_SLICE   1265.544      0.091      0.090     0.059%    72.400%      0.000             64   [Builtin]:1967
+                                             YNNPackDelegate   1265.637      2.123      2.119     1.382%    73.783%      0.000             64   [Builtin]:5518
+                                        DYNAMIC_UPDATE_SLICE   1267.761      0.008      0.007     0.005%    73.788%      0.000             64   [Builtin]:2012
+                                        DYNAMIC_UPDATE_SLICE   1267.769      0.091      0.089     0.058%    73.846%      0.000             64   [Builtin]:2013
+                                             YNNPackDelegate   1267.862      2.088      2.104     1.373%    75.218%      0.000             64   [Builtin]:5519
+                                        DYNAMIC_UPDATE_SLICE   1269.951      0.005      0.007     0.005%    75.223%      0.000             64   [Builtin]:2058
+                                        DYNAMIC_UPDATE_SLICE   1269.957      0.087      0.088     0.057%    75.280%      0.000             64   [Builtin]:2059
+                                             YNNPackDelegate   1270.046      2.145      2.104     1.372%    76.653%      0.000             64   [Builtin]:5520
+                                        DYNAMIC_UPDATE_SLICE   1272.192      0.007      0.007     0.005%    76.657%      0.000             64   [Builtin]:2104
+                                        DYNAMIC_UPDATE_SLICE   1272.199      0.084      0.088     0.058%    76.715%      0.000             64   [Builtin]:2105
+                                             YNNPackDelegate   1272.285      2.119      2.112     1.378%    78.092%      0.000             64   [Builtin]:5521
+                                        DYNAMIC_UPDATE_SLICE   1274.405      0.007      0.007     0.004%    78.097%      0.000             64   [Builtin]:2150
+                                        DYNAMIC_UPDATE_SLICE   1274.413      0.090      0.088     0.057%    78.154%      0.000             64   [Builtin]:2151
+                                             YNNPackDelegate   1274.505      2.143      2.093     1.366%    79.520%      0.000             64   [Builtin]:5522
+                                        DYNAMIC_UPDATE_SLICE   1276.649      0.003      0.003     0.002%    79.522%      0.000             64   [Builtin]:2194
+                                        DYNAMIC_UPDATE_SLICE   1276.653      0.043      0.043     0.028%    79.550%      0.000             64   [Builtin]:2195
+                                             YNNPackDelegate   1276.698      2.055      2.072     1.352%    80.902%      0.000             64   [Builtin]:5523
+                                        DYNAMIC_UPDATE_SLICE   1278.753      0.006      0.007     0.005%    80.907%      0.000             64   [Builtin]:2240
+                                        DYNAMIC_UPDATE_SLICE   1278.761      0.088      0.089     0.058%    80.964%      0.000             64   [Builtin]:2241
+                                             YNNPackDelegate   1278.852      2.133      2.122     1.385%    82.349%      0.000             64   [Builtin]:5524
+                                        DYNAMIC_UPDATE_SLICE   1280.986      0.008      0.007     0.005%    82.354%      0.000             64   [Builtin]:2286
+                                        DYNAMIC_UPDATE_SLICE   1280.995      0.089      0.090     0.059%    82.412%      0.000             64   [Builtin]:2287
+                                             YNNPackDelegate   1281.086      2.200      2.106     1.374%    83.786%      0.000             64   [Builtin]:5525
+                                        DYNAMIC_UPDATE_SLICE   1283.287      0.006      0.007     0.005%    83.791%      0.000             64   [Builtin]:2332
+                                        DYNAMIC_UPDATE_SLICE   1283.293      0.090      0.088     0.057%    83.848%      0.000             64   [Builtin]:2333
+                                             YNNPackDelegate   1283.385      2.182      2.112     1.378%    85.226%      0.000             64   [Builtin]:5526
+                                        DYNAMIC_UPDATE_SLICE   1285.568      0.007      0.007     0.005%    85.231%      0.000             64   [Builtin]:2378
+                                        DYNAMIC_UPDATE_SLICE   1285.575      0.085      0.088     0.058%    85.288%      0.000             64   [Builtin]:2379
+                                             YNNPackDelegate   1285.662      2.154      2.106     1.374%    86.662%      0.000             64   [Builtin]:5527
+                                        DYNAMIC_UPDATE_SLICE   1287.817      0.006      0.007     0.004%    86.666%      0.000             64   [Builtin]:2424
+                                        DYNAMIC_UPDATE_SLICE   1287.824      0.089      0.088     0.057%    86.724%      0.000             64   [Builtin]:2425
+                                             YNNPackDelegate   1287.915      2.219      2.100     1.370%    88.093%      0.000             64   [Builtin]:5528
+                                        DYNAMIC_UPDATE_SLICE   1290.135      0.003      0.003     0.002%    88.096%      0.000             64   [Builtin]:2468
+                                        DYNAMIC_UPDATE_SLICE   1290.139      0.046      0.043     0.028%    88.124%      0.000             64   [Builtin]:2469
+                                             YNNPackDelegate   1290.187      2.114      2.068     1.349%    89.473%      0.000             64   [Builtin]:5529
+                                        DYNAMIC_UPDATE_SLICE   1292.302      0.006      0.007     0.004%    89.477%      0.000             64   [Builtin]:2514
+                                        DYNAMIC_UPDATE_SLICE   1292.309      0.086      0.089     0.058%    89.535%      0.000             64   [Builtin]:2515
+                                             YNNPackDelegate   1292.397      2.185      2.114     1.379%    90.914%      0.000             64   [Builtin]:5530
+                                        DYNAMIC_UPDATE_SLICE   1294.583      0.006      0.007     0.004%    90.919%      0.000             64   [Builtin]:2560
+                                        DYNAMIC_UPDATE_SLICE   1294.591      0.088      0.089     0.058%    90.977%      0.000             64   [Builtin]:2561
+                                             YNNPackDelegate   1294.681      2.174      2.097     1.368%    92.345%      0.000             64   [Builtin]:5531
+                                        DYNAMIC_UPDATE_SLICE   1296.856      0.006      0.007     0.004%    92.349%      0.000             64   [Builtin]:2606
+                                        DYNAMIC_UPDATE_SLICE   1296.863      0.086      0.088     0.057%    92.407%      0.000             64   [Builtin]:2607
+                                             YNNPackDelegate   1296.951      2.109      2.098     1.369%    93.776%      0.000             64   [Builtin]:5532
+                                        DYNAMIC_UPDATE_SLICE   1299.061      0.006      0.007     0.005%    93.780%      0.000             64   [Builtin]:2652
+                                        DYNAMIC_UPDATE_SLICE   1299.068      0.091      0.088     0.057%    93.838%      0.000             64   [Builtin]:2653
+                                             YNNPackDelegate   1299.161      2.139      2.088     1.362%    95.199%      0.000             64   [Builtin]:5533
+                                        DYNAMIC_UPDATE_SLICE   1301.301      0.006      0.007     0.004%    95.204%      0.000             64   [Builtin]:2698
+                                        DYNAMIC_UPDATE_SLICE   1301.309      0.089      0.090     0.058%    95.262%      0.000             64   [Builtin]:2699
+                                             YNNPackDelegate   1301.399      2.098      2.087     1.361%    96.624%      0.000             64   [Builtin]:5534
+                                        DYNAMIC_UPDATE_SLICE   1303.498      0.003      0.003     0.002%    96.626%      0.000             64   [Builtin]:2742
+                                        DYNAMIC_UPDATE_SLICE   1303.501      0.043      0.043     0.028%    96.654%      0.000             64   [Builtin]:2743
+                                             YNNPackDelegate   1303.546      5.225      5.129     3.346%   100.000%      0.000             64   [Builtin]:5535
+
+============================================================== Top by Computation Time ===============================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+                                             YNNPackDelegate   1303.546      5.225      5.129     3.346%     3.346%      0.000             64   [Builtin]:5535
+                                             YNNPackDelegate   1171.400      2.373      2.221     1.449%     4.795%      0.000             64   [Builtin]:5476
+                                             YNNPackDelegate   1173.877      2.263      2.157     1.407%     6.202%      0.000             64   [Builtin]:5477
+                                             YNNPackDelegate   1176.242      2.228      2.130     1.389%     7.592%      0.000             64   [Builtin]:5478
+                                             YNNPackDelegate   1225.540      2.176      2.126     1.387%     8.978%      0.000             64   [Builtin]:5500
+                                             YNNPackDelegate   1185.274      2.214      2.124     1.385%    10.364%      0.000             64   [Builtin]:5482
+                                             YNNPackDelegate   1278.852      2.133      2.122     1.385%    11.748%      0.000             64   [Builtin]:5524
+                                             YNNPackDelegate   1178.567      2.174      2.121     1.384%    13.132%      0.000             64   [Builtin]:5479
+                                             YNNPackDelegate   1265.637      2.123      2.119     1.382%    14.515%      0.000             64   [Builtin]:5518
+                                             YNNPackDelegate   1252.315      2.145      2.118     1.382%    15.896%      0.000             64   [Builtin]:5512
+                                             YNNPackDelegate   1238.870      2.188      2.117     1.381%    17.277%      0.000             64   [Builtin]:5506
+                                             YNNPackDelegate   1198.754      2.242      2.117     1.381%    18.658%      0.000             64   [Builtin]:5488
+                                             YNNPackDelegate   1212.234      2.157      2.115     1.380%    20.038%      0.000             64   [Builtin]:5494
+                                             YNNPackDelegate   1227.814      2.159      2.115     1.380%    21.418%      0.000             64   [Builtin]:5501
+                                             YNNPackDelegate   1292.397      2.185      2.114     1.379%    22.797%      0.000             64   [Builtin]:5530
+                                             YNNPackDelegate   1272.285      2.119      2.112     1.378%    24.174%      0.000             64   [Builtin]:5521
+                                             YNNPackDelegate   1283.385      2.182      2.112     1.378%    25.552%      0.000             64   [Builtin]:5526
+                                             YNNPackDelegate   1216.737      2.113      2.110     1.376%    26.928%      0.000             64   [Builtin]:5496
+                                             YNNPackDelegate   1205.660      2.152      2.106     1.374%    28.302%      0.000             64   [Builtin]:5491
+                                             YNNPackDelegate   1281.086      2.200      2.106     1.374%    29.676%      0.000             64   [Builtin]:5525
+                                             YNNPackDelegate   1285.662      2.154      2.106     1.374%    31.050%      0.000             64   [Builtin]:5527
+                                             YNNPackDelegate   1214.492      2.148      2.105     1.373%    32.423%      0.000             64   [Builtin]:5495
+                                             YNNPackDelegate   1232.290      2.113      2.105     1.373%    33.796%      0.000             64   [Builtin]:5503
+                                             YNNPackDelegate   1230.070      2.123      2.104     1.373%    35.169%      0.000             64   [Builtin]:5502
+                                             YNNPackDelegate   1189.843      2.179      2.104     1.373%    36.542%      0.000             64   [Builtin]:5484
+                                             YNNPackDelegate   1267.862      2.088      2.104     1.373%    37.915%      0.000             64   [Builtin]:5519
+                                             YNNPackDelegate   1270.046      2.145      2.104     1.372%    39.287%      0.000             64   [Builtin]:5520
+                                             YNNPackDelegate   1218.944      2.171      2.103     1.372%    40.659%      0.000             64   [Builtin]:5497
+                                             YNNPackDelegate   1234.500      2.154      2.103     1.372%    42.031%      0.000             64   [Builtin]:5504
+                                             YNNPackDelegate   1201.091      2.189      2.103     1.372%    43.403%      0.000             64   [Builtin]:5489
+                                             YNNPackDelegate   1203.380      2.185      2.103     1.372%    44.775%      0.000             64   [Builtin]:5490
+                                             YNNPackDelegate   1254.560      2.173      2.101     1.371%    46.146%      0.000             64   [Builtin]:5513
+                                             YNNPackDelegate   1187.586      2.159      2.101     1.370%    47.516%      0.000             64   [Builtin]:5483
+                                             YNNPackDelegate   1243.380      2.207      2.100     1.370%    48.886%      0.000             64   [Builtin]:5508
+                                             YNNPackDelegate   1287.915      2.219      2.100     1.370%    50.256%      0.000             64   [Builtin]:5528
+                                             YNNPackDelegate   1241.160      2.123      2.099     1.369%    51.625%      0.000             64   [Builtin]:5507
+                                             YNNPackDelegate   1296.951      2.109      2.098     1.369%    52.994%      0.000             64   [Builtin]:5532
+                                             YNNPackDelegate   1256.831      2.138      2.098     1.369%    54.363%      0.000             64   [Builtin]:5514
+                                             YNNPackDelegate   1221.218      2.117      2.097     1.368%    55.731%      0.000             64   [Builtin]:5498
+                                             YNNPackDelegate   1192.120      2.166      2.097     1.368%    57.099%      0.000             64   [Builtin]:5485
+                                             YNNPackDelegate   1294.681      2.174      2.097     1.368%    58.467%      0.000             64   [Builtin]:5531
+                                             YNNPackDelegate   1245.684      2.164      2.097     1.368%    59.835%      0.000             64   [Builtin]:5509
+                                             YNNPackDelegate   1207.906      2.130      2.096     1.367%    61.202%      0.000             64   [Builtin]:5492
+                                             YNNPackDelegate   1194.384      2.162      2.094     1.366%    62.568%      0.000             64   [Builtin]:5486
+                                             YNNPackDelegate   1274.505      2.143      2.093     1.366%    63.934%      0.000             64   [Builtin]:5522
+                                             YNNPackDelegate   1180.840      2.211      2.093     1.366%    65.300%      0.000             64   [Builtin]:5480
+                                             YNNPackDelegate   1247.947      2.143      2.093     1.365%    66.665%      0.000             64   [Builtin]:5510
+                                             YNNPackDelegate   1259.067      2.147      2.092     1.365%    68.030%      0.000             64   [Builtin]:5515
+                                             YNNPackDelegate   1299.161      2.139      2.088     1.362%    69.392%      0.000             64   [Builtin]:5533
+                                             YNNPackDelegate   1301.399      2.098      2.087     1.361%    70.753%      0.000             64   [Builtin]:5534
+                                             YNNPackDelegate   1261.312      2.100      2.084     1.360%    72.113%      0.000             64   [Builtin]:5516
+                                             YNNPackDelegate   1223.384      2.062      2.083     1.359%    73.471%      0.000             64   [Builtin]:5499
+                                             YNNPackDelegate   1263.463      2.073      2.077     1.355%    74.827%      0.000             64   [Builtin]:5517
+                                             YNNPackDelegate   1183.101      2.074      2.076     1.354%    76.181%      0.000             64   [Builtin]:5481
+                                             YNNPackDelegate   1276.698      2.055      2.072     1.352%    77.533%      0.000             64   [Builtin]:5523
+                                             YNNPackDelegate   1236.702      2.070      2.071     1.351%    78.884%      0.000             64   [Builtin]:5505
+                                             YNNPackDelegate   1250.139      2.077      2.068     1.349%    80.233%      0.000             64   [Builtin]:5511
+                                             YNNPackDelegate   1290.187      2.114      2.068     1.349%    81.582%      0.000             64   [Builtin]:5529
+                                             YNNPackDelegate   1196.595      2.061      2.066     1.348%    82.930%      0.000             64   [Builtin]:5487
+                                             YNNPackDelegate   1210.085      2.045      2.066     1.348%    84.278%      0.000             64   [Builtin]:5493
+                                             YNNPackDelegate   1170.281      1.009      0.700     0.457%    84.735%      0.000             64   [Builtin]:5475
+                                             YNNPackDelegate      7.907     23.784     23.784     0.242%    84.977%      0.000              1   [Builtin]:5831
+                                             YNNPackDelegate    111.704     23.420     23.420     0.239%    85.216%      0.000              1   [Builtin]:5836
+                                             YNNPackDelegate    230.769     21.947     21.947     0.224%    85.439%      0.000              1   [Builtin]:5842
+                                             YNNPackDelegate    463.198     21.594     21.594     0.220%    85.660%      0.000              1   [Builtin]:5854
+                                             YNNPackDelegate    698.405     21.395     21.395     0.218%    85.878%      0.000              1   [Builtin]:5866
+                                             YNNPackDelegate    580.997     20.947     20.947     0.214%    86.091%      0.000              1   [Builtin]:5860
+                                             YNNPackDelegate    347.791     20.770     20.770     0.212%    86.303%      0.000              1   [Builtin]:5848
+                                             YNNPackDelegate    816.664     20.744     20.744     0.211%    86.514%      0.000              1   [Builtin]:5872
+                                             YNNPackDelegate    931.238     20.586     20.586     0.210%    86.724%      0.000              1   [Builtin]:5878
+                                             YNNPackDelegate   1047.323     20.241     20.241     0.206%    86.930%      0.000              1   [Builtin]:5884
+                                             YNNPackDelegate     32.602     19.518     19.518     0.199%    87.129%      0.000              1   [Builtin]:5832
+                                             YNNPackDelegate    136.071     19.168     19.168     0.195%    87.325%      0.000              1   [Builtin]:5837
+                                             YNNPackDelegate    485.688     19.126     19.126     0.195%    87.520%      0.000              1   [Builtin]:5855
+                                             YNNPackDelegate   1009.390     19.046     19.046     0.194%    87.714%      0.000              1   [Builtin]:5882
+                                             YNNPackDelegate    739.394     18.995     18.995     0.194%    87.908%      0.000              1   [Builtin]:5868
+                                             YNNPackDelegate    778.570     18.870     18.870     0.192%    88.100%      0.000              1   [Builtin]:5870
+                                             YNNPackDelegate     92.389     18.845     18.845     0.192%    88.292%      0.000              1   [Builtin]:5835
+                                             YNNPackDelegate    679.183     18.746     18.746     0.191%    88.483%      0.000              1   [Builtin]:5865
+                                             YNNPackDelegate     72.735     18.713     18.713     0.191%    88.674%      0.000              1   [Builtin]:5834
+                                             YNNPackDelegate     53.090     18.706     18.706     0.191%    88.864%      0.000              1   [Builtin]:5833
+                                             YNNPackDelegate    253.644     18.703     18.703     0.191%    89.055%      0.000              1   [Builtin]:5843
+                                             YNNPackDelegate    659.635     18.574     18.574     0.189%    89.244%      0.000              1   [Builtin]:5864
+                                             YNNPackDelegate    561.988     18.559     18.559     0.189%    89.434%      0.000              1   [Builtin]:5859
+                                             YNNPackDelegate    156.175     18.387     18.387     0.187%    89.621%      0.000              1   [Builtin]:5838
+                                             YNNPackDelegate    759.322     18.311     18.311     0.187%    89.808%      0.000              1   [Builtin]:5869
+                                             YNNPackDelegate    425.987     18.223     18.223     0.186%    89.993%      0.000              1   [Builtin]:5852
+                                             YNNPackDelegate    838.365     18.204     18.204     0.186%    90.179%      0.000              1   [Builtin]:5873
+                                             YNNPackDelegate    602.817     18.066     18.066     0.184%    90.363%      0.000              1   [Builtin]:5861
+                                             YNNPackDelegate    971.646     18.033     18.033     0.184%    90.547%      0.000              1   [Builtin]:5880
+                                             YNNPackDelegate    524.279     18.030     18.030     0.184%    90.731%      0.000              1   [Builtin]:5857
+                                             YNNPackDelegate    621.806     18.010     18.010     0.184%    90.914%      0.000              1   [Builtin]:5862
+                                             YNNPackDelegate    310.540     17.992     17.992     0.183%    91.098%      0.000              1   [Builtin]:5846
+                                             YNNPackDelegate    388.347     17.989     17.989     0.183%    91.281%      0.000              1   [Builtin]:5850
+                                             YNNPackDelegate   1068.456     17.978     17.978     0.183%    91.464%      0.000              1   [Builtin]:5885
+                                             YNNPackDelegate    640.751     17.939     17.939     0.183%    91.647%      0.000              1   [Builtin]:5863
+                                             YNNPackDelegate    952.770     17.937     17.937     0.183%    91.830%      0.000              1   [Builtin]:5879
+                                             YNNPackDelegate    369.502     17.928     17.928     0.183%    92.013%      0.000              1   [Builtin]:5849
+                                             YNNPackDelegate   1087.345     17.892     17.892     0.182%    92.195%      0.000              1   [Builtin]:5886
+                                             YNNPackDelegate    990.594     17.891     17.891     0.182%    92.377%      0.000              1   [Builtin]:5881
+                                             YNNPackDelegate    543.208     17.871     17.871     0.182%    92.560%      0.000              1   [Builtin]:5858
+                                             YNNPackDelegate    407.251     17.863     17.863     0.182%    92.742%      0.000              1   [Builtin]:5851
+                                             YNNPackDelegate    329.471     17.844     17.844     0.182%    92.924%      0.000              1   [Builtin]:5847
+                                             YNNPackDelegate    857.502     17.843     17.843     0.182%    93.105%      0.000              1   [Builtin]:5874
+                                             YNNPackDelegate    798.407     17.774     17.774     0.181%    93.287%      0.000              1   [Builtin]:5871
+                                             YNNPackDelegate    175.489     17.768     17.768     0.181%    93.468%      0.000              1   [Builtin]:5839
+                                             YNNPackDelegate    273.301     17.730     17.730     0.181%    93.648%      0.000              1   [Builtin]:5844
+                                             YNNPackDelegate    720.730     17.730     17.730     0.181%    93.829%      0.000              1   [Builtin]:5867
+                                             YNNPackDelegate    913.032     17.719     17.719     0.181%    94.010%      0.000              1   [Builtin]:5877
+                                             YNNPackDelegate   1106.181     17.704     17.704     0.180%    94.190%      0.000              1   [Builtin]:5887
+                                             YNNPackDelegate   1124.726     17.688     17.688     0.180%    94.371%      0.000              1   [Builtin]:5888
+                                             YNNPackDelegate    505.738     17.668     17.668     0.180%    94.551%      0.000              1   [Builtin]:5856
+                                             YNNPackDelegate    291.972     17.630     17.630     0.180%    94.730%      0.000              1   [Builtin]:5845
+                                             YNNPackDelegate    194.172     17.623     17.623     0.180%    94.910%      0.000              1   [Builtin]:5840
+                                             YNNPackDelegate    445.137     17.604     17.604     0.179%    95.089%      0.000              1   [Builtin]:5853
+                                             YNNPackDelegate    212.725     17.566     17.566     0.179%    95.268%      0.000              1   [Builtin]:5841
+                                             YNNPackDelegate    894.554     17.536     17.536     0.179%    95.447%      0.000              1   [Builtin]:5876
+                                             YNNPackDelegate   1029.348     17.499     17.499     0.178%    95.626%      0.000              1   [Builtin]:5883
+                                             YNNPackDelegate    876.269     17.359     17.359     0.177%    95.803%      0.000              1   [Builtin]:5875
+                                             YNNPackDelegate   1143.305     17.162     17.162     0.175%    95.977%      0.000              1   [Builtin]:5889
+                                             YNNPackDelegate      0.743      6.258      6.258     0.064%    96.041%      0.000              1   [Builtin]:5830
+                                        DYNAMIC_UPDATE_SLICE   1185.183      0.089      0.091     0.059%    96.100%      0.000             64   [Builtin]:323
+                                        DYNAMIC_UPDATE_SLICE   1214.399      0.091      0.091     0.059%    96.160%      0.000             64   [Builtin]:917
+                                        DYNAMIC_UPDATE_SLICE   1265.544      0.091      0.090     0.059%    96.218%      0.000             64   [Builtin]:1967
+                                        DYNAMIC_UPDATE_SLICE   1280.995      0.089      0.090     0.059%    96.277%      0.000             64   [Builtin]:2287
+                                        DYNAMIC_UPDATE_SLICE   1218.858      0.084      0.090     0.058%    96.336%      0.000             64   [Builtin]:1009
+                                        DYNAMIC_UPDATE_SLICE   1252.224      0.089      0.090     0.058%    96.394%      0.000             64   [Builtin]:1693
+                                        DYNAMIC_UPDATE_SLICE   1301.309      0.089      0.090     0.058%    96.453%      0.000             64   [Builtin]:2699
+                                        DYNAMIC_UPDATE_SLICE   1258.977      0.088      0.089     0.058%    96.511%      0.000             64   [Builtin]:1831
+                                        DYNAMIC_UPDATE_SLICE   1267.769      0.091      0.089     0.058%    96.569%      0.000             64   [Builtin]:2013
+                                        DYNAMIC_UPDATE_SLICE   1241.064      0.094      0.089     0.058%    96.627%      0.000             64   [Builtin]:1465
+                                        DYNAMIC_UPDATE_SLICE   1261.222      0.088      0.089     0.058%    96.685%      0.000             64   [Builtin]:1877
+                                        DYNAMIC_UPDATE_SLICE   1225.454      0.084      0.089     0.058%    96.744%      0.000             64   [Builtin]:1145
+                                        DYNAMIC_UPDATE_SLICE   1194.294      0.088      0.089     0.058%    96.802%      0.000             64   [Builtin]:507
+                                        DYNAMIC_UPDATE_SLICE   1238.779      0.089      0.089     0.058%    96.860%      0.000             64   [Builtin]:1419
+                                        DYNAMIC_UPDATE_SLICE   1203.288      0.090      0.089     0.058%    96.918%      0.000             64   [Builtin]:689
+                                        DYNAMIC_UPDATE_SLICE   1294.591      0.088      0.089     0.058%    96.976%      0.000             64   [Builtin]:2561
+                                        DYNAMIC_UPDATE_SLICE   1292.309      0.086      0.089     0.058%    97.034%      0.000             64   [Builtin]:2515
+                                        DYNAMIC_UPDATE_SLICE   1221.122      0.094      0.089     0.058%    97.091%      0.000             64   [Builtin]:1055
+                                        DYNAMIC_UPDATE_SLICE   1278.761      0.088      0.089     0.058%    97.149%      0.000             64   [Builtin]:2241
+                                        DYNAMIC_UPDATE_SLICE   1234.411      0.087      0.089     0.058%    97.207%      0.000             64   [Builtin]:1329
+                                        DYNAMIC_UPDATE_SLICE   1187.496      0.088      0.089     0.058%    97.265%      0.000             64   [Builtin]:369
+                                        DYNAMIC_UPDATE_SLICE   1247.858      0.087      0.089     0.058%    97.323%      0.000             64   [Builtin]:1603
+                                        DYNAMIC_UPDATE_SLICE   1198.664      0.088      0.089     0.058%    97.381%      0.000             64   [Builtin]:597
+                                        DYNAMIC_UPDATE_SLICE   1254.468      0.090      0.088     0.058%    97.438%      0.000             64   [Builtin]:1739
+                                        DYNAMIC_UPDATE_SLICE   1207.820      0.084      0.088     0.058%    97.496%      0.000             64   [Builtin]:781
+                                        DYNAMIC_UPDATE_SLICE   1176.149      0.092      0.088     0.058%    97.554%      0.000             64   [Builtin]:140
+                                        DYNAMIC_UPDATE_SLICE   1232.201      0.086      0.088     0.058%    97.611%      0.000             64   [Builtin]:1283
+                                        DYNAMIC_UPDATE_SLICE   1272.199      0.084      0.088     0.058%    97.669%      0.000             64   [Builtin]:2105
+                                        DYNAMIC_UPDATE_SLICE   1256.741      0.088      0.088     0.058%    97.726%      0.000             64   [Builtin]:1785
+                                        DYNAMIC_UPDATE_SLICE   1201.004      0.085      0.088     0.058%    97.784%      0.000             64   [Builtin]:643
+                                        DYNAMIC_UPDATE_SLICE   1180.748      0.090      0.088     0.058%    97.842%      0.000             64   [Builtin]:232
+                                        DYNAMIC_UPDATE_SLICE   1285.575      0.085      0.088     0.058%    97.899%      0.000             64   [Builtin]:2379
+                                        DYNAMIC_UPDATE_SLICE   1205.573      0.085      0.088     0.058%    97.957%      0.000             64   [Builtin]:735
+                                        DYNAMIC_UPDATE_SLICE   1227.724      0.087      0.088     0.057%    98.014%      0.000             64   [Builtin]:1191
+                                        DYNAMIC_UPDATE_SLICE   1212.138      0.094      0.088     0.057%    98.072%      0.000             64   [Builtin]:871
+                                        DYNAMIC_UPDATE_SLICE   1287.824      0.089      0.088     0.057%    98.129%      0.000             64   [Builtin]:2425
+                                        DYNAMIC_UPDATE_SLICE   1296.863      0.086      0.088     0.057%    98.186%      0.000             64   [Builtin]:2607
+                                        DYNAMIC_UPDATE_SLICE   1245.594      0.088      0.088     0.057%    98.244%      0.000             64   [Builtin]:1557
+                                        DYNAMIC_UPDATE_SLICE   1269.957      0.087      0.088     0.057%    98.301%      0.000             64   [Builtin]:2059
+                                        DYNAMIC_UPDATE_SLICE   1283.293      0.090      0.088     0.057%    98.358%      0.000             64   [Builtin]:2333
+                                        DYNAMIC_UPDATE_SLICE   1173.786      0.089      0.088     0.057%    98.416%      0.000             64   [Builtin]:94
+                                        DYNAMIC_UPDATE_SLICE   1189.752      0.090      0.088     0.057%    98.473%      0.000             64   [Builtin]:415
+                                        DYNAMIC_UPDATE_SLICE   1274.413      0.090      0.088     0.057%    98.531%      0.000             64   [Builtin]:2151
+                                        DYNAMIC_UPDATE_SLICE   1299.068      0.091      0.088     0.057%    98.588%      0.000             64   [Builtin]:2653
+                                        DYNAMIC_UPDATE_SLICE   1229.981      0.087      0.088     0.057%    98.645%      0.000             64   [Builtin]:1237
+                                        DYNAMIC_UPDATE_SLICE   1216.648      0.087      0.088     0.057%    98.702%      0.000             64   [Builtin]:963
+                                        DYNAMIC_UPDATE_SLICE   1192.030      0.088      0.087     0.057%    98.759%      0.000             64   [Builtin]:461
+                                        DYNAMIC_UPDATE_SLICE   1243.289      0.089      0.087     0.057%    98.816%      0.000             64   [Builtin]:1511
+                                        DYNAMIC_UPDATE_SLICE   1171.307      0.091      0.087     0.057%    98.873%      0.000             64   [Builtin]:47
+                                        DYNAMIC_UPDATE_SLICE   1178.479      0.087      0.086     0.056%    98.929%      0.000             64   [Builtin]:186
+                                        DYNAMIC_UPDATE_SLICE   1250.094      0.043      0.044     0.029%    98.958%      0.000             64   [Builtin]:1647
+                                        DYNAMIC_UPDATE_SLICE   1223.340      0.042      0.044     0.028%    98.986%      0.000             64   [Builtin]:1099
+                                        DYNAMIC_UPDATE_SLICE   1196.550      0.043      0.043     0.028%    99.015%      0.000             64   [Builtin]:551
+                                        DYNAMIC_UPDATE_SLICE   1183.055      0.044      0.043     0.028%    99.043%      0.000             64   [Builtin]:276
+                                        DYNAMIC_UPDATE_SLICE   1236.657      0.044      0.043     0.028%    99.071%      0.000             64   [Builtin]:1373
+                                        DYNAMIC_UPDATE_SLICE   1290.139      0.046      0.043     0.028%    99.099%      0.000             64   [Builtin]:2469
+                                        DYNAMIC_UPDATE_SLICE   1263.417      0.044      0.043     0.028%    99.127%      0.000             64   [Builtin]:1921
+                                        DYNAMIC_UPDATE_SLICE   1303.501      0.043      0.043     0.028%    99.156%      0.000             64   [Builtin]:2743
+                                        DYNAMIC_UPDATE_SLICE   1210.041      0.042      0.043     0.028%    99.184%      0.000             64   [Builtin]:825
+                                        DYNAMIC_UPDATE_SLICE   1276.653      0.043      0.043     0.028%    99.212%      0.000             64   [Builtin]:2195
+                                        DYNAMIC_UPDATE_SLICE    272.690      0.610      0.610     0.006%    99.218%      0.000              1   [Builtin]:688
+                                        DYNAMIC_UPDATE_SLICE    797.795      0.610      0.610     0.006%    99.224%      0.000              1   [Builtin]:2003
+                                        DYNAMIC_UPDATE_SLICE    837.756      0.608      0.608     0.006%    99.230%      0.000              1   [Builtin]:2099
+                                        DYNAMIC_UPDATE_SLICE   1105.575      0.604      0.604     0.006%    99.236%      0.000              1   [Builtin]:2781
+                                        DYNAMIC_UPDATE_SLICE    174.886      0.602      0.602     0.006%    99.243%      0.000              1   [Builtin]:445
+                                        DYNAMIC_UPDATE_SLICE     91.786      0.601      0.601     0.006%    99.249%      0.000              1   [Builtin]:248
+                                        DYNAMIC_UPDATE_SLICE    253.043      0.600      0.600     0.006%    99.255%      0.000              1   [Builtin]:639
+                                        DYNAMIC_UPDATE_SLICE    678.580      0.600      0.600     0.006%    99.261%      0.000              1   [Builtin]:1711
+                                        DYNAMIC_UPDATE_SLICE    212.125      0.599      0.599     0.006%    99.267%      0.000              1   [Builtin]:543
+                                        DYNAMIC_UPDATE_SLICE    291.371      0.599      0.599     0.006%    99.273%      0.000              1   [Builtin]:737
+                                        DYNAMIC_UPDATE_SLICE     72.135      0.598      0.598     0.006%    99.279%      0.000              1   [Builtin]:199
+                                        DYNAMIC_UPDATE_SLICE    738.796      0.597      0.597     0.006%    99.285%      0.000              1   [Builtin]:1856
+                                        DYNAMIC_UPDATE_SLICE    758.724      0.597      0.597     0.006%    99.291%      0.000              1   [Builtin]:1905
+                                        DYNAMIC_UPDATE_SLICE    971.048      0.597      0.597     0.006%    99.297%      0.000              1   [Builtin]:2440
+                                        DYNAMIC_UPDATE_SLICE    135.473      0.596      0.596     0.006%    99.303%      0.000              1   [Builtin]:347
+                                        DYNAMIC_UPDATE_SLICE    328.873      0.596      0.596     0.006%    99.310%      0.000              1   [Builtin]:835
+                                        DYNAMIC_UPDATE_SLICE    856.905      0.596      0.596     0.006%    99.316%      0.000              1   [Builtin]:2148
+                                        DYNAMIC_UPDATE_SLICE    912.434      0.596      0.596     0.006%    99.322%      0.000              1   [Builtin]:2295
+                                        DYNAMIC_UPDATE_SLICE    193.575      0.595      0.595     0.006%    99.328%      0.000              1   [Builtin]:494
+                                        DYNAMIC_UPDATE_SLICE     52.494      0.594      0.594     0.006%    99.334%      0.000              1   [Builtin]:150
+                                        DYNAMIC_UPDATE_SLICE    155.579      0.594      0.594     0.006%    99.340%      0.000              1   [Builtin]:396
+                                        DYNAMIC_UPDATE_SLICE    368.906      0.594      0.594     0.006%    99.346%      0.000              1   [Builtin]:931
+                                        DYNAMIC_UPDATE_SLICE    777.974      0.594      0.594     0.006%    99.352%      0.000              1   [Builtin]:1954
+                                        DYNAMIC_UPDATE_SLICE    952.176      0.593      0.593     0.006%    99.358%      0.000              1   [Builtin]:2391
+                                        DYNAMIC_UPDATE_SLICE    720.136      0.592      0.592     0.006%    99.364%      0.000              1   [Builtin]:1807
+                                        DYNAMIC_UPDATE_SLICE    659.044      0.589      0.589     0.006%    99.370%      0.000              1   [Builtin]:1662
+                                        DYNAMIC_UPDATE_SLICE    387.758      0.587      0.587     0.006%    99.376%      0.000              1   [Builtin]:980
+                                        DYNAMIC_UPDATE_SLICE    875.682      0.586      0.586     0.006%    99.382%      0.000              1   [Builtin]:2197
+                                        DYNAMIC_UPDATE_SLICE    640.165      0.585      0.585     0.006%    99.388%      0.000              1   [Builtin]:1613
+                                        DYNAMIC_UPDATE_SLICE    893.967      0.585      0.585     0.006%    99.394%      0.000              1   [Builtin]:2246
+                                        DYNAMIC_UPDATE_SLICE    444.551      0.584      0.584     0.006%    99.400%      0.000              1   [Builtin]:1127
+                                        DYNAMIC_UPDATE_SLICE    309.956      0.583      0.583     0.006%    99.406%      0.000              1   [Builtin]:786
+                                        DYNAMIC_UPDATE_SLICE   1008.807      0.581      0.581     0.006%    99.412%      0.000              1   [Builtin]:2538
+                                        DYNAMIC_UPDATE_SLICE    990.012      0.580      0.580     0.006%    99.418%      0.000              1   [Builtin]:2489
+                                        DYNAMIC_UPDATE_SLICE   1028.767      0.579      0.579     0.006%    99.424%      0.000              1   [Builtin]:2587
+                                        DYNAMIC_UPDATE_SLICE    406.675      0.574      0.574     0.006%    99.429%      0.000              1   [Builtin]:1029
+                                        DYNAMIC_UPDATE_SLICE    505.163      0.573      0.573     0.006%    99.435%      0.000              1   [Builtin]:1272
+                                        DYNAMIC_UPDATE_SLICE    561.417      0.569      0.569     0.006%    99.441%      0.000              1   [Builtin]:1419
+                                        DYNAMIC_UPDATE_SLICE   1142.738      0.566      0.566     0.006%    99.447%      0.000              1   [Builtin]:2879
+                                        DYNAMIC_UPDATE_SLICE     32.036      0.564      0.564     0.006%    99.453%      0.000              1   [Builtin]:101
+                                        DYNAMIC_UPDATE_SLICE      7.343      0.563      0.563     0.006%    99.458%      0.000              1   [Builtin]:51
+                                        DYNAMIC_UPDATE_SLICE    485.125      0.562      0.562     0.006%    99.464%      0.000              1   [Builtin]:1223
+                                        DYNAMIC_UPDATE_SLICE   1067.894      0.560      0.560     0.006%    99.470%      0.000              1   [Builtin]:2683
+                                        DYNAMIC_UPDATE_SLICE    542.648      0.558      0.558     0.006%    99.475%      0.000              1   [Builtin]:1370
+                                        DYNAMIC_UPDATE_SLICE   1086.787      0.556      0.556     0.006%    99.481%      0.000              1   [Builtin]:2732
+                                        DYNAMIC_UPDATE_SLICE    621.257      0.548      0.548     0.006%    99.487%      0.000              1   [Builtin]:1564
+                                        DYNAMIC_UPDATE_SLICE    425.439      0.546      0.546     0.006%    99.492%      0.000              1   [Builtin]:1078
+                                        DYNAMIC_UPDATE_SLICE    523.738      0.539      0.539     0.005%    99.498%      0.000              1   [Builtin]:1321
+                                        DYNAMIC_UPDATE_SLICE    602.282      0.533      0.533     0.005%    99.503%      0.000              1   [Builtin]:1515
+                                        DYNAMIC_UPDATE_SLICE   1173.773      0.012      0.008     0.005%    99.509%      0.000             64   [Builtin]:93
+                                        DYNAMIC_UPDATE_SLICE   1124.220      0.504      0.504     0.005%    99.514%      0.000              1   [Builtin]:2830
+                                        DYNAMIC_UPDATE_SLICE   1178.470      0.008      0.007     0.005%    99.519%      0.000             64   [Builtin]:185
+                                        DYNAMIC_UPDATE_SLICE   1176.141      0.006      0.007     0.005%    99.523%      0.000             64   [Builtin]:139
+                                        DYNAMIC_UPDATE_SLICE   1267.761      0.008      0.007     0.005%    99.528%      0.000             64   [Builtin]:2012
+                                        DYNAMIC_UPDATE_SLICE   1241.058      0.005      0.007     0.005%    99.533%      0.000             64   [Builtin]:1464
+                                        DYNAMIC_UPDATE_SLICE   1227.717      0.006      0.007     0.005%    99.538%      0.000             64   [Builtin]:1190
+                                        DYNAMIC_UPDATE_SLICE   1192.023      0.006      0.007     0.005%    99.542%      0.000             64   [Builtin]:460
+                                        DYNAMIC_UPDATE_SLICE   1180.742      0.005      0.007     0.005%    99.547%      0.000             64   [Builtin]:231
+                                        DYNAMIC_UPDATE_SLICE   1280.986      0.008      0.007     0.005%    99.552%      0.000             64   [Builtin]:2286
+                                        DYNAMIC_UPDATE_SLICE   1218.851      0.006      0.007     0.005%    99.556%      0.000             64   [Builtin]:1008
+                                        DYNAMIC_UPDATE_SLICE   1254.461      0.006      0.007     0.005%    99.561%      0.000             64   [Builtin]:1738
+                                        DYNAMIC_UPDATE_SLICE   1283.287      0.006      0.007     0.005%    99.566%      0.000             64   [Builtin]:2332
+                                        DYNAMIC_UPDATE_SLICE   1194.287      0.006      0.007     0.005%    99.570%      0.000             64   [Builtin]:506
+                                        DYNAMIC_UPDATE_SLICE   1232.194      0.006      0.007     0.005%    99.575%      0.000             64   [Builtin]:1282
+                                        DYNAMIC_UPDATE_SLICE   1185.176      0.006      0.007     0.005%    99.579%      0.000             64   [Builtin]:322
+                                        DYNAMIC_UPDATE_SLICE   1214.392      0.006      0.007     0.005%    99.584%      0.000             64   [Builtin]:916
+                                        DYNAMIC_UPDATE_SLICE   1200.997      0.006      0.007     0.005%    99.589%      0.000             64   [Builtin]:642
+                                        DYNAMIC_UPDATE_SLICE   1245.588      0.005      0.007     0.005%    99.593%      0.000             64   [Builtin]:1556
+                                        DYNAMIC_UPDATE_SLICE   1285.568      0.007      0.007     0.005%    99.598%      0.000             64   [Builtin]:2378
+                                        DYNAMIC_UPDATE_SLICE   1261.215      0.006      0.007     0.005%    99.602%      0.000             64   [Builtin]:1876
+                                        DYNAMIC_UPDATE_SLICE   1216.640      0.007      0.007     0.005%    99.607%      0.000             64   [Builtin]:962
+                                        DYNAMIC_UPDATE_SLICE   1252.216      0.006      0.007     0.005%    99.612%      0.000             64   [Builtin]:1692
+                                        DYNAMIC_UPDATE_SLICE   1269.951      0.005      0.007     0.005%    99.616%      0.000             64   [Builtin]:2058
+                                        DYNAMIC_UPDATE_SLICE   1272.192      0.007      0.007     0.005%    99.621%      0.000             64   [Builtin]:2104
+                                        DYNAMIC_UPDATE_SLICE   1189.746      0.005      0.007     0.005%    99.625%      0.000             64   [Builtin]:414
+                                        DYNAMIC_UPDATE_SLICE   1278.753      0.006      0.007     0.005%    99.630%      0.000             64   [Builtin]:2240
+                                        DYNAMIC_UPDATE_SLICE   1187.489      0.006      0.007     0.005%    99.634%      0.000             64   [Builtin]:368
+                                        DYNAMIC_UPDATE_SLICE   1234.404      0.006      0.007     0.005%    99.639%      0.000             64   [Builtin]:1328
+                                        DYNAMIC_UPDATE_SLICE   1299.061      0.006      0.007     0.005%    99.644%      0.000             64   [Builtin]:2652
+                                        DYNAMIC_UPDATE_SLICE   1198.657      0.006      0.007     0.005%    99.648%      0.000             64   [Builtin]:596
+                                        DYNAMIC_UPDATE_SLICE   1225.447      0.006      0.007     0.005%    99.653%      0.000             64   [Builtin]:1144
+                                        DYNAMIC_UPDATE_SLICE   1247.849      0.008      0.007     0.005%    99.657%      0.000             64   [Builtin]:1602
+                                        DYNAMIC_UPDATE_SLICE   1207.813      0.006      0.007     0.005%    99.662%      0.000             64   [Builtin]:780
+                                        DYNAMIC_UPDATE_SLICE   1212.131      0.006      0.007     0.005%    99.666%      0.000             64   [Builtin]:870
+                                        DYNAMIC_UPDATE_SLICE   1256.734      0.006      0.007     0.004%    99.671%      0.000             64   [Builtin]:1784
+                                        DYNAMIC_UPDATE_SLICE   1274.405      0.007      0.007     0.004%    99.675%      0.000             64   [Builtin]:2150
+                                        DYNAMIC_UPDATE_SLICE   1229.974      0.006      0.007     0.004%    99.680%      0.000             64   [Builtin]:1236
+                                        DYNAMIC_UPDATE_SLICE   1294.583      0.006      0.007     0.004%    99.684%      0.000             64   [Builtin]:2560
+                                        DYNAMIC_UPDATE_SLICE   1301.301      0.006      0.007     0.004%    99.688%      0.000             64   [Builtin]:2698
+                                        DYNAMIC_UPDATE_SLICE   1287.817      0.006      0.007     0.004%    99.693%      0.000             64   [Builtin]:2424
+                                        DYNAMIC_UPDATE_SLICE   1292.302      0.006      0.007     0.004%    99.697%      0.000             64   [Builtin]:2514
+                                        DYNAMIC_UPDATE_SLICE   1265.537      0.006      0.007     0.004%    99.702%      0.000             64   [Builtin]:1966
+                                        DYNAMIC_UPDATE_SLICE   1205.566      0.006      0.007     0.004%    99.706%      0.000             64   [Builtin]:734
+                                        DYNAMIC_UPDATE_SLICE   1296.856      0.006      0.007     0.004%    99.711%      0.000             64   [Builtin]:2606
+                                        DYNAMIC_UPDATE_SLICE   1243.283      0.005      0.007     0.004%    99.715%      0.000             64   [Builtin]:1510
+                                        DYNAMIC_UPDATE_SLICE   1238.772      0.006      0.007     0.004%    99.719%      0.000             64   [Builtin]:1418
+                                        DYNAMIC_UPDATE_SLICE   1203.281      0.006      0.007     0.004%    99.724%      0.000             64   [Builtin]:688
+                                        DYNAMIC_UPDATE_SLICE   1258.969      0.007      0.007     0.004%    99.728%      0.000             64   [Builtin]:1830
+                                        DYNAMIC_UPDATE_SLICE   1221.116      0.005      0.007     0.004%    99.732%      0.000             64   [Builtin]:1054
+                                        DYNAMIC_UPDATE_SLICE   1171.298      0.007      0.006     0.004%    99.736%      0.000             64   [Builtin]:45
+                                        DYNAMIC_UPDATE_SLICE    620.885      0.371      0.371     0.004%    99.740%      0.000              1   [Builtin]:1563
+                                        DYNAMIC_UPDATE_SLICE     52.123      0.369      0.369     0.004%    99.744%      0.000              1   [Builtin]:149
+                                        DYNAMIC_UPDATE_SLICE    678.211      0.368      0.368     0.004%    99.748%      0.000              1   [Builtin]:1710
+                                        DYNAMIC_UPDATE_SLICE    658.692      0.352      0.352     0.004%    99.751%      0.000              1   [Builtin]:1661
+                                        DYNAMIC_UPDATE_SLICE    309.605      0.351      0.351     0.004%    99.755%      0.000              1   [Builtin]:785
+                                        DYNAMIC_UPDATE_SLICE    797.443      0.351      0.351     0.004%    99.758%      0.000              1   [Builtin]:2002
+                                        DYNAMIC_UPDATE_SLICE   1086.435      0.351      0.351     0.004%    99.762%      0.000              1   [Builtin]:2731
+                                        DYNAMIC_UPDATE_SLICE    951.826      0.349      0.349     0.004%    99.765%      0.000              1   [Builtin]:2390
+                                        DYNAMIC_UPDATE_SLICE    504.816      0.346      0.346     0.004%    99.769%      0.000              1   [Builtin]:1271
+                                        DYNAMIC_UPDATE_SLICE    639.818      0.346      0.346     0.004%    99.772%      0.000              1   [Builtin]:1612
+                                        DYNAMIC_UPDATE_SLICE    135.127      0.345      0.345     0.004%    99.776%      0.000              1   [Builtin]:346
+                                        DYNAMIC_UPDATE_SLICE    837.411      0.344      0.344     0.004%    99.779%      0.000              1   [Builtin]:2098
+                                        DYNAMIC_UPDATE_SLICE     31.693      0.342      0.342     0.003%    99.783%      0.000              1   [Builtin]:100
+                                        DYNAMIC_UPDATE_SLICE    368.563      0.342      0.342     0.003%    99.786%      0.000              1   [Builtin]:930
+                                        DYNAMIC_UPDATE_SLICE    912.092      0.341      0.341     0.003%    99.790%      0.000              1   [Builtin]:2294
+                                        DYNAMIC_UPDATE_SLICE    272.349      0.339      0.339     0.003%    99.793%      0.000              1   [Builtin]:687
+                                        DYNAMIC_UPDATE_SLICE    328.533      0.339      0.339     0.003%    99.797%      0.000              1   [Builtin]:834
+                                        DYNAMIC_UPDATE_SLICE    777.635      0.338      0.338     0.003%    99.800%      0.000              1   [Builtin]:1953
+                                        DYNAMIC_UPDATE_SLICE    970.709      0.338      0.338     0.003%    99.804%      0.000              1   [Builtin]:2439
+                                        DYNAMIC_UPDATE_SLICE    291.033      0.337      0.337     0.003%    99.807%      0.000              1   [Builtin]:736
+                                        DYNAMIC_UPDATE_SLICE    155.241      0.336      0.336     0.003%    99.811%      0.000              1   [Builtin]:395
+                                        DYNAMIC_UPDATE_SLICE    406.338      0.336      0.336     0.003%    99.814%      0.000              1   [Builtin]:1028
+                                        DYNAMIC_UPDATE_SLICE    444.213      0.336      0.336     0.003%    99.817%      0.000              1   [Builtin]:1126
+                                        DYNAMIC_UPDATE_SLICE    561.080      0.336      0.336     0.003%    99.821%      0.000              1   [Builtin]:1418
+                                        DYNAMIC_UPDATE_SLICE    893.630      0.336      0.336     0.003%    99.824%      0.000              1   [Builtin]:2245
+                                        DYNAMIC_UPDATE_SLICE   1105.238      0.336      0.336     0.003%    99.828%      0.000              1   [Builtin]:2780
+                                        DYNAMIC_UPDATE_SLICE     71.798      0.335      0.335     0.003%    99.831%      0.000              1   [Builtin]:198
+                                        DYNAMIC_UPDATE_SLICE     91.449      0.335      0.335     0.003%    99.835%      0.000              1   [Builtin]:247
+                                        DYNAMIC_UPDATE_SLICE    542.312      0.335      0.335     0.003%    99.838%      0.000              1   [Builtin]:1369
+                                        DYNAMIC_UPDATE_SLICE    601.946      0.335      0.335     0.003%    99.841%      0.000              1   [Builtin]:1514
+                                        DYNAMIC_UPDATE_SLICE    719.801      0.334      0.334     0.003%    99.845%      0.000              1   [Builtin]:1806
+                                        DYNAMIC_UPDATE_SLICE    875.347      0.334      0.334     0.003%    99.848%      0.000              1   [Builtin]:2196
+                                        DYNAMIC_UPDATE_SLICE    738.462      0.333      0.333     0.003%    99.852%      0.000              1   [Builtin]:1855
+                                        DYNAMIC_UPDATE_SLICE    758.390      0.333      0.333     0.003%    99.855%      0.000              1   [Builtin]:1904
+                                        DYNAMIC_UPDATE_SLICE    856.572      0.333      0.333     0.003%    99.858%      0.000              1   [Builtin]:2147
+                                        DYNAMIC_UPDATE_SLICE   1123.886      0.333      0.333     0.003%    99.862%      0.000              1   [Builtin]:2829
+                                        DYNAMIC_UPDATE_SLICE    484.793      0.331      0.331     0.003%    99.865%      0.000              1   [Builtin]:1222
+                                        DYNAMIC_UPDATE_SLICE    989.680      0.331      0.331     0.003%    99.869%      0.000              1   [Builtin]:2488
+                                        DYNAMIC_UPDATE_SLICE    523.408      0.329      0.329     0.003%    99.872%      0.000              1   [Builtin]:1320
+                                        DYNAMIC_UPDATE_SLICE   1028.437      0.329      0.329     0.003%    99.875%      0.000              1   [Builtin]:2586
+                                        DYNAMIC_UPDATE_SLICE   1067.565      0.328      0.328     0.003%    99.879%      0.000              1   [Builtin]:2682
+                                        DYNAMIC_UPDATE_SLICE    211.796      0.327      0.327     0.003%    99.882%      0.000              1   [Builtin]:542
+                                        DYNAMIC_UPDATE_SLICE      7.013      0.326      0.326     0.003%    99.885%      0.000              1   [Builtin]:49
+                                        DYNAMIC_UPDATE_SLICE    387.432      0.325      0.325     0.003%    99.889%      0.000              1   [Builtin]:979
+                                        DYNAMIC_UPDATE_SLICE    252.718      0.324      0.324     0.003%    99.892%      0.000              1   [Builtin]:638
+                                        DYNAMIC_UPDATE_SLICE    174.563      0.322      0.322     0.003%    99.895%      0.000              1   [Builtin]:444
+                                        DYNAMIC_UPDATE_SLICE    425.116      0.322      0.322     0.003%    99.898%      0.000              1   [Builtin]:1077
+                                        DYNAMIC_UPDATE_SLICE   1142.415      0.322      0.322     0.003%    99.902%      0.000              1   [Builtin]:2878
+                                        DYNAMIC_UPDATE_SLICE   1008.486      0.321      0.321     0.003%    99.905%      0.000              1   [Builtin]:2537
+                                        DYNAMIC_UPDATE_SLICE    193.258      0.316      0.316     0.003%    99.908%      0.000              1   [Builtin]:493
+                                                        PACK   1171.291      0.006      0.005     0.003%    99.911%      0.000             64   [Builtin]:44
+                                        DYNAMIC_UPDATE_SLICE    930.928      0.308      0.308     0.003%    99.915%      0.000              1   [Builtin]:2342
+                                        DYNAMIC_UPDATE_SLICE    816.356      0.306      0.306     0.003%    99.918%      0.000              1   [Builtin]:2050
+                                        DYNAMIC_UPDATE_SLICE    698.098      0.305      0.305     0.003%    99.921%      0.000              1   [Builtin]:1758
+                                        DYNAMIC_UPDATE_SLICE    230.463      0.304      0.304     0.003%    99.924%      0.000              1   [Builtin]:590
+                                        DYNAMIC_UPDATE_SLICE   1047.021      0.301      0.301     0.003%    99.927%      0.000              1   [Builtin]:2634
+                                        DYNAMIC_UPDATE_SLICE    347.489      0.300      0.300     0.003%    99.930%      0.000              1   [Builtin]:882
+                                        DYNAMIC_UPDATE_SLICE    111.403      0.299      0.299     0.003%    99.933%      0.000              1   [Builtin]:297
+                                             YNNPackDelegate   1170.251      0.014      0.005     0.003%    99.936%      0.000             64   [Builtin]:5473
+                                        DYNAMIC_UPDATE_SLICE    462.909      0.288      0.288     0.003%    99.939%      0.000              1   [Builtin]:1174
+                                        DYNAMIC_UPDATE_SLICE   1160.644      0.282      0.282     0.003%    99.942%      0.000              1   [Builtin]:2915
+                                        DYNAMIC_UPDATE_SLICE    580.718      0.278      0.278     0.003%    99.945%      0.000              1   [Builtin]:1466
+                                        DYNAMIC_UPDATE_SLICE   1210.037      0.003      0.004     0.003%    99.947%      0.000             64   [Builtin]:824
+                                             YNNPackDelegate      0.000      0.237      0.237     0.002%    99.950%      0.000              1   [Builtin]:5828
+                                                   SELECT_V2      0.509      0.234      0.234     0.002%    99.952%      0.000              1   [Builtin]:6
+                                        DYNAMIC_UPDATE_SLICE   1183.052      0.002      0.004     0.002%    99.954%      0.000             64   [Builtin]:275
+                                                     GREATER   1170.266      0.004      0.004     0.002%    99.957%      0.000             64   [Builtin]:2
+                                        DYNAMIC_UPDATE_SLICE   1250.090      0.003      0.004     0.002%    99.959%      0.000             64   [Builtin]:1646
+                                        DYNAMIC_UPDATE_SLICE   1290.135      0.003      0.003     0.002%    99.961%      0.000             64   [Builtin]:2468
+                                        DYNAMIC_UPDATE_SLICE   1196.546      0.003      0.003     0.002%    99.963%      0.000             64   [Builtin]:550
+                                        DYNAMIC_UPDATE_SLICE   1303.498      0.003      0.003     0.002%    99.966%      0.000             64   [Builtin]:2742
+                                        DYNAMIC_UPDATE_SLICE   1223.336      0.003      0.003     0.002%    99.968%      0.000             64   [Builtin]:1098
+                                        DYNAMIC_UPDATE_SLICE   1263.413      0.003      0.003     0.002%    99.970%      0.000             64   [Builtin]:1920
+                                        DYNAMIC_UPDATE_SLICE   1236.654      0.003      0.003     0.002%    99.972%      0.000             64   [Builtin]:1372
+                                        DYNAMIC_UPDATE_SLICE   1276.649      0.003      0.003     0.002%    99.974%      0.000             64   [Builtin]:2194
+                                                 LOGICAL_AND      0.329      0.179      0.179     0.002%    99.976%      0.000              1   [Builtin]:5
+                                        DYNAMIC_UPDATE_SLICE    930.753      0.175      0.175     0.002%    99.978%      0.000              1   [Builtin]:2341
+                                        DYNAMIC_UPDATE_SLICE   1160.470      0.173      0.173     0.002%    99.980%      0.000              1   [Builtin]:2914
+                                        DYNAMIC_UPDATE_SLICE    347.316      0.172      0.172     0.002%    99.981%      0.000              1   [Builtin]:881
+                                        DYNAMIC_UPDATE_SLICE    816.183      0.172      0.172     0.002%    99.983%      0.000              1   [Builtin]:2049
+                                        DYNAMIC_UPDATE_SLICE   1046.849      0.171      0.171     0.002%    99.985%      0.000              1   [Builtin]:2633
+                                        DYNAMIC_UPDATE_SLICE    230.292      0.170      0.170     0.002%    99.987%      0.000              1   [Builtin]:589
+                                                 LOGICAL_AND   1170.274      0.002      0.003     0.002%    99.988%      0.000             64   [Builtin]:5
+                                        DYNAMIC_UPDATE_SLICE    111.235      0.167      0.167     0.002%    99.990%      0.000              1   [Builtin]:296
+                                        DYNAMIC_UPDATE_SLICE    580.550      0.167      0.167     0.002%    99.992%      0.000              1   [Builtin]:1465
+                                        DYNAMIC_UPDATE_SLICE    697.931      0.166      0.166     0.002%    99.993%      0.000              1   [Builtin]:1757
+                                        DYNAMIC_UPDATE_SLICE    462.743      0.165      0.165     0.002%    99.995%      0.000              1   [Builtin]:1173
+                                                   SELECT_V2   1170.277      0.004      0.002     0.002%    99.997%      0.000             64   [Builtin]:6
+                                             YNNPackDelegate   1170.270      0.002      0.002     0.001%    99.998%      0.000             64   [Builtin]:5474
+                                                        PACK   1171.306      0.001      0.001     0.001%    99.998%      0.000             64   [Builtin]:46
+                                                        LESS   1170.272      0.001      0.001     0.001%    99.999%      0.000             64   [Builtin]:4
+                                                     GREATER      0.240      0.043      0.043     0.000%    99.999%      0.000              1   [Builtin]:2
+                                                        LESS      0.287      0.041      0.041     0.000%   100.000%      0.000              1   [Builtin]:4
+                                                        PACK      7.003      0.009      0.009     0.000%   100.000%      0.000              1   [Builtin]:48
+                                             YNNPackDelegate      0.283      0.003      0.003     0.000%   100.000%      0.000              1   [Builtin]:5829
+                                                        PACK      7.340      0.003      0.003     0.000%   100.000%      0.000              1   [Builtin]:50
+
+Number of nodes executed: 377
+
+====================================================== Summary by node type ======================================================
+                                                 [Node type]    [count]   [avg ms]    [avg %]    [cdf %]   [mem KB] [times called]
+                                             YNNPackDelegate        125      2.302    96.048%    96.048%      0.000           4094
+                                        DYNAMIC_UPDATE_SLICE        240      0.050     3.937%    99.985%      0.000           7800
+                                                   SELECT_V2          2      0.006     0.004%    99.989%      0.000             65
+                                                        PACK          4      0.003     0.004%    99.993%      0.000            130
+                                                 LOGICAL_AND          2      0.005     0.004%    99.996%      0.000             65
+                                                     GREATER          2      0.004     0.003%    99.999%      0.000             65
+                                                        LESS          2      0.001     0.001%   100.000%      0.000             65
+
+Timings (microseconds): count=377 curr=9810585
+Memory (bytes): count=0
+377 nodes observed
+
+--------------------------------------------------
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5627dda43c10, name=GPU WebGPU
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5627ddd89e60, name=YNNPackAccelerator
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5627de0429e0, name=CpuAccelerator
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5628b42c08c0, name=GPU WebGPU
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5628b38e2230, name=YNNPackAccelerator
+INFO: [accelerator_registry.cc:43] DestroyAccelerator: ptr=0x5628b42d9fa0, name=CpuAccelerator
+output: <|channel>,ها or same
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+ thẻ
+
+[ perf record: Woken up 27 times to write data ]
+[ perf record: Captured and wrote 10.403 MB /tmp/perf_ynnpack_p64_d64.data (271147 samples) ]

@@ -1,0 +1,72 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 120K of event 'cycles:u'
+# Event count (approx.): 73432903847
+#
+# Overhead  Shared Object                       Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+# ........  ..................................  ......................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    29.22%  litert_lm_advanced_main             [.] xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx
+    19.18%  litert_lm_advanced_main             [.] thread_main
+    18.35%  litert_lm_advanced_main             [.] xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast
+     5.05%  litert_lm_advanced_main             [.] pthreadpool_thread_parallelize_1d_fastpath
+     2.94%  litert_lm_advanced_main             [.] xnn_f32_vmul_ukernel__avx512f_u32
+     1.96%  litert_lm_advanced_main             [.] thread_parallelize_1d_tile_1d_dynamic
+     1.95%  litert_lm_advanced_main             [.] xnn_f32_rminmax_ukernel__avx512f_u64_acc4
+     1.78%  litert_lm_advanced_main             [.] xnn_f32_vmulc_ukernel__avx512f_u32
+     1.42%  libc.so.6                           [.] 0x00000000001a1efa
+     1.40%  litert_lm_advanced_main             [.] xnn_x32_packw_gemm_gio_ukernel_x32__scalar
+     1.32%  litert_lm_advanced_main             [.] xnn_f32_rsum2_ukernel__avx512f_u64_acc4
+     1.18%  litert_lm_advanced_main             [.] xnn_qs8_packw_gemm_goi_ukernel_x64c4__avx256vnni_prfm
+     1.07%  litert_lm_advanced_main             [.] xnn_f32_vapproxgelu_ukernel__avx512f_rational_12_10_div_u32
+     1.02%  litert_lm_advanced_main             [.] xnn_f32_vadd_ukernel__avx512f_u32
+     0.96%  litert_lm_advanced_main             [.] xnn_f32_raddstoreexpminusmax_ukernel__avx512f_rr2_p5_u64_acc2
+     0.92%  libc.so.6                           [.] 0x00000000001a19d2
+     0.80%  litert_lm_advanced_main             [.] xnn_x32_transposec_ukernel__8x8_reuse_multi_avx
+     0.73%  libc.so.6                           [.] 0x00000000001a1653
+     0.63%  litert_lm_advanced_main             [.] thread_parallelize_2d_tile_1d_dynamic
+     0.63%  litert_lm_advanced_main             [.] thread_parallelize_3d_tile_1d_dynamic
+     0.61%  litert_lm_advanced_main             [.] tflite::ops::builtin::one_hot::Eval(TfLiteContext*, TfLiteNode*)
+     0.53%  litert_lm_advanced_main             [.] pthreadpool_parallelize
+     0.44%  libc.so.6                           [.] 0x00000000001a166e
+     0.41%  litert_lm_advanced_main             [.] thread_parallelize_2d_tile_2d_dynamic
+     0.39%  litert_lm_advanced_main             [.] xnn_f32_rmax_ukernel__avx512f_u64_acc4
+     0.37%  [kernel]                            [k] 0xffffffff93601290
+     0.36%  litert_lm_advanced_main             [.] xnn_f32_qs8_vcvt_ukernel__avx512skx_u128
+     0.31%  libc.so.6                           [.] 0x00000000001a179a
+     0.23%  litert_lm_advanced_main             [.] void (anonymous namespace)::pack_lh_fx_qd<float, signed char, xnn_f32_qs8_cvt_params, &xnn_f32_qd8_asymmetric_quantization_params(float, float, float*)>(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, float const*, unsigned long, void*, void (*)(unsigned long, void const*, void*, xnn_unary_uparams const*), void (*)(unsigned long, void const*, void*, void const*), void (*)(unsigned long, void const*, void*, void const*))
+     0.18%  litert_lm_advanced_main             [.] thread_parallelize_1d_tile_1d_dynamic_with_thread
+     0.17%  libc.so.6                           [.] 0x00000000001a175d
+     0.16%  libc.so.6                           [.] 0x00000000001a170b
+     0.15%  libc.so.6                           [.] 0x00000000001a17cf
+     0.14%  libc.so.6                           [.] 0x00000000001a1719
+     0.14%  libc.so.6                           [.] 0x00000000001a17c7
+     0.13%  libc.so.6                           [.] 0x00000000001a17b7
+     0.13%  libc.so.6                           [.] 0x00000000001a1730
+     0.13%  libc.so.6                           [.] 0x00000000001a17af
+     0.12%  libc.so.6                           [.] 0x00000000001a17a8
+     0.12%  libc.so.6                           [.] 0x00000000001a17bf
+     0.12%  litert_lm_advanced_main             [.] xnn_compute_univector_strided
+     0.11%  libc.so.6                           [.] 0x00000000001a17a1
+     0.11%  libc.so.6                           [.] 0x00000000001a1720
+     0.11%  litert_lm_advanced_main             [.] xnn_xx_copy_ukernel__scalar_memcpy
+     0.10%  libc.so.6                           [.] 0x00000000001a1676
+     0.09%  libc.so.6                           [.] 0x00000000001a177c
+     0.09%  libc.so.6                           [.] 0x00000000001a1668
+     0.08%  litert_lm_advanced_main             [.] xnn_compute_slice_1d
+     0.08%  libc.so.6                           [.] 0x00000000001a176d
+     0.08%  litert_lm_advanced_main             [.] xnn_compute_elementwise_binary_1d
+     0.06%  litert_lm_advanced_main             [.] thread_parallelize_3d_tile_2d_dynamic
+     0.06%  libc.so.6                           [.] 0x00000000001a1774
+     0.05%  libc.so.6                           [.] 0x00000000001a164d
+     0.05%  litert_lm_advanced_main             [.] xnn_compute_elementwise_binary_2d
+     0.05%  libc.so.6                           [.] 0x00000000001a1728
+     0.05%  libc.so.6                           [.] 0x00000000001a1703
+
+
+#
+# (Tip: Save output of perf stat using: perf stat record <target workload>)
+#
