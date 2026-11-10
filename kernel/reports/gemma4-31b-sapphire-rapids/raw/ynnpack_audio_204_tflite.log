@@ -1,0 +1,266 @@
+INFO: [environment.cc:36] Creating LiteRT environment with options
+WARNING: [npu_registry.cc:34] NPU accelerator could not be loaded and registered: kLiteRtStatusErrorNotFound.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5631af590a20, name=GPU WebGPU
+INFO: [gpu_registry.cc:121] Statically linked GPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5631af595450, name=YNNPackAccelerator
+INFO: [cpu_registry.cc:59] YNNPACK CPU accelerator registered.
+INFO: [accelerator_registry.cc:54] RegisterAccelerator: ptr=0x5631af5891a0, name=CpuAccelerator
+INFO: [cpu_registry.cc:73] XNNPACK CPU accelerator registered.
+=== COMPILING SUBGRAPH: audio_encoder (offset=1393082368, size=94052280, ynnpack=1, threads=28) ===
+INFO: [compiled_model.cc:963] Flatbuffer model initialized directly from incoming litert model.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:45 IsTensorSupported(output) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:45 IsTensorSupported(output) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:190 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:190 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:303 IsTensorSupported(output) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:45 IsTensorSupported(output) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+ERROR: external/litert/tflite/delegates/ynnpack/copy.cc:336 IsTensorSupported(input) was not true.
+INFO: YNNPackDelegate delegate: 2121 nodes delegated out of 2182 nodes with 17 partitions.
+
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+=== COMPILING SUBGRAPH: audio_adapter (offset=1487142912, size=9441244, ynnpack=1, threads=28) ===
+INFO: [compiled_model.cc:963] Flatbuffer model initialized directly from incoming litert model.
+ERROR: external/litert/tflite/delegates/ynnpack/elementwise.cc:44 IsTensorSupported(input) was not true.
+SUBGRAPH_LATENCY_MS[audio_encoder]: 59.117
+===================================================================== Run Order ======================================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+                                             YNNPackDelegate      0.000      0.117      0.117     0.199%     0.199%      0.000              1   [Builtin]:2182
+                                                     RESHAPE      0.119      0.001      0.001     0.002%     0.201%      0.000              1   [Builtin]:1
+                                                     RESHAPE      0.121      0.000      0.000     0.000%     0.201%      0.000              1   [Builtin]:3
+                                                        CAST      0.121      0.001      0.001     0.002%     0.202%      0.000              1   [Builtin]:4
+                                             YNNPackDelegate      0.122      0.003      0.003     0.005%     0.208%      0.000              1   [Builtin]:2183
+                                                        CAST      0.125      0.001      0.001     0.002%     0.209%      0.000              1   [Builtin]:6
+                                                     RESHAPE      0.126      0.000      0.000     0.000%     0.209%      0.000              1   [Builtin]:7
+                                                     RESHAPE      0.126      0.000      0.000     0.000%     0.209%      0.000              1   [Builtin]:8
+                                                        CAST      0.126      0.001      0.001     0.002%     0.211%      0.000              1   [Builtin]:9
+                                                        CAST      0.127      0.001      0.001     0.002%     0.213%      0.000              1   [Builtin]:36
+                                                        CAST      0.128      0.000      0.000     0.000%     0.213%      0.000              1   [Builtin]:41
+                                             YNNPackDelegate      0.129      0.311      0.311     0.529%     0.742%      0.000              1   [Builtin]:2184
+                                                   NOT_EQUAL      0.440      0.004      0.004     0.007%     0.748%      0.000              1   [Builtin]:13
+                                                        CAST      0.444      0.001      0.001     0.002%     0.750%      0.000              1   [Builtin]:14
+                                                   NOT_EQUAL      0.445      0.001      0.001     0.002%     0.752%      0.000              1   [Builtin]:45
+                                                        CAST      0.446      0.000      0.000     0.000%     0.752%      0.000              1   [Builtin]:46
+                                                        CAST      0.447      0.000      0.000     0.000%     0.752%      0.000              1   [Builtin]:64
+                                             YNNPackDelegate      0.448      1.327      1.327     2.257%     3.009%      0.000              1   [Builtin]:2185
+                                                   NOT_EQUAL      1.776      0.001      0.001     0.002%     3.011%      0.000              1   [Builtin]:18
+                                                     RESHAPE      1.777      0.000      0.000     0.000%     3.011%      0.000              1   [Builtin]:19
+                                                     RESHAPE      1.777      0.001      0.001     0.002%     3.012%      0.000              1   [Builtin]:20
+                                                        CAST      1.778      0.001      0.001     0.002%     3.014%      0.000              1   [Builtin]:21
+                                                   NOT_EQUAL      1.779      0.001      0.001     0.002%     3.016%      0.000              1   [Builtin]:68
+                                                        CAST      1.780      0.000      0.000     0.000%     3.016%      0.000              1   [Builtin]:69
+                                                     RESHAPE      1.780      0.001      0.001     0.002%     3.018%      0.000              1   [Builtin]:86
+                                                        CAST      1.781      0.001      0.001     0.002%     3.019%      0.000              1   [Builtin]:87
+                                             YNNPackDelegate      1.782      2.788      2.788     4.742%     7.762%      0.000              1   [Builtin]:2186
+                                                        CAST      4.570      0.002      0.002     0.003%     7.765%      0.000              1   [Builtin]:23
+                                                     RESHAPE      4.572      0.001      0.001     0.002%     7.767%      0.000              1   [Builtin]:24
+                                                     RESHAPE      4.573      0.000      0.000     0.000%     7.767%      0.000              1   [Builtin]:25
+                                                       SLICE      4.574      0.005      0.005     0.009%     7.775%      0.000              1   [Builtin]:26
+                                                       SLICE      4.579      0.001      0.001     0.002%     7.777%      0.000              1   [Builtin]:27
+                                                     RESHAPE      4.580      0.000      0.000     0.000%     7.777%      0.000              1   [Builtin]:28
+                                                     RESHAPE      4.581      0.000      0.000     0.000%     7.777%      0.000              1   [Builtin]:29
+                                               CONCATENATION      4.581      0.003      0.003     0.005%     7.782%      0.000              1   [Builtin]:30
+                                                        CAST      4.584      0.001      0.001     0.002%     7.784%      0.000              1   [Builtin]:31
+                                                        TILE      4.585      0.005      0.005     0.009%     7.792%      0.000              1   [Builtin]:32
+                                                        CAST      4.590      0.002      0.002     0.003%     7.796%      0.000              1   [Builtin]:33
+                                                 LOGICAL_AND      4.593      0.009      0.009     0.015%     7.811%      0.000              1   [Builtin]:34
+                                                     RESHAPE      4.602      0.001      0.001     0.002%     7.813%      0.000              1   [Builtin]:137
+                                                 LOGICAL_NOT      4.603      0.015      0.015     0.026%     7.838%      0.000              1   [Builtin]:138
+                                                     RESHAPE      4.618      0.000      0.000     0.000%     7.838%      0.000              1   [Builtin]:165
+                                                   SELECT_V2      4.619      0.021      0.021     0.036%     7.874%      0.000              1   [Builtin]:166
+                                                     RESHAPE      4.641      0.000      0.000     0.000%     7.874%      0.000              1   [Builtin]:339
+                                                     RESHAPE      4.641      0.001      0.001     0.002%     7.876%      0.000              1   [Builtin]:513
+                                                     RESHAPE      4.642      0.001      0.001     0.002%     7.877%      0.000              1   [Builtin]:687
+                                                     RESHAPE      4.643      0.000      0.000     0.000%     7.877%      0.000              1   [Builtin]:861
+                                                     RESHAPE      4.644      0.000      0.000     0.000%     7.877%      0.000              1   [Builtin]:1035
+                                                     RESHAPE      4.644      0.001      0.001     0.002%     7.879%      0.000              1   [Builtin]:1209
+                                                     RESHAPE      4.645      0.000      0.000     0.000%     7.879%      0.000              1   [Builtin]:1383
+                                                     RESHAPE      4.645      0.000      0.000     0.000%     7.879%      0.000              1   [Builtin]:1557
+                                                     RESHAPE      4.646      0.000      0.000     0.000%     7.879%      0.000              1   [Builtin]:1731
+                                                     RESHAPE      4.646      0.000      0.000     0.000%     7.879%      0.000              1   [Builtin]:1905
+                                                     RESHAPE      4.647      0.000      0.000     0.000%     7.879%      0.000              1   [Builtin]:2079
+                                             YNNPackDelegate      4.647      5.435      5.435     9.245%    17.124%      0.000              1   [Builtin]:2187
+                                                   SELECT_V2     10.084      0.023      0.023     0.039%    17.163%      0.000              1   [Builtin]:340
+                                             YNNPackDelegate     10.107      4.780      4.780     8.131%    25.294%      0.000              1   [Builtin]:2188
+                                                   SELECT_V2     14.888      0.021      0.021     0.036%    25.330%      0.000              1   [Builtin]:514
+                                             YNNPackDelegate     14.910      4.731      4.731     8.047%    33.377%      0.000              1   [Builtin]:2189
+                                                   SELECT_V2     19.642      0.022      0.022     0.037%    33.414%      0.000              1   [Builtin]:688
+                                             YNNPackDelegate     19.664      4.704      4.704     8.001%    41.416%      0.000              1   [Builtin]:2190
+                                                   SELECT_V2     24.369      0.021      0.021     0.036%    41.452%      0.000              1   [Builtin]:862
+                                             YNNPackDelegate     24.391      4.527      4.527     7.700%    49.152%      0.000              1   [Builtin]:2191
+                                                   SELECT_V2     28.919      0.021      0.021     0.036%    49.188%      0.000              1   [Builtin]:1036
+                                             YNNPackDelegate     28.941      4.688      4.688     7.974%    57.162%      0.000              1   [Builtin]:2192
+                                                   SELECT_V2     33.630      0.021      0.021     0.036%    57.198%      0.000              1   [Builtin]:1210
+                                             YNNPackDelegate     33.652      4.444      4.444     7.559%    64.757%      0.000              1   [Builtin]:2193
+                                                   SELECT_V2     38.096      0.022      0.022     0.037%    64.794%      0.000              1   [Builtin]:1384
+                                             YNNPackDelegate     38.119      4.424      4.424     7.525%    72.320%      0.000              1   [Builtin]:2194
+                                                   SELECT_V2     42.543      0.023      0.023     0.039%    72.359%      0.000              1   [Builtin]:1558
+                                             YNNPackDelegate     42.566      4.407      4.407     7.496%    79.855%      0.000              1   [Builtin]:2195
+                                                   SELECT_V2     46.973      0.022      0.022     0.037%    79.892%      0.000              1   [Builtin]:1732
+                                             YNNPackDelegate     46.996      4.347      4.347     7.394%    87.287%      0.000              1   [Builtin]:2196
+                                                   SELECT_V2     51.343      0.023      0.023     0.039%    87.326%      0.000              1   [Builtin]:1906
+                                             YNNPackDelegate     51.366      4.506      4.506     7.665%    94.991%      0.000              1   [Builtin]:2197
+                                                   SELECT_V2     55.873      0.022      0.022     0.037%    95.028%      0.000              1   [Builtin]:2080
+                                             YNNPackDelegate     55.895      2.781      2.781     4.730%    99.758%      0.000              1   [Builtin]:2198
+                                                   SELECT_V2     58.677      0.142      0.142     0.242%   100.000%      0.000              1   [Builtin]:2181
+
+============================================================== Top by Computation Time ===============================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+                                             YNNPackDelegate      4.647      5.435      5.435     9.245%     9.245%      0.000              1   [Builtin]:2187
+                                             YNNPackDelegate     10.107      4.780      4.780     8.131%    17.376%      0.000              1   [Builtin]:2188
+                                             YNNPackDelegate     14.910      4.731      4.731     8.047%    25.423%      0.000              1   [Builtin]:2189
+                                             YNNPackDelegate     19.664      4.704      4.704     8.001%    33.425%      0.000              1   [Builtin]:2190
+                                             YNNPackDelegate     28.941      4.688      4.688     7.974%    41.399%      0.000              1   [Builtin]:2192
+                                             YNNPackDelegate     24.391      4.527      4.527     7.700%    49.099%      0.000              1   [Builtin]:2191
+                                             YNNPackDelegate     51.366      4.506      4.506     7.665%    56.764%      0.000              1   [Builtin]:2197
+                                             YNNPackDelegate     33.652      4.444      4.444     7.559%    64.323%      0.000              1   [Builtin]:2193
+                                             YNNPackDelegate     38.119      4.424      4.424     7.525%    71.848%      0.000              1   [Builtin]:2194
+                                             YNNPackDelegate     42.566      4.407      4.407     7.496%    79.345%      0.000              1   [Builtin]:2195
+                                             YNNPackDelegate     46.996      4.347      4.347     7.394%    86.739%      0.000              1   [Builtin]:2196
+                                             YNNPackDelegate      1.782      2.788      2.788     4.742%    91.481%      0.000              1   [Builtin]:2186
+                                             YNNPackDelegate     55.895      2.781      2.781     4.730%    96.212%      0.000              1   [Builtin]:2198
+                                             YNNPackDelegate      0.448      1.327      1.327     2.257%    98.469%      0.000              1   [Builtin]:2185
+                                             YNNPackDelegate      0.129      0.311      0.311     0.529%    98.998%      0.000              1   [Builtin]:2184
+                                                   SELECT_V2     58.677      0.142      0.142     0.242%    99.240%      0.000              1   [Builtin]:2181
+                                             YNNPackDelegate      0.000      0.117      0.117     0.199%    99.439%      0.000              1   [Builtin]:2182
+                                                   SELECT_V2     10.084      0.023      0.023     0.039%    99.478%      0.000              1   [Builtin]:340
+                                                   SELECT_V2     42.543      0.023      0.023     0.039%    99.517%      0.000              1   [Builtin]:1558
+                                                   SELECT_V2     51.343      0.023      0.023     0.039%    99.556%      0.000              1   [Builtin]:1906
+                                                   SELECT_V2     19.642      0.022      0.022     0.037%    99.593%      0.000              1   [Builtin]:688
+                                                   SELECT_V2     38.096      0.022      0.022     0.037%    99.631%      0.000              1   [Builtin]:1384
+                                                   SELECT_V2     46.973      0.022      0.022     0.037%    99.668%      0.000              1   [Builtin]:1732
+                                                   SELECT_V2     55.873      0.022      0.022     0.037%    99.706%      0.000              1   [Builtin]:2080
+                                                   SELECT_V2      4.619      0.021      0.021     0.036%    99.741%      0.000              1   [Builtin]:166
+                                                   SELECT_V2     14.888      0.021      0.021     0.036%    99.777%      0.000              1   [Builtin]:514
+                                                   SELECT_V2     24.369      0.021      0.021     0.036%    99.813%      0.000              1   [Builtin]:862
+                                                   SELECT_V2     28.919      0.021      0.021     0.036%    99.849%      0.000              1   [Builtin]:1036
+                                                   SELECT_V2     33.630      0.021      0.021     0.036%    99.884%      0.000              1   [Builtin]:1210
+                                                 LOGICAL_NOT      4.603      0.015      0.015     0.026%    99.910%      0.000              1   [Builtin]:138
+                                                 LOGICAL_AND      4.593      0.009      0.009     0.015%    99.925%      0.000              1   [Builtin]:34
+                                                       SLICE      4.574      0.005      0.005     0.009%    99.934%      0.000              1   [Builtin]:26
+                                                        TILE      4.585      0.005      0.005     0.009%    99.942%      0.000              1   [Builtin]:32
+                                                   NOT_EQUAL      0.440      0.004      0.004     0.007%    99.949%      0.000              1   [Builtin]:13
+                                             YNNPackDelegate      0.122      0.003      0.003     0.005%    99.954%      0.000              1   [Builtin]:2183
+                                               CONCATENATION      4.581      0.003      0.003     0.005%    99.959%      0.000              1   [Builtin]:30
+                                                        CAST      4.570      0.002      0.002     0.003%    99.963%      0.000              1   [Builtin]:23
+                                                        CAST      4.590      0.002      0.002     0.003%    99.966%      0.000              1   [Builtin]:33
+                                                     RESHAPE      0.119      0.001      0.001     0.002%    99.968%      0.000              1   [Builtin]:1
+                                                        CAST      0.121      0.001      0.001     0.002%    99.969%      0.000              1   [Builtin]:4
+                                                        CAST      0.125      0.001      0.001     0.002%    99.971%      0.000              1   [Builtin]:6
+                                                        CAST      0.126      0.001      0.001     0.002%    99.973%      0.000              1   [Builtin]:9
+                                                        CAST      0.127      0.001      0.001     0.002%    99.974%      0.000              1   [Builtin]:36
+                                                        CAST      0.444      0.001      0.001     0.002%    99.976%      0.000              1   [Builtin]:14
+                                                   NOT_EQUAL      0.445      0.001      0.001     0.002%    99.978%      0.000              1   [Builtin]:45
+                                                   NOT_EQUAL      1.776      0.001      0.001     0.002%    99.980%      0.000              1   [Builtin]:18
+                                                     RESHAPE      1.777      0.001      0.001     0.002%    99.981%      0.000              1   [Builtin]:20
+                                                        CAST      1.778      0.001      0.001     0.002%    99.983%      0.000              1   [Builtin]:21
+                                                   NOT_EQUAL      1.779      0.001      0.001     0.002%    99.985%      0.000              1   [Builtin]:68
+                                                     RESHAPE      1.780      0.001      0.001     0.002%    99.986%      0.000              1   [Builtin]:86
+                                                        CAST      1.781      0.001      0.001     0.002%    99.988%      0.000              1   [Builtin]:87
+                                                     RESHAPE      4.572      0.001      0.001     0.002%    99.990%      0.000              1   [Builtin]:24
+                                                       SLICE      4.579      0.001      0.001     0.002%    99.991%      0.000              1   [Builtin]:27
+                                                        CAST      4.584      0.001      0.001     0.002%    99.993%      0.000              1   [Builtin]:31
+                                                     RESHAPE      4.602      0.001      0.001     0.002%    99.995%      0.000              1   [Builtin]:137
+                                                     RESHAPE      4.641      0.001      0.001     0.002%    99.997%      0.000              1   [Builtin]:513
+                                                     RESHAPE      4.642      0.001      0.001     0.002%    99.998%      0.000              1   [Builtin]:687
+                                                     RESHAPE      4.644      0.001      0.001     0.002%   100.000%      0.000              1   [Builtin]:1209
+                                                     RESHAPE      0.121      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:3
+                                                     RESHAPE      0.126      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:7
+                                                     RESHAPE      0.126      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:8
+                                                        CAST      0.128      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:41
+                                                        CAST      0.446      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:46
+                                                        CAST      0.447      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:64
+                                                     RESHAPE      1.777      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:19
+                                                        CAST      1.780      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:69
+                                                     RESHAPE      4.573      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:25
+                                                     RESHAPE      4.580      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:28
+                                                     RESHAPE      4.581      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:29
+                                                     RESHAPE      4.618      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:165
+                                                     RESHAPE      4.641      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:339
+                                                     RESHAPE      4.643      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:861
+                                                     RESHAPE      4.644      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:1035
+                                                     RESHAPE      4.645      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:1383
+                                                     RESHAPE      4.645      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:1557
+                                                     RESHAPE      4.646      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:1731
+                                                     RESHAPE      4.646      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:1905
+                                                     RESHAPE      4.647      0.000      0.000     0.000%   100.000%      0.000              1   [Builtin]:2079
+
+Number of nodes executed: 78
+
+====================================================== Summary by node type ======================================================
+                                                 [Node type]    [count]   [avg ms]    [avg %]    [cdf %]   [mem KB] [times called]
+                                             YNNPackDelegate         17      3.431    99.202%    99.202%      0.000             17
+                                                   SELECT_V2         13      0.031     0.687%    99.889%      0.000             13
+                                                 LOGICAL_NOT          1      0.015     0.026%    99.915%      0.000              1
+                                                        CAST         14      0.001     0.020%    99.935%      0.000             14
+                                                 LOGICAL_AND          1      0.009     0.015%    99.951%      0.000              1
+                                                     RESHAPE         24      0.000     0.014%    99.964%      0.000             24
+                                                   NOT_EQUAL          4      0.002     0.012%    99.976%      0.000              4
+                                                       SLICE          2      0.003     0.010%    99.986%      0.000              2
+                                                        TILE          1      0.005     0.009%    99.995%      0.000              1
+                                               CONCATENATION          1      0.003     0.005%   100.000%      0.000              1
+
+Timings (microseconds): count=78 curr=58789
+Memory (bytes): count=0
+78 nodes observed
+
+SUBGRAPH_LATENCY_MS[audio_adapter]: 1.344
+===================================================================== Run Order ======================================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+                                             YNNPackDelegate      0.000      1.124      1.124    94.932%    94.932%      0.000              1   [Builtin]:11
+                                                        CAST      1.125      0.003      0.003     0.253%    95.186%      0.000              1   [Builtin]:8
+                                             YNNPackDelegate      1.128      0.057      0.057     4.814%   100.000%      0.000              1   [Builtin]:12
+
+============================================================== Top by Computation Time ===============================================================
+                                                 [node type]    [start]    [first]   [avg ms]        [%]     [cdf%]   [mem KB] [times called]   [Name]
+                                             YNNPackDelegate      0.000      1.124      1.124    94.932%    94.932%      0.000              1   [Builtin]:11
+                                             YNNPackDelegate      1.128      0.057      0.057     4.814%    99.747%      0.000              1   [Builtin]:12
+                                                        CAST      1.125      0.003      0.003     0.253%   100.000%      0.000              1   [Builtin]:8
+
+Number of nodes executed: 3
+
+====================================================== Summary by node type ======================================================
+                                                 [Node type]    [count]   [avg ms]    [avg %]    [cdf %]   [mem KB] [times called]
+                                             YNNPackDelegate          2      0.591    99.747%    99.747%      0.000              2
+                                                        CAST          1      0.003     0.253%   100.000%      0.000              1
+
+Timings (microseconds): count=3 curr=1184
+Memory (bytes): count=0
+3 nodes observed
+
+TOTAL_MULTIMODAL_LATENCY_MS: 60.462
+Prefill Speed: 16.539385 tokens/sec
+Decode Speed: 0.000000 tokens/sec

@@ -1,0 +1,40 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 3M of event 'cycles:u'
+# Event count (approx.): 2111907273887
+#
+# Overhead  Shared Object                       Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+# ........  ..................................  .....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    59.18%  litert_lm_advanced_main             [.] xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast
+    23.62%  litert_lm_advanced_main             [.] xnn_f32_rmax_ukernel__avx512f_u64_acc4
+     4.30%  litert_lm_advanced_main             [.] xnn_f32_raddstoreexpminusmax_ukernel__avx512f_rr2_p5_u64_acc2
+     3.82%  litert_lm_advanced_main             [.] xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx
+     1.48%  litert_lm_advanced_main             [.] xnn_f32_vmul_ukernel__avx512f_u32
+     1.25%  litert_lm_advanced_main             [.] xnn_f32_vmulc_ukernel__avx512f_u32
+     0.77%  litert_lm_advanced_main             [.] xnn_f32_rminmax_ukernel__avx512f_u64_acc4
+     0.56%  litert_lm_advanced_main             [.] xnn_f32_vadd_ukernel__avx512f_u32
+     0.54%  litert_lm_advanced_main             [.] pthreadpool_thread_parallelize_1d_fastpath
+     0.52%  litert_lm_advanced_main             [.] xnn_x32_packw_gemm_gio_ukernel_x32__scalar
+     0.46%  litert_lm_advanced_main             [.] xnn_x32_transposec_ukernel__8x8_reuse_multi_avx
+     0.42%  litert_lm_advanced_main             [.] thread_main
+     0.38%  litert_lm_advanced_main             [.] xnn_f32_vapproxgelu_ukernel__avx512f_rational_12_10_div_u32
+     0.33%  libc.so.6                           [.] 0x00000000001a1efa
+     0.28%  litert_lm_advanced_main             [.] xnn_f32_rsum2_ukernel__avx512f_u64_acc4
+     0.28%  libc.so.6                           [.] 0x00000000001a19d2
+     0.17%  litert_lm_advanced_main             [.] tflite::ops::builtin::one_hot::Eval(TfLiteContext*, TfLiteNode*)
+     0.14%  libc.so.6                           [.] 0x00000000001a179a
+     0.13%  litert_lm_advanced_main             [.] compute_reciprocal_f32
+     0.09%  litert_lm_advanced_main             [.] xnn_f32_qs8_vcvt_ukernel__avx512skx_u128
+     0.08%  libc.so.6                           [.] 0x00000000001a1653
+     0.07%  litert_lm_advanced_main             [.] xnn_compute_elementwise_binary_1d
+     0.07%  litert_lm_advanced_main             [.] thread_parallelize_1d_tile_1d_dynamic
+     0.05%  libc.so.6                           [.] 0x00000000001a166e
+
+
+#
+# (Tip: Show user configuration overrides: perf config --user --list)
+#

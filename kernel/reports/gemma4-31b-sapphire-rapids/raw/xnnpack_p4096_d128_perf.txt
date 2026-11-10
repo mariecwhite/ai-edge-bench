@@ -1,0 +1,142 @@
+
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 2M of event 'cycles:u'
+# Event count (approx.): 5994443516983
+#
+# Overhead  Command          Shared Object                       Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+# ........  ...............  ..................................  ...........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    33.67%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast
+    17.77%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm
+    14.37%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx
+    10.68%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx
+     8.95%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1efa
+     3.69%  litert_lm_advan  litert_lm_advanced_main             [.] thread_main
+     3.17%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_rmax_ukernel__avx512f_u64_acc4
+     3.15%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vadd_ukernel__avx512f_u32
+     0.68%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vmul_ukernel__avx512f_u32
+     0.60%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_raddstoreexpminusmax_ukernel__avx512f_rr2_p5_u64_acc2
+     0.37%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vmulc_ukernel__avx512f_u32
+     0.36%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_rminmax_ukernel__avx512f_u64_acc4
+     0.34%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a917c
+     0.32%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a19d2
+     0.29%  litert_lm_advan  litert_lm_advanced_main             [.] pthreadpool_thread_parallelize_1d_fastpath
+     0.12%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vapproxgelu_ukernel__avx512f_rational_12_10_div_u32
+     0.11%  litert_lm_advan  litert_lm_advanced_main             [.] pthreadpool_parallelize
+     0.10%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_rsum2_ukernel__avx512f_u64_acc4
+     0.09%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_x32_transposec_ukernel__8x8_reuse_multi_avx
+     0.07%  litert_lm_advan  [kernel]                            [k] 0xffffffff936014f0
+     0.06%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_1d_tile_1d_dynamic
+     0.06%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_2d_tile_2d_dynamic
+     0.06%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_qs8_vcvt_ukernel__avx512skx_u128
+     0.05%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::ops::builtin::dynamic_update_slice::update_slice(int, int, int const*, int const*, int const*, char const*, int const*, unsigned long, char*)
+     0.05%  litert_lm_advan  [kernel]                            [k] 0xffffffff93601290
+     0.05%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_2d_tile_1d_dynamic
+     0.04%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a180e
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] compute_reciprocal_f32
+     0.04%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1653
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_3d_tile_1d_dynamic
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9180
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_3d_tile_2d_dynamic
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a185b
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1854
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1846
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_batched_packw_gemm_goi
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a184d
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1890
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18eb
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1816
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1868
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_hmp_grouped_gemm
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18da
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a19d4
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18f2
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18ff
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18f9
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1862
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a179a
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1825
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1897
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_xx_transposev_ukernel__1x1_scalar_memcpy
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a182d
+     0.01%  litert_lm_advan  libc.so.6                           [.] malloc
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_elementwise_binary_1d
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a186f
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_qp8gemm
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] void (anonymous namespace)::pack_lh_fx_qd<float, signed char, xnn_f32_qs8_cvt_params, &xnn_f32_qd8_asymmetric_quantization_params(float, float, float*)>(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, float const*, unsigned long, void*, void (*)(unsigned long, void const*, void*, xnn_unary_uparams const*), void (*)(unsigned long, void const*, void*, void const*), void (*)(unsigned long, void const*, void*, void const*))
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1889
+     0.00%  litert_lm_advan  libc.so.6                           [.] syscall
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] <alloc::vec::into_iter::IntoIter<T,A> as core::iter::traits::iterator::Iterator>::try_fold
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a918a
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_run_operator_with_index
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_xx_copy_ukernel__scalar_memcpy
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_elementwise_binary_2d
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18bc
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x000000000019869e
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a177c
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1640
+     0.00%  litert_lm_advan  libc.so.6                           [.] pthread_mutex_lock
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1928
+     0.00%  litert_lm_advan  libc.so.6                           [.] pthread_mutex_unlock
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] inflate_fast
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9187
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1950
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_univector_strided
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1921
+     0.00%  litert_lm_advan  [kernel]                            [k] 0xffffffff93600080
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a17c7
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1747
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a17e6
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>::_M_get_insert_unique_pos(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&)
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1914
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a191b
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] _$LT$core..hash..sip..Hasher$LT$S$GT$$u20$as$u20$core..hash..Hasher$GT$::write::hb922d969b56d85b0 (.llvm.17673192601358214999)
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab3ed
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18c3
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] memcpy@plt
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1948
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a18d2
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1941
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::CheckAffineQuantization(TfLiteContext*, TfLiteTensor const&, int, TfLiteAffineQuantization const&)
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] (anonymous namespace)::xnn_pack_lh_fx_qd8_packed_offset(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)
+     0.00%  litert_lm_advan  libc.so.6                           [.] cfree
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::ops::builtin::logical::(anonymous namespace)::LogicalAnd(bool, bool)
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] LiteRtProfilerT::BeginEvent(char const*, tflite::Profiler::EventType, long, long)
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a176d
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a190d
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::impl::InterpreterBuilder::ParseQuantization(tflite::QuantizationParameters const*, TfLiteQuantization*, std::vector<int, std::allocator<int>> const&, unsigned long)
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1774
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_floating_point_softmax
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::Subgraph::AddNodeWithParameters(std::vector<int, std::allocator<int>> const&, std::vector<int, std::allocator<int>> const&, std::vector<int, std::allocator<int>> const&, char const*, unsigned long, void*, TfLiteRegistration const*, int*)
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1efc
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] <core::str::lossy::Utf8Chunks as core::iter::traits::iterator::Iterator>::next
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::Subgraph::InvokeImpl()
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001986a5
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1784
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a178c
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a175d
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vtanh_ukernel__avx512f_rational_9_8_div_u32
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_invoke_runtime
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a193a
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9bdd
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1794
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::SubgraphInvoke(TfLiteContext*, TfLiteNode*)
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_slice_1d
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d41
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1876
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_contiguous_reduce
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentVisitor as serde_core::de::Visitor>::visit_seq
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a187d
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentRefDeserializer<E> as serde_core::de::Deserializer>::deserialize_any
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentVisitor as serde_core::de::Visitor>::visit_seq
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, litert::profiling::OpStat, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const, litert::profiling::OpStat>>>::operator[](std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&)
+
+
+#
+# (Tip: Customize output of perf script with: perf script -F event,ip,sym)
+#
+

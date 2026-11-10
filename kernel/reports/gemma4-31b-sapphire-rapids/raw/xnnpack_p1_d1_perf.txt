@@ -1,0 +1,357 @@
+
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 16K of event 'cycles:u'
+# Event count (approx.): 17002602006
+#
+# Overhead  Command          Shared Object                       Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+# ........  ...............  ..................................  ...........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    49.90%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx
+    12.55%  litert_lm_advan  [kernel]                            [k] 0xffffffff93601290
+     6.74%  litert_lm_advan  litert_lm_advanced_main             [.] thread_main
+     3.97%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm
+     2.29%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1efa
+     2.10%  litert_lm_advan  libc.so.6                           [.] malloc
+     1.57%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast
+     1.33%  litert_lm_advan  litert_lm_advanced_main             [.] <alloc::vec::into_iter::IntoIter<T,A> as core::iter::traits::iterator::Iterator>::try_fold
+     1.09%  litert_lm_advan  litert_lm_advanced_main             [.] inflate_fast
+     0.74%  litert_lm_advan  litert_lm_advanced_main             [.] _$LT$core..hash..sip..Hasher$LT$S$GT$$u20$as$u20$core..hash..Hasher$GT$::write::hb922d969b56d85b0 (.llvm.17673192601358214999)
+     0.64%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab3ed
+     0.59%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::impl::InterpreterBuilder::ParseQuantization(tflite::QuantizationParameters const*, TfLiteQuantization*, std::vector<int, std::allocator<int>> const&, unsigned long)
+     0.52%  litert_lm_advan  libc.so.6                           [.] cfree
+     0.52%  litert_lm_advan  litert_lm_advanced_main             [.] <core::str::lossy::Utf8Chunks as core::iter::traits::iterator::Iterator>::next
+     0.50%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_define_channelwise_quantized_tensor_value_v3
+     0.47%  litert_lm_advan  libc.so.6                           [.] 0x000000000019869e
+     0.46%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentVisitor as serde_core::de::Visitor>::visit_seq
+     0.45%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentRefDeserializer<E> as serde_core::de::Deserializer>::deserialize_any
+     0.43%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::CheckAffineQuantization(TfLiteContext*, TfLiteTensor const&, int, TfLiteAffineQuantization const&)
+     0.41%  litert_lm_advan  litert_lm_advanced_main             [.] serde::private::de::content::content_clone
+     0.38%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9bdd
+     0.37%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a19d2
+     0.36%  litert_lm_advan  litert_lm_advanced_main             [.] pthreadpool_thread_parallelize_1d_fastpath
+     0.32%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::Subgraph::AddNodeWithParameters(std::vector<int, std::allocator<int>> const&, std::vector<int, std::allocator<int>> const&, std::vector<int, std::allocator<int>> const&, char const*, unsigned long, void*, TfLiteRegistration const*, int*)
+     0.29%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentVisitor as serde_core::de::Visitor>::visit_seq
+     0.29%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::map::HashMap<K,V,S,A>::insert
+     0.27%  litert_lm_advan  litert_lm_advanced_main             [.] pthreadpool_parallelize
+     0.25%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9ce6
+     0.23%  litert_lm_advan  litert_lm_advanced_main             [.] std::pair<std::__detail::_Node_iterator<std::pair<void const* const, tflite::xnnpack::MMapWeightCacheProvider::OriginalBufferMetadata>, false, false>, bool> std::_Hashtable<void const*, std::pair<void const* const, tflite::xnnpack::MMapWeightCacheProvider::OriginalBufferMetadata>, std::allocator<std::pair<void const* const, tflite::xnnpack::MMapWeightCacheProvider::OriginalBufferMetadata>>, std::__detail::_Select1st, std::equal_to<void const*>, std::hash<void const*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>>::_M_emplace<void const*&, tflite::xnnpack::MMapWeightCacheProvider::OriginalBufferMetadata>(std::integral_constant<bool, true>, void const*&, tflite::xnnpack::MMapWeightCacheProvider::OriginalBufferMetadata&&)
+     0.23%  litert_lm_advan  litert_lm_advanced_main             [.] core::hash::BuildHasher::hash_one
+     0.22%  litert_lm_advan  litert_lm_advanced_main             [.] <serde_json::value::de::MapDeserializer as serde_core::de::MapAccess>::next_value_seed
+     0.22%  litert_lm_advan  litert_lm_advanced_main             [.] core::ptr::drop_in_place$LT$serde_core..private..content..Content$GT$::h3bc409d851632d4d (.llvm.16417536254865628318)
+     0.22%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d41
+     0.21%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a16ac
+     0.20%  litert_lm_advan  litert_lm_advanced_main             [.] adler32_z
+     0.19%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab51e
+     0.18%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::InterpreterInfo::node(unsigned long) const
+     0.18%  litert_lm_advan  litert_lm_advanced_main             [.] indexmap::map::IndexMap<K,V,S>::insert_full
+     0.18%  litert_lm_advan  litert_lm_advanced_main             [.] _$LT$serde_json..de..SeqAccess$LT$R$GT$$u20$as$u20$serde_core..de..SeqAccess$GT$::next_element_seed::has_next_element::hba494240a0565600 (.llvm.12296434437788800260)
+     0.18%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::table::HashTable<T,A>::entry
+     0.17%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9bce
+     0.17%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_2d_tile_2d_dynamic
+     0.17%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::raw::RawTable<T,A>::reserve_rehash
+     0.17%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentVisitor as serde_core::de::Visitor>::visit_map
+     0.16%  litert_lm_advan  litert_lm_advanced_main             [.] <serde_core::de::impls::<impl serde_core::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde_core::de::Visitor>::visit_seq
+     0.16%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1679
+     0.16%  litert_lm_advan  litert_lm_advanced_main             [.] core::hash::BuildHasher::hash_one
+     0.15%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a917c
+     0.14%  litert_lm_advan  litert_lm_advanced_main             [.] <serde_json::read::StrRead as serde_json::read::Read>::parse_str
+     0.13%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab50c
+     0.13%  litert_lm_advan  litert_lm_advanced_main             [.] serde_core::de::Deserializer::__deserialize_content_v1
+     0.12%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::SeqRefDeserializer<E> as serde_core::de::SeqAccess>::next_element_seed
+     0.12%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::raw::RawTable<T,A>::reserve_rehash
+     0.11%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab264
+     0.10%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_delete_runtime
+     0.09%  litert_lm_advan  litert_lm_advanced_main             [.] <serde_json::value::de::<impl serde_core::de::Deserialize for serde_json::value::Value>::deserialize::ValueVisitor as serde_core::de::Visitor>::visit_map
+     0.09%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9be3
+     0.08%  litert_lm_advan  litert_lm_advanced_main             [.] LiteRtProfilerT::LiteRtProfilerT(unsigned long)
+     0.08%  litert_lm_advan  litert_lm_advanced_main             [.] alloc::fmt::format::format_inner
+     0.08%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a16f7
+     0.08%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1640
+     0.08%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d75
+     0.08%  litert_lm_advan  litert_lm_advanced_main             [.] LiteRtProfilerT::~LiteRtProfilerT()
+     0.07%  litert_lm_advan  libc.so.6                           [.] 0x00000000001986a9
+     0.07%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9bd2
+     0.07%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::raw::RawTable<T,A>::reserve_rehash
+     0.07%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::ops::builtin::dynamic_update_slice::update_slice(int, int, int const*, int const*, int const*, char const*, int const*, unsigned long, char*)
+     0.06%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab68d
+     0.06%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab250
+     0.06%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vmul_ukernel__avx512f_u32
+     0.06%  litert_lm_advan  litert_lm_advanced_main             [.] core::hash::BuildHasher::hash_one
+     0.06%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab2b9
+     0.06%  litert_lm_advan  litert_lm_advanced_main             [.] alloc::raw_vec::RawVec<T,A>::grow_one
+     0.06%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab8b5
+     0.06%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab386
+     0.06%  litert_lm_advan  litert_lm_advanced_main             [.] serde_json::value::de::visit_array
+     0.05%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::MapRefDeserializer<E> as serde_core::de::MapAccess>::next_entry_seed
+     0.05%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9cbd
+     0.05%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab6b8
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_2d_tile_1d_dynamic
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_3d_tile_1d_dynamic
+     0.04%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9bc9
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_3d_tile_2d_dynamic
+     0.04%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac84d
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] core::fmt::Formatter::pad
+     0.04%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab081
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::PartitionGraphIntoIndependentNodeSubsets(tflite::GraphInfo const*, TfLiteIntArray const*, std::vector<tflite::NodeSubset, std::allocator<tflite::NodeSubset>>*, bool, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int>>> const*, bool)
+     0.04%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab300
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] alloc::raw_vec::RawVecInner<A>::reserve::do_reserve_and_handle
+     0.04%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::DefineXNNPACKValue(TfLiteContext*, xnn_subgraph*, TfLiteTensor const&, int, void const*, unsigned int, unsigned int, unsigned int*, bool)
+     0.04%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d95
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d46
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] void std::_Hashtable<unsigned long, std::pair<unsigned long const, unsigned long>, std::allocator<std::pair<unsigned long const, unsigned long>>, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>>::_M_assign<std::_Hashtable<unsigned long, std::pair<unsigned long const, unsigned long>, std::allocator<std::pair<unsigned long const, unsigned long>>, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>> const&, std::__detail::_AllocNode<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long const, unsigned long>, false>>>>(std::_Hashtable<unsigned long, std::pair<unsigned long const, unsigned long>, std::allocator<std::pair<unsigned long const, unsigned long>>, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>> const&, std::__detail::_AllocNode<std::allocator<std::__detail::_Hash_node<std::pair<unsigned long const, unsigned long>, false>>> const&)
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab2e8
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] core::ptr::drop_in_place<tokenizers::models::ModelWrapper>
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_rsum2_ukernel__avx512f_u64_acc4
+     0.03%  litert_lm_advan  [kernel]                            [k] 0xffffffff936014f0
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] thread_parallelize_1d_tile_1d_dynamic
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] _$LT$serde_json..de..MapAccess$LT$R$GT$$u20$as$u20$serde_core..de..MapAccess$GT$::next_key_seed::has_next_key::hde6a3f1c8278a456 (.llvm.12296434437788800260)
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] litert::internal::(anonymous namespace)::ReplaceMagicNumberInSubgraph(long, long, LiteRtModelT&, tflite::impl::FlatBufferModel const&, tflite::SubGraph const&, LiteRtSubgraphT&)
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab2d7
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac07b
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] bool tflite::Tensor::Verify<false>(flatbuffers::VerifierTemplate<false>&) const
+     0.03%  litert_lm_advan  litert_lm_advanced_main             [.] alloc::raw_vec::finish_grow::hc25dc0339e431fd0 (.llvm.6226472898530288843)
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abb42
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac5fa
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abbe4
+     0.03%  litert_lm_advan  [kernel]                            [k] 0xffffffff93600080
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab853
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab877
+     0.03%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a92d0
+     0.02%  litert_lm_advan  libc.so.6                           [.] pthread_mutex_lock
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab661
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::Subgraph::SetTensorParametersReadOnly(int, TfLiteType, char const*, unsigned long, int const*, TfLiteQuantization, char const*, unsigned long, tflite::Allocation const*, TfLiteSparsity*, unsigned long, unsigned long)
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac0e8
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d62
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] core::fmt::write
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d4e
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac2a2
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] operator new(unsigned long)@plt
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::raw::RawIterRange<T>::fold_impl
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vadd_ukernel__avx512f_u32
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abbed
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::Subgraph::VisitFullyConnectedNode(xnn_subgraph*, tflite::xnnpack::(anonymous namespace)::Delegate const&, TfLiteContext*, int, TfLiteNode*, TfLiteTensor*, TfLiteFullyConnectedParams const*, std::unordered_set<int, std::hash<int>, std::equal_to<int>, std::allocator<int>> const&, std::unordered_map<int, unsigned int, std::hash<int>, std::equal_to<int>, std::allocator<std::pair<int const, unsigned int>>> const&, bool)
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vmulc_ukernel__avx512f_u32
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abafb
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abcf3
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] alloc::raw_vec::finish_grow::ha4c8f8ab101d2dbc (.llvm.10610766759261215116)
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] inflate
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_rmax_ukernel__avx512f_u64_acc4
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] absl::lts_20260526::str_format_internal::FormatUntyped(absl::lts_20260526::str_format_internal::FormatRawSinkImpl, absl::lts_20260526::str_format_internal::UntypedFormatSpecImpl, absl::lts_20260526::Span<absl::lts_20260526::str_format_internal::FormatArgImpl const>)
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::map::HashMap<K,V,S,A>::insert
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9da1
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab345
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000203f74
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab321
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000aba41
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x00000000001df485
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::MMapWeightCacheProvider::MapTensorIdentifiers(TfLiteTensor const*, unsigned long, std::unordered_map<unsigned long, unsigned long, std::hash<unsigned long>, std::equal_to<unsigned long>, std::allocator<std::pair<unsigned long const, unsigned long>>> const&)
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac2da
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x00000000001908f0
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab858
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x00000000002078cf
+     0.02%  ld-linux-x86-64  ld-linux-x86-64.so.2                [.] 0x000000000000855d
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d05
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac5fe
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000203356
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] serde_json::value::de::<impl serde_core::de::Deserializer for serde_json::value::Value>::deserialize_u32
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000177cff
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000183df0
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::MutableOpResolver::AddBuiltin(tflite::BuiltinOperator, TfLiteRegistration const*, int, int)
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] std::pair<absl::lts_20260526::container_internal::raw_hash_set<absl::lts_20260526::container_internal::FlatHashSetPolicy<litert::internal::TfLiteTensorIdentifier>, litert::internal::TensorIdentifierHash, litert::internal::TensorIdentifierEqual>::iterator, bool> absl::lts_20260526::container_internal::raw_hash_set<absl::lts_20260526::container_internal::FlatHashSetPolicy<litert::internal::TfLiteTensorIdentifier>, litert::internal::TensorIdentifierHash, litert::internal::TensorIdentifierEqual>::find_or_prepare_insert_large<litert::internal::TfLiteTensorIdentifier>(litert::internal::TfLiteTensorIdentifier const&)
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000148f9b
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x000000000019f535
+     0.02%  ld-linux-x86-64  libc.so.6                           [.] 0x00000000001a1690
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9e06
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9e13
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000202dd0
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac2b9
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abccd
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x000000000021d9e8
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] <str as core::fmt::Display>::fmt
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] <alloc::vec::into_iter::IntoIter<T,A> as core::ops::drop::Drop>::drop
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abdc4
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_destroy_operator
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9c22
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x00000000001f77ad
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000193729
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abdbc
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab892
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::BuiltinOptions2Union::Reset()
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9cf0
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab451
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] hashbrown::map::HashMap<K,V,S,A>::insert
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abcc8
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] alloc::raw_vec::finish_grow
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab880
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d31
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000175db9
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] __rdl_dealloc
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab3d3
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] <alloc::string::String as core::fmt::Write>::write_str
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac333
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab88e
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000187c1e
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::Subgraph::~Subgraph()
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab363
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000191530
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000191c7d
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab8e6
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] core::ptr::drop_in_place<tokenizers::models::bpe::Error>
+     0.02%  ld-linux-x86-64  libc.so.6                           [.] 0x00000000000ade59
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d91
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_subgraph_clean_up
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab8d8
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9d49
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] get_tensor_size
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::DelegatePrepare(TfLiteContext*, TfLiteDelegate*)
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::Subgraph::VisitReshapeNode(xnn_subgraph*, tflite::xnnpack::(anonymous namespace)::Delegate const&, TfLiteContext*, int, TfLiteNode*, TfLiteTensor const*, TfLiteReshapeParams const*, std::unordered_map<int, unsigned int, std::hash<int>, std::equal_to<int>, std::allocator<std::pair<int const, unsigned int>>> const&)
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x00000000002074f2
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9bd7
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abcbf
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab37d
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] serde_json::value::de::<impl serde_core::de::Deserializer for serde_json::map::Map<alloc::string::String,serde_json::value::Value>>::deserialize_any
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_subgraph_analyze_consumers_and_producers
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000234a23
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab650
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x000000000017b370
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::Subgraph::ReplaceNodeSubsetsWithDelegateKernels(TfLiteRegistration, TfLiteIntArray const*, TfLiteDelegate*)
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9cec
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] bool tflite::Operator::Verify<false>(flatbuffers::VerifierTemplate<false>&) const
+     0.02%  ld-linux-x86-64  python3.12                          [.] 0x0000000000191647
+     0.02%  litert_lm_advan  litert_lm_advanced_main             [.] LiteRtGetQuantizationTypeId
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abe00
+     0.02%  litert_lm_advan  libc.so.6                           [.] 0x00000000000a9df3
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000186d93
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000176805
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] __rust_dealloc
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000aba45
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x000000000017a3a9
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x00000000001d80e0
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac851
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] litert::internal::(anonymous namespace)::UnpackModel(litert::internal::FlatbufferWrapper&&)
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x00000000001dfa40
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] litert::internal::MapQuantization(tflite::QuantizationParameters const*)
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000186df0
+     0.01%  litert_lm_advan  libstdc++.so.6.0.33                 [.] operator new(unsigned long)
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] litert::internal::TflShapeInfo::TflShapeInfo(tflite::Tensor const&)
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a16c0
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac069
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] litert::internal::model_detail::FetchSignatureOutputNames(LiteRtSignatureT*)
+     0.01%  litert_lm_advan  libstdc++.so.6.0.33                 [.] 0x00000000000a2c60
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000183d10
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab8a8
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vapproxgelu_ukernel__avx512f_rational_12_10_div_u32
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000188708
+     0.01%  ld-linux-x86-64  libc.so.6                           [.] 0x000000000009b16b
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] std::pair<litert::lm::BufferKey, litert::lm::TfLiteSectionHint>::pair<litert::lm::BufferKey&, litert::lm::TfLiteSectionHint&>(litert::lm::BufferKey&, litert::lm::TfLiteSectionHint&)
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000183ddf
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_rminmax_ukernel__avx512f_u64_acc4
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x000000000020a940
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x000000000019169f
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x00000000001e120e
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000150aa0
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x000000000019ffde
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x000000000021da10
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] std::_Hashtable<unsigned long, std::pair<unsigned long const, unsigned long>, std::allocator<std::pair<unsigned long const, unsigned long>>, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>>::_M_rehash_aux(unsigned long, std::integral_constant<bool, true>)
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::ParseMul(tflite::Operator const*, tflite::ErrorReporter*, tflite::BuiltinDataAllocator*, void**)
+     0.01%  mount            [kernel]                            [k] 0xffffffff93601290
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] cpuinfo_linux_parse_multiline_file
+     0.01%  litert_lm_advan  libGemmaModelConstraintProvider.so  [.] absl::container_internal::raw_hash_set<absl::container_internal::FlatHashMapPolicy<std::__u::basic_string_view<char, std::__u::char_traits<char>>, absl::CommandLineFlag*>>::transfer_unprobed_elements_to_next_capacity_fn(absl::container_internal::CommonFields&, absl::container_internal::ctrl_t const*, void*, void*, void (*)(void*, unsigned char, unsigned long, unsigned long))
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1653
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_batched_packw_gemm_goi
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>::basic_string<std::allocator<char>>(char const*, std::allocator<char> const&)
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac06d
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000abbca
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ab83d
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000186d84
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::ConvertVectorToTfLiteIntArray(std::vector<int, std::allocator<int>> const&)
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] <serde::private::de::content::ContentRefDeserializer<E> as serde_core::de::Deserializer>::deserialize_string
+     0.01%  litert_lm_advan  libGemmaModelConstraintProvider.so  [.] bssl_g3_sha256_block_data_order_hw
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] litert::internal::compiled_model_detail::FetchSignatureInputNames(litert::internal::EnvironmentHolder const&, LiteRtSignatureT*)
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac5eb
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000172640
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] bool tflite::SubGraph::Verify<false>(flatbuffers::VerifierTemplate<false>&) const
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] litert::lm::(anonymous namespace)::StripBlobs(nlohmann::json_abi_v3_12_0::basic_json<nlohmann::json_abi_v3_12_0::ordered_map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, bool, long, unsigned long, double, std::allocator, nlohmann::json_abi_v3_12_0::adl_serializer, std::vector<unsigned char, std::allocator<unsigned char>>, void>&)
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x000000000019bc80
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::xnnpack::(anonymous namespace)::Subgraph::VisitNode(xnn_subgraph*, tflite::xnnpack::(anonymous namespace)::Delegate&, TfLiteContext*, TfLiteRegistration*, TfLiteNode*, int, std::unordered_set<int, std::hash<int>, std::equal_to<int>, std::allocator<int>> const&, std::unordered_map<int, unsigned int, std::hash<int>, std::equal_to<int>, std::allocator<std::pair<int const, unsigned int>>> const&, std::unordered_map<int, unsigned int, std::hash<int>, std::equal_to<int>, std::allocator<std::pair<int const, unsigned int>>> const&, bool)
+     0.01%  litert_lm_advan  libGemmaModelConstraintProvider.so  [.] proto2::operator<(proto2::EncodedDescriptorDatabase::DescriptorIndex::SymbolEntry::Parts, proto2::EncodedDescriptorDatabase::DescriptorIndex::SymbolEntry::Parts)
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000174a5b
+     0.01%  litert_lm_advan  libc.so.6                           [.] syscall
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a16aa
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x00000000001936ef
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a16ae
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac039
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac5b3
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000aba18
+     0.01%  litert_lm_advan  libc.so.6                           [.] __mprotect
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac5e1
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a185b
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac5e7
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000000ac881
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] minijinja::compiler::parser::Parser::subparse
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_get_runtime_profiling_info
+     0.01%  ld-linux-x86-64  [kernel]                            [k] 0xffffffff93601290
+     0.01%  mount            ld-2.27.so                          [.] 0x0000000000015c05
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] bool flatbuffers::VerifierTemplate<false>::VerifyVector<float, unsigned int>(flatbuffers::Vector<float, unsigned int> const*) const
+     0.01%  litert_lm_advan  libc.so.6                           [.] 0x00000000001986b7
+     0.01%  litert_lm_advan  ld-linux-x86-64.so.2                [.] 0x000000000000f90f
+     0.01%  ld-linux-x86-64  python3.12                          [.] 0x0000000000209595
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] setup_binary_operator
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_raddstoreexpminusmax_ukernel__avx512f_rr2_p5_u64_acc2
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] std::__detail::_Map_base<int, std::pair<int const, unsigned int>, std::allocator<std::pair<int const, unsigned int>>, std::__detail::_Select1st, std::equal_to<int>, std::hash<int>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](int const&)
+     0.01%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_run_operator_with_index
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_compute_qp8gemm
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1825
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1774
+     0.00%  ld-linux-x86-64  python3.12                          [.] 0x0000000000193482
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1784
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] tflite::RuntimeShape::Dims(int) const
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>::_M_get_insert_unique_pos(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&)
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1ede
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a177c
+     0.00%  litert_lm_advan  libc.so.6                           [.] __call_tls_dtors
+     0.00%  litert_lm_advan  libc.so.6                           [.] 0x00000000001a1ee9
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] LiteRtGetCompiledModelInputTensorLayout
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] xnn_f32_vtanh_ukernel__avx512f_rational_9_8_div_u32
+     0.00%  chroot           ld-2.27.so                          [.] 0x000000000001494b
+     0.00%  litert_lm_advan  ld-linux-x86-64.so.2                [.] 0x000000000000a57a
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] re2::Prog::IsOnePass()
+     0.00%  litert_lm_advan  ld-linux-x86-64.so.2                [.] 0x0000000000015e95
+     0.00%  ld-linux-x86-64  ld-linux-x86-64.so.2                [.] 0x0000000000018c9e
+     0.00%  env              ld-linux-x86-64.so.2                [.] 0x000000000000b108
+     0.00%  bash             bash                                [.] 0x000000000007f68e
+     0.00%  bash             bash                                [.] 0x000000000007648d
+     0.00%  python3          bash                                [.] 0x00000000000a9b01
+     0.00%  bash             ld-2.27.so                          [.] 0x000000000001720f
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] re2::Regexp::Parse(std::basic_string_view<char, std::char_traits<char>>, re2::Regexp::ParseFlags, re2::RegexpStatus*)
+     0.00%  mount            ld-2.27.so                          [.] 0x0000000000014910
+     0.00%  mount            ld-2.27.so                          [.] 0x000000000001496a
+     0.00%  mount            ld-2.27.so                          [.] 0x00000000000149aa
+     0.00%  mount            ld-2.27.so                          [.] 0x00000000000149c2
+     0.00%  mount            ld-2.27.so                          [.] 0x00000000000157ad
+     0.00%  mount            ld-2.27.so                          [.] 0x0000000000015820
+     0.00%  mount            ld-2.27.so                          [.] 0x00000000000165a6
+     0.00%  mount            ld-2.27.so                          [.] 0x0000000000016f30
+     0.00%  mount            ld-2.27.so                          [.] 0x00000000000172ad
+     0.00%  mount            ld-2.27.so                          [.] 0x00000000000282da
+     0.00%  mount            ld-2.27.so                          [.] 0x00000000000282de
+     0.00%  mount            ld-2.27.so                          [.] 0x0000000000028cc0
+     0.00%  numactl          libc-2.27.so                        [.] 0x00000000000adc5c
+     0.00%  python3          [kernel]                            [k] 0xffffffff93601290
+     0.00%  python3          ld-2.27.so                          [.] 0x0000000000012b64
+     0.00%  unshare          [kernel]                            [k] 0xffffffff93601290
+     0.00%  mount            libc-2.27.so                        [.] 0x00000000000cfb6a
+     0.00%  mount            libc-2.27.so                        [.] 0x00000000000baee3
+     0.00%  mount            libmount.so.1.1.0                   [.] 0x000000000002178f
+     0.00%  mount            libc-2.27.so                        [.] 0x00000000000622e0
+     0.00%  litert_lm_advan  litert_lm_advanced_main             [.] <serde_json::de::MapAccess<R> as serde_core::de::MapAccess>::next_key_seed
+
+
+#
+# (Tip: Use parent filter to see specific call path: perf report -p <regex>)
+#
+

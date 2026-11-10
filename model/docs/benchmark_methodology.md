@@ -190,12 +190,13 @@ define a `prefix_cache` section (`prompt_tokens`, `prefix_tokens`, `gen_tokens`,
   **Effective Prefill Throughput (`prompt_tokens ÷ Warm TTFT`)**,
   **Suffix Prefill Throughput (`S ÷ Warm TTFT`)**, and **Decode Throughput**.
 
-## Input-length throughput sweep
+## Input-length throughput sweep, user-journey shapes, and kernel attribution
 
-In addition to the headline workload (`1,024` prompt tokens → `256` generated
-tokens), suites may define an input-length sequence sweep (`sequence_sweep`)
-across multiple prompt lengths (for example `64` to `4,096` or `16,384` tokens)
-at a fixed decode length:
+In addition to the headline workload (`1,024` prompt tokens → `128` or `256`
+generated tokens), suites define an input-length sequence sweep
+(`sequence_sweep`) and kernel profiling matrix across shapes that reflect real
+user journeys as well as the **minimum** and **maximum** shapes supported by
+the model and runtime:
 
 - Every prompt length uses the same real-text passage, chat template, and
   token-exact trimming, with SHA-256 token-id verification at each length `N`.
@@ -204,6 +205,145 @@ at a fixed decode length:
   `(framework, dtype)` pair from the headline `perf` runs that also passes the
   minimum accuracy threshold (`min_accuracy`), ensuring scaling curves only
   include configurations with verified output quality.
+
+### Why input shape and modality govern kernel selection and execution time share
+
+On modern CPU runtimes (such as LiteRT-LM with **XNNPACK** or **YNNPACK** on
+Intel Sapphire Rapids with AVX-512 VNNI and AMX), the active kernel set and the
+proportion of time spent in each kernel shift significantly with the `(P, D, ctx)`
+input shape and modality (`text`, `vision`, `audio`) due to four mechanisms:
+
+1. **Prefill GEMM ($M \in \{128, 1024\}$) vs. Decode GEMV ($M = 1$) dispatch:**
+   LiteRT-LM compiles static bucketed prefill signatures (`prefill_128`,
+   `prefill_1024`) alongside a single-token `decode` signature (`M = 1`).
+   A prompt of $P$ tokens executes $\lfloor(P - 1) / 1024\rfloor$ calls to
+   `prefill_1024`, at most one tail call to `prefill_128` or `prefill_1024`
+   (when $P > 1$), and then $D$ calls to `decode` ($M = 1$, where the first
+   `decode` call evaluates the final prompt token to emit the first generated
+   token).
+   - During **`decode` ($M = 1$)**, XNNPACK dispatches 1-row AMX/AVX-512
+     microkernels (`xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx`)
+     and YNNPACK dispatches 1-row **AVX-512 VNNI** dot-product microkernels
+     (`ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni`) that are
+     memory-bandwidth-bound.
+   - During **`prefill` ($M \in \{128, 1024\}$)**, XNNPACK packs the $M$-row
+     activation matrix and dispatches multi-row **AMX-INT8 tile kernels**
+     (`xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx`), while YNNPACK
+     dispatches multi-row **AVX-512 VNNI** kernels
+     (`ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni`) for 4-bit weights
+     and **AMX-INT8 tile kernels** (`ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8`)
+     for 8-bit weights.
+2. **Hybrid sliding-window ($W = 1024$) vs. global attention scaling:**
+   Gemma 4 31B (`google/gemma-4-31B-it`, 60 layers) interleaves 5 local
+   sliding-window attention layers (`sliding_window = 1024`, 32 query heads,
+   16 KV heads, `head_dim = 256`) with 1 full global attention layer (32 query
+   heads, 4 global KV heads with unified $K = V$, `global_head_dim = 512`)
+   repeated 10 times. For $P + D \le 1024$, both local and global layers attend
+   over the same context length. Beyond $1,024$ tokens, the 50 local layers stay
+   capped at $W = 1024$, whereas the 10 global layers scale linearly in decode
+   and quadratically in prefill with the full KV cache capacity (`max_num_tokens`),
+   increasing the time share of `Batch Matrix Multiply (NC, F32) GEMM`,
+   `Softmax (NC, F32)`, `Transpose (ND)`, and `DYNAMIC_UPDATE_SLICE`.
+3. **Multimodal Vision (27-layer ViT + Adapter) & Audio (Conformer) subgraphs:**
+   - **Vision (`gemma-4-31B-it`, `vision_encoder` + `vision_adapter`):**
+     Gemma 4 31B pairs its 60-layer text decoder with a 27-layer ViT Vision
+     Encoder (`hidden_size = 1152`, `intermediate_size = 4304`, 16 heads,
+     `head_dim = 72`, `patch_size = 16`, `pooling_kernel_size = 3`) and a
+     Multimodal Vision Adapter (`1152 -> 5376`). Unlike the 4-bit (`QC4W`) text
+     decoder, both vision subgraphs use **8-bit per-channel weights (`QC8W` /
+     `INT8 × INT8 -> INT32`)** and **unmasked 2D bidirectional FP32
+     self-attention (`[1, 16, N_patches, N_patches]`)**. Gemma 4 supports 5
+     official soft-token budgets: `70`, `140`, `280` (default), `560`, and
+     `1,120` soft tokens, which correspond after $3 \times 3$ spatial average
+     pooling (`9` patches per soft token) to `630`, `1,260`, `2,520`, `5,040`,
+     and `10,080` `16×16` patches (`[1, N_patches, 768]`). As patch count scales
+     $16\times$ from `vis_70` (`630` patches) to `vis_1120` (`10,080` patches),
+     the dominant kernel shifts from **8-bit AMX-INT8 `QC8W` GEMM** (**32.95%**
+     of TFLite time at `vis_70` down to **5.12%** at `vis_1120`) to
+     **$O(N_{\text{patches}}^2)$ FP32 Bidirectional Self-Attention
+     `BatchMatMul` + `Softmax`** (rising from **21.42%** of TFLite time at
+     `vis_70` to **60.34%** at `vis_280` and **84.91%** at `vis_1120`). Under
+     YNNPACK, `vision_adapter` (`INT8 × INT8`) delegates 100% of its nodes and
+     dispatches **Intel AMX-INT8** (`ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8`),
+     whereas `vision_encoder` hits an unsupported `int32` `REDUCE_MAX` op in
+     `YNNPackDelegate` (`external/XNNPACK/ynnpack/subgraph/reduce.cc:440`) and
+     falls back to `TfLiteXNNPackDelegate`.
+   - **Audio (`audio_config: null` in 31B; `gemma-4-E2B-it` Conformer reference
+     `audio_204`):** The official `google/gemma-4-31B-it` checkpoint has
+     `"audio_config": null` (only `Gemma 4 E2B` and `Gemma 4 E4B` include
+     `model.audio_tower`). Profiling the Gemma 4 Conformer Audio Encoder +
+     Adapter (`[1, 816, 128] -> [1, 204, 1536]`, `204` audio soft tokens)
+     provides the reference kernel profile for Gemma 4's **2-bit (`QC2W` /
+     `INT2`) and 4-bit (`QC4W` / `INT4`) Conformer linear projections**
+     (`Delegate/Fully Connected (NC, QS8, QC2W) GEMM` in XNNPACK and
+     `ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni` in YNNPACK) and
+     depthwise convolutions.
+4. **Framework minimum and maximum shape boundaries:**
+   - **Minimum supported text shape (`p1_d1`: $P = 1, D = 1$, `max_num_tokens = 1024`):**
+     At $P = 1$, LiteRT-LM skips all `prefill_*` signatures and runs a single
+     `decode` ($M = 1$) step. The minimum KV cache length accepted by the
+     runtime is `max_num_tokens = 1024`, because `prefill_1024`'s
+     `DYNAMIC_UPDATE_SLICE` operator validates at initialization that the KV
+     cache tensor dimension (`max_num_tokens`) is at least as large as the
+     1024-token prefill update slice (`SizeOfDimension(update, i) <= SizeOfDimension(operand, i)`).
+   - **Maximum supported text shape (`p16384_d128` at `max_num_tokens = 32768`):**
+     While Gemma 4 31B's architectural position limit is
+     `max_position_embeddings = 262,144` (256K), `litert-torch` exports CPU/GPU
+     `.litertlm` graphs with `cache_length = 32771` (magic number for a
+     `32,768`-token KV cache). At the next power of two (`max_num_tokens = 65,536`),
+     the global attention score tensor `[batch=1, heads=32, query=1024, kv=65536]`
+     in `prefill_1024` contains $1 \times 32 \times 1024 \times 65536 = 2^{31}$
+     FP32 elements ($8.59\text{ GB}$ per tensor), overflowing signed 32-bit
+     element indexing (`INT32_MAX = 2,147,483,647`) in TFLite flatbuffers. Thus
+     `max_num_tokens = 32,768` is the maximum power-of-two context capacity
+     supported by the framework for Gemma 4 31B with `prefill_1024`.
+   - **Minimum (`vis_70`) and maximum (`vis_1120`) vision shapes:**
+     Span the minimum (`70` soft tokens / `630` patches, `~400×400` thumbnail)
+     and maximum (`1,120` soft tokens / `10,080` patches, `~1600×1600` dense OCR)
+     image token budgets supported by Gemma 4's `Gemma4VisionConfig`.
+
+### Canonical multimodal input shapes and user-journey rationale
+
+| Shape ID | Modality | Prompt / Soft Tokens ($P$) | Decode ($D$) | Patches / Context (`max_num_tokens`) | LiteRT-LM Signature / Tensor Path | User Journey & Boundary Rationale |
+| :--- | :--- | ---: | ---: | ---: | :--- | :--- |
+| `p1_d1` | **TEXT** | 1 | 1 | 1,024 | `1x decode` ($M=1$; $0\times$ `prefill_*`) | **Minimum supported text shape** — single-token boundary probe isolating pure $M=1$ GEMV decode without any prefill GEMM invocation, at the minimum valid KV cache capacity (`1024`). |
+| `p16_d128` | **TEXT** | 16 | 128 | 1,024 | `1x prefill_128` + `128x decode` | **Autocomplete / short command** — short 16-token prompt with a 128-token completion; >90% of execution time is governed by memory-bandwidth-bound $M=1$ decode kernels. |
+| `p64_d64` | **TEXT** | 64 | 64 | 1,024 | `1x prefill_128` + `64x decode` | **Interactive chat / voice assistant turn** — typical conversational turn (~50 words in, ~50 words out) inside a single `prefill_128` bucket. |
+| `p128_d128` | **TEXT** | 128 | 128 | 1,024 | `1x prefill_128` + `128x decode` | **IDE code completion / `prefill_128` bucket saturation** — saturates the 128-token prefill bucket before transitioning to `prefill_1024`. |
+| `p256_d128` | **TEXT** | 256 | 128 | 1,024 | `1x prefill_1024` + `128x decode` | **RAG snippet Q&A / multi-turn chat** — crosses the 128-token boundary to trigger `prefill_1024` ($M=1024$ AMX/AVX-512 GEMM) followed by 128 decode steps. |
+| `p1024_d128` | **TEXT** | 1,024 | 128 | 4,096 | `1x prefill_1024` + `128x decode` | **Document summarization (headline CPU workload)** — saturates one full `prefill_1024` bucket and reaches the exact horizon of Gemma 4's 1,024-token sliding-window attention layers. |
+| `p4096_d128` | **TEXT** | 4,096 | 128 | 8,192 | `4x prefill_1024` + `128x decode` | **Long-context document & repository analysis** — $4\times$ the local sliding window ($4096 > 1024$), separating capped local attention ($W=1024$) from full-context global attention ($S_{\text{kv}}=4096$). |
+| `p16384_d128` | **TEXT** | 16,384 | 128 | 32,768 | `16x prefill_1024` + `128x decode` | **Maximum supported KV cache capacity (32K context)** — exercises `prefill_1024` and `decode` at the maximum 32K KV cache capacity (`cache_length=32771`) prior to the 32-bit TFLite indexing limit at 64K. |
+| `vis_70` | **VISION** | 70 | 0 | 630 | `1x vision_encoder (P=630)` + `1x vision_adapter (S=70)` (`patches=[1,630,768] -> soft_tokens=[1,70,5376]`) | **Minimum supported vision budget (thumbnail / icon classification, 70 soft tokens)** — lowest official Gemma 4 vision token budget (`630` `16×16` patches -> $3\times 3$ pool -> `70` soft tokens). |
+| `vis_140` | **VISION** | 140 | 0 | 1,260 | `1x vision_encoder (P=1260)` + `1x vision_adapter (S=140)` (`patches=[1,1260,768] -> soft_tokens=[1,140,5376]`) | **Low-resolution UI widget / mobile screenshot (140 soft tokens)** — `1,260` patches (`~560×576 px`) pooled $3\times 3$ to `140` soft tokens. |
+| `vis_280` | **VISION** | 280 | 0 | 2,520 | `1x vision_encoder (P=2520)` + `1x vision_adapter (S=280)` (`patches=[1,2520,768] -> soft_tokens=[1,280,5376]`) | **Standard photo VQA / default Gemma 4 vision budget (280 soft tokens)** — `2,520` patches (`~800×800 px`) pooled $3\times 3$ to `280` soft tokens; quadratic FP32 self-attention overtakes 8-bit `QC8W` GEMM (**60.3%** vs. **21.4%** of TFLite time). |
+| `vis_560` | **VISION** | 560 | 0 | 5,040 | `1x vision_encoder (P=5040)` + `1x vision_adapter (S=560)` (`patches=[1,5040,768] -> soft_tokens=[1,560,5376]`) | **High-resolution chart / slide / document page VQA (560 soft tokens)** — `5,040` patches (`~1120×1152 px`) pooled $3\times 3$ to `560` soft tokens. |
+| `vis_1120` | **VISION** | 1,120 | 0 | 10,080 | `1x vision_encoder (P=10080)` + `1x vision_adapter (S=1120)` (`patches=[1,10080,768] -> soft_tokens=[1,1120,5376]`) | **Maximum supported vision budget (dense OCR / multi-column PDF / 4K diagram, 1,120 soft tokens)** — maximum official Gemma 4 vision token budget (`10,080` patches -> `1,120` soft tokens); `BatchMatMul + Softmax` reaches **84.9%** of TFLite time (**88.9%** of kernel cycles). |
+| `audio_204` | **AUDIO** | 204 | 0 | 816 | `1x audio_encoder (T=816)` + `1x audio_adapter (S=204)` (`mel=[1,816,128] -> soft_tokens=[1,204,1536]`) | **Voice command / 8.2s speech clip (Gemma 4 Conformer Audio Reference)** — (`audio_config: null` in 31B; profiled on `gemma-4-E2B-it`) exercises 2-bit (`QC2W`/`INT2`) and 4-bit (`QC4W`/`INT4`) Conformer linear projections and depthwise convs. |
+
+### Reproducible kernel extraction (`kernel/scripts/extract_litert_lm_kernels.py`)
+
+To reproducibly identify every kernel invoked for each input shape (across Text,
+Vision, and Audio subgraphs) and compute its proportion of execution time on
+target hardware, run
+[extract_litert_lm_kernels.py](../../kernel/scripts/extract_litert_lm_kernels.py)
+(along with [litert_subgraph_profiler.c](../../kernel/scripts/litert_subgraph_profiler.c)
+for multimodal subgraphs). The script captures both:
+1. **Operator-level & delegate-node timing (`--enable_profiling=true`):**
+   TFLite's built-in profiler reports exact invocation counts, total time (ms),
+   and percentage share (`%`) for each XNNPACK delegate operator
+   (`Delegate/Fully Connected (NC, QD8, F32, QC4W) GEMM`,
+   `Delegate/Fully Connected (NC, QD8, F32, QC8W) GEMM`,
+   `Delegate/Fully Connected (NC, QS8, QC2W) GEMM`,
+   `Delegate/Batch Matrix Multiply (NC, F32) GEMM`, `Delegate/Softmax (NC, F32)`,
+   etc.), YNNPACK delegate partition (`YNNPackDelegate`), and non-delegated
+   TFLite operator (`DYNAMIC_UPDATE_SLICE`, `SELECT_V2`, `ONE_HOT`, etc.).
+2. **Hardware ISA microkernel attribution (`perf record -e cycles:u`):**
+   Linux `perf` attributes CPU cycles inside `litert_lm_advanced_main` to
+   individual XNNPACK (`xnn_*_ukernel*`) and YNNPACK (`ynn::*`) C++/assembly
+   microkernels, recording the proportion of execution time spent in each
+   microkernel and hardware ISA (`AMX-INT8`, `AMX-BF16`, `AVX-512 VNNI`,
+   `AVX-512F`, `FMA3`, `Scalar`) per input shape.
 
 ## Accuracy gate
 
