@@ -1,0 +1,2859 @@
+{
+  "model": "Gemma 4 31B",
+  "microarchitecture": "Intel Sapphire Rapids",
+  "hardware_ceilings": {
+    "arch": "x86_64",
+    "microarchitecture": "Intel Sapphire Rapids",
+    "methodology": {
+      "clock": "CLOCK_MONOTONIC_RAW",
+      "affinity": "sched_setaffinity physical cores 0..27 (NUMA Node 0)",
+      "synchronization": "omp barrier before and after timed loop",
+      "num_trials": 7,
+      "reported_value": "median"
+    },
+    "threads_single_core": 1,
+    "threads_numa_node0": 28,
+    "compute_ceilings_gops": {
+      "amx_int8_tdpbssd": {
+        "single_core": 7701.36,
+        "single_core_stats": {
+          "median": 7701.36,
+          "mean": 7608.23,
+          "min": 7100.4,
+          "max": 7755.85,
+          "stdev": 236.36,
+          "cv_pct": 3.11
+        },
+        "numa_node0_28c": 188402.15,
+        "numa_node0_28c_stats": {
+          "median": 188402.15,
+          "mean": 187759.76,
+          "min": 185616.48,
+          "max": 188986.3,
+          "stdev": 1328.05,
+          "cv_pct": 0.71
+        }
+      },
+      "amx_bf16_tdpbf16ps": {
+        "single_core": 3866.86,
+        "single_core_stats": {
+          "median": 3866.86,
+          "mean": 3832.87,
+          "min": 3675.3,
+          "max": 3878.41,
+          "stdev": 72.32,
+          "cv_pct": 1.89
+        },
+        "numa_node0_28c": 83899.87,
+        "numa_node0_28c_stats": {
+          "median": 83899.87,
+          "mean": 83987.11,
+          "min": 77476.35,
+          "max": 91872.8,
+          "stdev": 5727.67,
+          "cv_pct": 6.82
+        }
+      },
+      "avx512_vnni_int8_vpdpbusd": {
+        "single_core": 948.07,
+        "single_core_stats": {
+          "median": 948.07,
+          "mean": 943.75,
+          "min": 910.53,
+          "max": 955.1,
+          "stdev": 15.32,
+          "cv_pct": 1.62
+        },
+        "numa_node0_28c": 20973.59,
+        "numa_node0_28c_stats": {
+          "median": 20973.59,
+          "mean": 20879.89,
+          "min": 19141.11,
+          "max": 22446.59,
+          "stdev": 1208.15,
+          "cv_pct": 5.79
+        }
+      },
+      "avx_vnni_256_int8_vpdpbusd": {
+        "single_core": 484.59,
+        "single_core_stats": {
+          "median": 484.59,
+          "mean": 483.58,
+          "min": 478.45,
+          "max": 484.87,
+          "stdev": 2.37,
+          "cv_pct": 0.49
+        },
+        "numa_node0_28c": 10667.71,
+        "numa_node0_28c_stats": {
+          "median": 10667.71,
+          "mean": 10661.52,
+          "min": 9845.35,
+          "max": 11240.11,
+          "stdev": 498.33,
+          "cv_pct": 4.67
+        }
+      },
+      "avx512_fp32_fma": {
+        "single_core": 235.72,
+        "single_core_stats": {
+          "median": 235.72,
+          "mean": 233.55,
+          "min": 223.9,
+          "max": 235.8,
+          "stdev": 4.45,
+          "cv_pct": 1.91
+        },
+        "numa_node0_28c": 5616.26,
+        "numa_node0_28c_stats": {
+          "median": 5616.26,
+          "mean": 5582.5,
+          "min": 5283.74,
+          "max": 5844.05,
+          "stdev": 185.37,
+          "cv_pct": 3.32
+        }
+      }
+    },
+    "bandwidth_ceilings_gbps": {
+      "l1d_16kb_per_core": {
+        "read_only": {
+          "single_core": 284.72,
+          "single_core_stats": {
+            "median": 284.72,
+            "mean": 282.13,
+            "min": 276.79,
+            "max": 286.21,
+            "stdev": 4.55,
+            "cv_pct": 1.61
+          },
+          "numa_node0_28c": 6691.22,
+          "numa_node0_28c_stats": {
+            "median": 6691.22,
+            "mean": 6661.69,
+            "min": 6470.67,
+            "max": 6855.65,
+            "stdev": 141.02,
+            "cv_pct": 2.12
+          }
+        },
+        "read_write_copy": {
+          "single_core": 484.87,
+          "single_core_stats": {
+            "median": 484.87,
+            "mean": 484.59,
+            "min": 482.39,
+            "max": 485.45,
+            "stdev": 1.01,
+            "cv_pct": 0.21
+          },
+          "numa_node0_28c": 5560.2,
+          "numa_node0_28c_stats": {
+            "median": 5560.2,
+            "mean": 5446.54,
+            "min": 5084.91,
+            "max": 5615.62,
+            "stdev": 190.23,
+            "cv_pct": 3.49
+          }
+        }
+      },
+      "l2_512kb_per_core": {
+        "read_only": {
+          "single_core": 190.36,
+          "single_core_stats": {
+            "median": 190.36,
+            "mean": 188.44,
+            "min": 179.12,
+            "max": 190.66,
+            "stdev": 4.17,
+            "cv_pct": 2.22
+          },
+          "numa_node0_28c": 4473.83,
+          "numa_node0_28c_stats": {
+            "median": 4473.83,
+            "mean": 4415.18,
+            "min": 3914.74,
+            "max": 4727.88,
+            "stdev": 256.18,
+            "cv_pct": 5.8
+          }
+        },
+        "read_write_copy": {
+          "single_core": 97.37,
+          "single_core_stats": {
+            "median": 97.37,
+            "mean": 97.33,
+            "min": 97.0,
+            "max": 97.59,
+            "stdev": 0.21,
+            "cv_pct": 0.22
+          },
+          "numa_node0_28c": 2216.39,
+          "numa_node0_28c_stats": {
+            "median": 2216.39,
+            "mean": 2223.22,
+            "min": 2147.94,
+            "max": 2308.26,
+            "stdev": 52.89,
+            "cv_pct": 2.38
+          }
+        }
+      },
+      "l3_llc": {
+        "read_only": {
+          "single_core": 33.03,
+          "single_core_stats": {
+            "median": 33.03,
+            "mean": 33.03,
+            "min": 33.0,
+            "max": 33.04,
+            "stdev": 0.01,
+            "cv_pct": 0.04
+          },
+          "numa_node0_28c": 780.35,
+          "numa_node0_28c_stats": {
+            "median": 780.35,
+            "mean": 784.79,
+            "min": 772.9,
+            "max": 801.8,
+            "stdev": 11.85,
+            "cv_pct": 1.51
+          }
+        },
+        "read_write_copy": {
+          "single_core": 28.73,
+          "single_core_stats": {
+            "median": 28.73,
+            "mean": 28.62,
+            "min": 28.33,
+            "max": 28.75,
+            "stdev": 0.17,
+            "cv_pct": 0.6
+          },
+          "numa_node0_28c": 535.86,
+          "numa_node0_28c_stats": {
+            "median": 535.86,
+            "mean": 535.2,
+            "min": 524.57,
+            "max": 552.47,
+            "stdev": 9.42,
+            "cv_pct": 1.76
+          }
+        }
+      },
+      "ddr5_dram": {
+        "read_only": {
+          "single_core": 15.89,
+          "single_core_stats": {
+            "median": 15.89,
+            "mean": 15.73,
+            "min": 14.66,
+            "max": 16.24,
+            "stdev": 0.57,
+            "cv_pct": 3.64
+          },
+          "numa_node0_28c": 246.6,
+          "numa_node0_28c_stats": {
+            "median": 246.6,
+            "mean": 246.74,
+            "min": 246.44,
+            "max": 247.46,
+            "stdev": 0.36,
+            "cv_pct": 0.15
+          }
+        },
+        "read_write_copy": {
+          "single_core": 14.39,
+          "single_core_stats": {
+            "median": 14.39,
+            "mean": 14.33,
+            "min": 14.0,
+            "max": 14.47,
+            "stdev": 0.17,
+            "cv_pct": 1.19
+          },
+          "numa_node0_28c": 134.61,
+          "numa_node0_28c_stats": {
+            "median": 134.61,
+            "mean": 134.99,
+            "min": 134.19,
+            "max": 136.35,
+            "stdev": 0.83,
+            "cv_pct": 0.62
+          }
+        },
+        "stream_triad": {
+          "single_core": 15.49,
+          "single_core_stats": {
+            "median": 15.49,
+            "mean": 15.49,
+            "min": 15.45,
+            "max": 15.54,
+            "stdev": 0.03,
+            "cv_pct": 0.21
+          },
+          "numa_node0_28c": 151.58,
+          "numa_node0_28c_stats": {
+            "median": 151.58,
+            "mean": 151.35,
+            "min": 149.24,
+            "max": 152.09,
+            "stdev": 0.95,
+            "cv_pct": 0.63
+          }
+        }
+      }
+    }
+  },
+  "kernel_roofline_benchmarks": [
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 1,
+        "N": 21504,
+        "K": 5376
+      },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.994,
+      "single_core": {
+        "latency_ms": 5.0313,
+        "gops": 45.95,
+        "gbps": 11.51,
+        "mean_gops": 45.59,
+        "min_gops": 44.37,
+        "max_gops": 46.08,
+        "cv_pct": 1.47
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2549,
+        "gops": 907.05,
+        "gbps": 227.12,
+        "mean_gops": 899.67,
+        "min_gops": 856.46,
+        "max_gops": 927.28,
+        "cv_pct": 2.73
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "DDR5 DRAM Read",
+        "bandwidth_ceiling_1c_gbps": 15.89,
+        "bandwidth_ceiling_28c_gbps": 246.6,
+        "effective_ceiling_1c": 63.46,
+        "effective_ceiling_28c": 984.92,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 72.4,
+        "isa_roofline_utilization_28c_pct": 92.09,
+        "machine_roofline_utilization_1c_pct": 72.4,
+        "machine_roofline_utilization_28c_pct": 92.09
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 1,
+        "N": 21504,
+        "K": 5376
+      },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.994,
+      "single_core": {
+        "latency_ms": 4.8168,
+        "gops": 48.0,
+        "gbps": 12.02,
+        "mean_gops": 47.73,
+        "min_gops": 46.74,
+        "max_gops": 48.03,
+        "cv_pct": 0.99
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2574,
+        "gops": 898.36,
+        "gbps": 224.94,
+        "mean_gops": 889.07,
+        "min_gops": 836.51,
+        "max_gops": 907.61,
+        "cv_pct": 2.79
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "DDR5 DRAM Read",
+        "bandwidth_ceiling_1c_gbps": 15.89,
+        "bandwidth_ceiling_28c_gbps": 246.6,
+        "effective_ceiling_1c": 63.46,
+        "effective_ceiling_28c": 984.92,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 75.63,
+        "isa_roofline_utilization_28c_pct": 91.21,
+        "machine_roofline_utilization_1c_pct": 75.63,
+        "machine_roofline_utilization_28c_pct": 91.21
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 1,
+        "N": 5376,
+        "K": 21504
+      },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.997,
+      "single_core": {
+        "latency_ms": 4.907,
+        "gops": 47.12,
+        "gbps": 11.79,
+        "mean_gops": 46.94,
+        "min_gops": 45.86,
+        "max_gops": 47.16,
+        "cv_pct": 1.02
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2492,
+        "gops": 927.78,
+        "gbps": 232.12,
+        "mean_gops": 914.34,
+        "min_gops": 851.69,
+        "max_gops": 937.97,
+        "cv_pct": 3.37
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "DDR5 DRAM Read",
+        "bandwidth_ceiling_1c_gbps": 15.89,
+        "bandwidth_ceiling_28c_gbps": 246.6,
+        "effective_ceiling_1c": 63.51,
+        "effective_ceiling_28c": 985.66,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 74.19,
+        "isa_roofline_utilization_28c_pct": 94.13,
+        "machine_roofline_utilization_1c_pct": 74.19,
+        "machine_roofline_utilization_28c_pct": 94.13
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 1,
+        "N": 5376,
+        "K": 21504
+      },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.997,
+      "single_core": {
+        "latency_ms": 4.768,
+        "gops": 48.49,
+        "gbps": 12.13,
+        "mean_gops": 48.33,
+        "min_gops": 47.44,
+        "max_gops": 48.55,
+        "cv_pct": 0.83
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2533,
+        "gops": 912.63,
+        "gbps": 228.33,
+        "mean_gops": 897.65,
+        "min_gops": 847.07,
+        "max_gops": 914.9,
+        "cv_pct": 2.79
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "DDR5 DRAM Read",
+        "bandwidth_ceiling_1c_gbps": 15.89,
+        "bandwidth_ceiling_28c_gbps": 246.6,
+        "effective_ceiling_1c": 63.51,
+        "effective_ceiling_28c": 985.66,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 76.35,
+        "isa_roofline_utilization_28c_pct": 92.59,
+        "machine_roofline_utilization_1c_pct": 76.35,
+        "machine_roofline_utilization_28c_pct": 92.59
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 1,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 1.8765,
+        "gops": 46.94,
+        "gbps": 11.76,
+        "mean_gops": 46.93,
+        "min_gops": 45.91,
+        "max_gops": 47.68,
+        "cv_pct": 1.25
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0973,
+        "gops": 905.21,
+        "gbps": 226.69,
+        "mean_gops": 865.99,
+        "min_gops": 743.58,
+        "max_gops": 921.08,
+        "cv_pct": 8.49
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "DDR5 DRAM Read",
+        "bandwidth_ceiling_1c_gbps": 15.89,
+        "bandwidth_ceiling_28c_gbps": 246.6,
+        "effective_ceiling_1c": 63.45,
+        "effective_ceiling_28c": 984.67,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 73.98,
+        "isa_roofline_utilization_28c_pct": 91.93,
+        "machine_roofline_utilization_1c_pct": 73.98,
+        "machine_roofline_utilization_28c_pct": 91.93
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 1,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 1.8401,
+        "gops": 47.87,
+        "gbps": 11.99,
+        "mean_gops": 47.67,
+        "min_gops": 46.66,
+        "max_gops": 48.39,
+        "cv_pct": 1.26
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1007,
+        "gops": 874.29,
+        "gbps": 218.95,
+        "mean_gops": 846.5,
+        "min_gops": 754.8,
+        "max_gops": 887.95,
+        "cv_pct": 6.36
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "DDR5 DRAM Read",
+        "bandwidth_ceiling_1c_gbps": 15.89,
+        "bandwidth_ceiling_28c_gbps": 246.6,
+        "effective_ceiling_1c": 63.45,
+        "effective_ceiling_28c": 984.67,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 75.45,
+        "isa_roofline_utilization_28c_pct": 88.79,
+        "machine_roofline_utilization_1c_pct": 75.45,
+        "machine_roofline_utilization_28c_pct": 88.79
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 1,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 0.9014,
+        "gops": 97.71,
+        "gbps": 24.47,
+        "mean_gops": 97.52,
+        "min_gops": 96.38,
+        "max_gops": 97.86,
+        "cv_pct": 0.52
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0404,
+        "gops": 2179.74,
+        "gbps": 545.88,
+        "mean_gops": 2188.07,
+        "min_gops": 2154.85,
+        "max_gops": 2254.29,
+        "cv_pct": 1.73
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 131.89,
+        "effective_ceiling_28c": 17864.0,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 74.09,
+        "isa_roofline_utilization_28c_pct": 12.2,
+        "machine_roofline_utilization_1c_pct": 74.09,
+        "machine_roofline_utilization_28c_pct": 12.2
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 1,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 0.7247,
+        "gops": 121.54,
+        "gbps": 30.44,
+        "mean_gops": 121.16,
+        "min_gops": 119.44,
+        "max_gops": 121.78,
+        "cv_pct": 0.71
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0194,
+        "gops": 4537.57,
+        "gbps": 1136.36,
+        "mean_gops": 4514.54,
+        "min_gops": 4342.86,
+        "max_gops": 4722.37,
+        "cv_pct": 3.01
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 131.89,
+        "effective_ceiling_28c": 17864.0,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 92.15,
+        "isa_roofline_utilization_28c_pct": 25.4,
+        "machine_roofline_utilization_1c_pct": 92.15,
+        "machine_roofline_utilization_28c_pct": 25.4
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 1,
+        "N": 4096,
+        "K": 5376
+      },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.992,
+      "single_core": {
+        "latency_ms": 0.4512,
+        "gops": 97.62,
+        "gbps": 24.45,
+        "mean_gops": 97.32,
+        "min_gops": 95.41,
+        "max_gops": 97.7,
+        "cv_pct": 0.87
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0239,
+        "gops": 1842.31,
+        "gbps": 461.49,
+        "mean_gops": 1851.31,
+        "min_gops": 1738.68,
+        "max_gops": 1915.33,
+        "cv_pct": 3.4
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 131.86,
+        "effective_ceiling_28c": 17859.53,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 74.04,
+        "isa_roofline_utilization_28c_pct": 10.32,
+        "machine_roofline_utilization_1c_pct": 74.04,
+        "machine_roofline_utilization_28c_pct": 10.32
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 1,
+        "N": 4096,
+        "K": 5376
+      },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.992,
+      "single_core": {
+        "latency_ms": 0.3616,
+        "gops": 121.79,
+        "gbps": 30.51,
+        "mean_gops": 121.85,
+        "min_gops": 121.25,
+        "max_gops": 122.24,
+        "cv_pct": 0.26
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0098,
+        "gops": 4499.31,
+        "gbps": 1127.05,
+        "mean_gops": 4446.96,
+        "min_gops": 4192.74,
+        "max_gops": 4603.38,
+        "cv_pct": 3.51
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 131.86,
+        "effective_ceiling_28c": 17859.53,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 92.37,
+        "isa_roofline_utilization_28c_pct": 25.19,
+        "machine_roofline_utilization_1c_pct": 92.37,
+        "machine_roofline_utilization_28c_pct": 25.19
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 128,
+        "N": 21504,
+        "K": 5376
+      },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 425.822,
+      "single_core": {
+        "latency_ms": 20.8489,
+        "gops": 1419.5,
+        "gbps": 3.33,
+        "mean_gops": 1418.38,
+        "min_gops": 1409.35,
+        "max_gops": 1420.69,
+        "cv_pct": 0.28
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.9098,
+        "gops": 32527.9,
+        "gbps": 76.39,
+        "mean_gops": 33126.71,
+        "min_gops": 32285.54,
+        "max_gops": 34374.51,
+        "cv_pct": 2.89
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 18.43,
+        "isa_roofline_utilization_28c_pct": 17.27,
+        "machine_roofline_utilization_1c_pct": 18.43,
+        "machine_roofline_utilization_28c_pct": 17.27
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 128,
+        "N": 21504,
+        "K": 5376
+      },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 425.822,
+      "single_core": {
+        "latency_ms": 46.1979,
+        "gops": 640.61,
+        "gbps": 1.5,
+        "mean_gops": 638.58,
+        "min_gops": 629.93,
+        "max_gops": 643.95,
+        "cv_pct": 0.79
+      },
+      "numa_node0_28c": {
+        "latency_ms": 2.0393,
+        "gops": 14512.43,
+        "gbps": 34.08,
+        "mean_gops": 14666.05,
+        "min_gops": 14371.76,
+        "max_gops": 15065.33,
+        "cv_pct": 1.93
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 67.57,
+        "isa_roofline_utilization_28c_pct": 69.19,
+        "machine_roofline_utilization_1c_pct": 8.32,
+        "machine_roofline_utilization_28c_pct": 7.7
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 128,
+        "N": 5376,
+        "K": 21504
+      },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 467.478,
+      "single_core": {
+        "latency_ms": 20.1782,
+        "gops": 1466.68,
+        "gbps": 3.14,
+        "mean_gops": 1457.81,
+        "min_gops": 1406.55,
+        "max_gops": 1467.58,
+        "cv_pct": 1.55
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.8725,
+        "gops": 33918.61,
+        "gbps": 72.56,
+        "mean_gops": 33124.14,
+        "min_gops": 27452.23,
+        "max_gops": 35858.1,
+        "cv_pct": 8.46
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 19.04,
+        "isa_roofline_utilization_28c_pct": 18.0,
+        "machine_roofline_utilization_1c_pct": 19.04,
+        "machine_roofline_utilization_28c_pct": 18.0
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 128,
+        "N": 5376,
+        "K": 21504
+      },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 467.478,
+      "single_core": {
+        "latency_ms": 52.9663,
+        "gops": 558.75,
+        "gbps": 1.2,
+        "mean_gops": 559.32,
+        "min_gops": 547.22,
+        "max_gops": 572.46,
+        "cv_pct": 1.34
+      },
+      "numa_node0_28c": {
+        "latency_ms": 2.1127,
+        "gops": 14007.96,
+        "gbps": 29.96,
+        "mean_gops": 14019.1,
+        "min_gops": 13314.82,
+        "max_gops": 14477.42,
+        "cv_pct": 2.57
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 58.94,
+        "isa_roofline_utilization_28c_pct": 66.79,
+        "machine_roofline_utilization_1c_pct": 7.26,
+        "machine_roofline_utilization_28c_pct": 7.44
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 128,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "L3_LLC_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 419.079,
+      "single_core": {
+        "latency_ms": 9.3248,
+        "gops": 1209.07,
+        "gbps": 2.89,
+        "mean_gops": 1210.44,
+        "min_gops": 1151.23,
+        "max_gops": 1279.39,
+        "cv_pct": 4.23
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.4403,
+        "gops": 25603.06,
+        "gbps": 61.09,
+        "mean_gops": 25947.41,
+        "min_gops": 23926.92,
+        "max_gops": 28471.23,
+        "cv_pct": 7.27
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 15.7,
+        "isa_roofline_utilization_28c_pct": 13.59,
+        "machine_roofline_utilization_1c_pct": 15.7,
+        "machine_roofline_utilization_28c_pct": 13.59
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 128,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "L3_LLC_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 419.079,
+      "single_core": {
+        "latency_ms": 20.2111,
+        "gops": 557.83,
+        "gbps": 1.33,
+        "mean_gops": 559.2,
+        "min_gops": 538.91,
+        "max_gops": 577.12,
+        "cv_pct": 2.63
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.8114,
+        "gops": 13894.89,
+        "gbps": 33.16,
+        "mean_gops": 13933.84,
+        "min_gops": 13656.56,
+        "max_gops": 14355.14,
+        "cv_pct": 1.52
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 58.84,
+        "isa_roofline_utilization_28c_pct": 66.25,
+        "machine_roofline_utilization_1c_pct": 7.24,
+        "machine_roofline_utilization_28c_pct": 7.38
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 1024,
+        "N": 21504,
+        "K": 5376
+      },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1563.927,
+      "single_core": {
+        "latency_ms": 209.8473,
+        "gops": 1128.25,
+        "gbps": 0.72,
+        "mean_gops": 1133.47,
+        "min_gops": 1112.64,
+        "max_gops": 1163.42,
+        "cv_pct": 1.49
+      },
+      "numa_node0_28c": {
+        "latency_ms": 8.9154,
+        "gops": 26556.31,
+        "gbps": 16.98,
+        "mean_gops": 26898.77,
+        "min_gops": 26499.93,
+        "max_gops": 27508.94,
+        "cv_pct": 1.76
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 14.65,
+        "isa_roofline_utilization_28c_pct": 14.1,
+        "machine_roofline_utilization_1c_pct": 14.65,
+        "machine_roofline_utilization_28c_pct": 14.1
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 1024,
+        "N": 21504,
+        "K": 5376
+      },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1563.927,
+      "single_core": {
+        "latency_ms": 464.2981,
+        "gops": 509.93,
+        "gbps": 0.33,
+        "mean_gops": 508.08,
+        "min_gops": 493.95,
+        "max_gops": 515.11,
+        "cv_pct": 1.42
+      },
+      "numa_node0_28c": {
+        "latency_ms": 18.2725,
+        "gops": 12957.18,
+        "gbps": 8.29,
+        "mean_gops": 12883.25,
+        "min_gops": 12498.71,
+        "max_gops": 13006.85,
+        "cv_pct": 1.4
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 53.79,
+        "isa_roofline_utilization_28c_pct": 61.78,
+        "machine_roofline_utilization_1c_pct": 6.62,
+        "machine_roofline_utilization_28c_pct": 6.88
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 1024,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1476.67,
+      "single_core": {
+        "latency_ms": 76.6996,
+        "gops": 1175.94,
+        "gbps": 0.8,
+        "mean_gops": 1175.45,
+        "min_gops": 1128.54,
+        "max_gops": 1208.98,
+        "cv_pct": 2.33
+      },
+      "numa_node0_28c": {
+        "latency_ms": 3.2609,
+        "gops": 27659.48,
+        "gbps": 18.73,
+        "mean_gops": 26919.17,
+        "min_gops": 25060.65,
+        "max_gops": 28268.46,
+        "cv_pct": 4.89
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 15.27,
+        "isa_roofline_utilization_28c_pct": 14.68,
+        "machine_roofline_utilization_1c_pct": 15.27,
+        "machine_roofline_utilization_28c_pct": 14.68
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 1024,
+        "N": 8192,
+        "K": 5376
+      },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1476.67,
+      "single_core": {
+        "latency_ms": 170.2432,
+        "gops": 529.8,
+        "gbps": 0.36,
+        "mean_gops": 539.45,
+        "min_gops": 514.02,
+        "max_gops": 606.13,
+        "cv_pct": 5.6
+      },
+      "numa_node0_28c": {
+        "latency_ms": 6.7637,
+        "gops": 13335.09,
+        "gbps": 9.03,
+        "mean_gops": 13206.69,
+        "min_gops": 11747.98,
+        "max_gops": 13875.01,
+        "cv_pct": 5.1
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 55.88,
+        "isa_roofline_utilization_28c_pct": 63.58,
+        "machine_roofline_utilization_1c_pct": 6.88,
+        "machine_roofline_utilization_28c_pct": 7.08
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 128,
+        "N": 1024,
+        "K": 256
+      },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 39.385,
+      "single_core": {
+        "latency_ms": 0.3472,
+        "gops": 193.26,
+        "gbps": 4.91,
+        "mean_gops": 191.36,
+        "min_gops": 181.32,
+        "max_gops": 193.52,
+        "cv_pct": 2.33
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0246,
+        "gops": 2729.31,
+        "gbps": 69.3,
+        "mean_gops": 2711.84,
+        "min_gops": 2581.45,
+        "max_gops": 2744.34,
+        "cv_pct": 2.14
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 81.99,
+        "isa_roofline_utilization_28c_pct": 48.6,
+        "machine_roofline_utilization_1c_pct": 81.99,
+        "machine_roofline_utilization_28c_pct": 48.6
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 128,
+        "N": 1024,
+        "K": 256
+      },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 39.385,
+      "single_core": {
+        "latency_ms": 0.3413,
+        "gops": 196.61,
+        "gbps": 4.99,
+        "mean_gops": 194.95,
+        "min_gops": 186.95,
+        "max_gops": 196.91,
+        "cv_pct": 1.86
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0272,
+        "gops": 2469.33,
+        "gbps": 62.7,
+        "mean_gops": 2375.09,
+        "min_gops": 2064.65,
+        "max_gops": 2552.99,
+        "cv_pct": 7.97
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 83.41,
+        "isa_roofline_utilization_28c_pct": 43.97,
+        "machine_roofline_utilization_1c_pct": 83.41,
+        "machine_roofline_utilization_28c_pct": 43.97
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 1024,
+        "K": 256
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 85.333,
+      "single_core": {
+        "latency_ms": 2.8599,
+        "gops": 187.72,
+        "gbps": 2.2,
+        "mean_gops": 187.54,
+        "min_gops": 186.86,
+        "max_gops": 187.99,
+        "cv_pct": 0.24
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2138,
+        "gops": 2511.19,
+        "gbps": 29.43,
+        "mean_gops": 2508.49,
+        "min_gops": 2461.49,
+        "max_gops": 2561.4,
+        "cv_pct": 1.18
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 79.64,
+        "isa_roofline_utilization_28c_pct": 44.71,
+        "machine_roofline_utilization_1c_pct": 79.64,
+        "machine_roofline_utilization_28c_pct": 44.71
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 1024,
+        "K": 256
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 85.333,
+      "single_core": {
+        "latency_ms": 3.0117,
+        "gops": 178.26,
+        "gbps": 2.09,
+        "mean_gops": 177.99,
+        "min_gops": 177.16,
+        "max_gops": 178.43,
+        "cv_pct": 0.3
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2293,
+        "gops": 2341.05,
+        "gbps": 27.43,
+        "mean_gops": 2316.27,
+        "min_gops": 2077.07,
+        "max_gops": 2416.6,
+        "cv_pct": 4.74
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 75.62,
+        "isa_roofline_utilization_28c_pct": 41.68,
+        "machine_roofline_utilization_1c_pct": 75.62,
+        "machine_roofline_utilization_28c_pct": 41.68
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 4096,
+        "K": 512
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 157.538,
+      "single_core": {
+        "latency_ms": 25.53,
+        "gops": 168.23,
+        "gbps": 1.07,
+        "mean_gops": 168.32,
+        "min_gops": 168.14,
+        "max_gops": 168.56,
+        "cv_pct": 0.1
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.1552,
+        "gops": 3717.83,
+        "gbps": 23.6,
+        "mean_gops": 3716.54,
+        "min_gops": 3677.95,
+        "max_gops": 3763.18,
+        "cv_pct": 0.81
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 71.37,
+        "isa_roofline_utilization_28c_pct": 66.2,
+        "machine_roofline_utilization_1c_pct": 71.37,
+        "machine_roofline_utilization_28c_pct": 66.2
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 4096,
+        "K": 512
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 157.538,
+      "single_core": {
+        "latency_ms": 23.7679,
+        "gops": 180.7,
+        "gbps": 1.15,
+        "mean_gops": 180.71,
+        "min_gops": 180.55,
+        "max_gops": 180.89,
+        "cv_pct": 0.06
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.2847,
+        "gops": 3343.29,
+        "gbps": 21.22,
+        "mean_gops": 3331.77,
+        "min_gops": 3228.17,
+        "max_gops": 3381.96,
+        "cv_pct": 1.51
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 76.66,
+        "isa_roofline_utilization_28c_pct": 59.53,
+        "machine_roofline_utilization_1c_pct": 76.66,
+        "machine_roofline_utilization_28c_pct": 59.53
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 2520,
+        "N": 2520,
+        "K": 72
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 34.054,
+      "single_core": {
+        "latency_ms": 5.1193,
+        "gops": 178.63,
+        "gbps": 5.25,
+        "mean_gops": 178.28,
+        "min_gops": 177.24,
+        "max_gops": 178.82,
+        "cv_pct": 0.4
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2423,
+        "gops": 3774.38,
+        "gbps": 110.84,
+        "mean_gops": 3559.55,
+        "min_gops": 2829.13,
+        "max_gops": 4091.11,
+        "cv_pct": 14.18
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 75.78,
+        "isa_roofline_utilization_28c_pct": 67.2,
+        "machine_roofline_utilization_1c_pct": 75.78,
+        "machine_roofline_utilization_28c_pct": 67.2
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 2520,
+        "N": 2520,
+        "K": 72
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 34.054,
+      "single_core": {
+        "latency_ms": 5.8284,
+        "gops": 156.9,
+        "gbps": 4.61,
+        "mean_gops": 156.47,
+        "min_gops": 153.93,
+        "max_gops": 157.26,
+        "cv_pct": 0.73
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.4082,
+        "gops": 2240.25,
+        "gbps": 65.78,
+        "mean_gops": 2255.22,
+        "min_gops": 2226.68,
+        "max_gops": 2298.65,
+        "cv_pct": 1.21
+      },
+      "roofline": {
+        "unit": "GFLOPS",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 235.72,
+        "effective_ceiling_28c": 5616.26,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 66.56,
+        "isa_roofline_utilization_28c_pct": 39.89,
+        "machine_roofline_utilization_1c_pct": 66.56,
+        "machine_roofline_utilization_28c_pct": 39.89
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_rmax + xnn_f32_raddstoreexpminusmax__avx512f_rr2_p5",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 1024,
+        "K": 1
+      },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 1.0,
+      "single_core": {
+        "latency_ms": 0.3111,
+        "gops": 40.45,
+        "gbps": 40.45,
+        "mean_gops": 40.27,
+        "min_gops": 39.14,
+        "max_gops": 40.5,
+        "cv_pct": 1.24
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0072,
+        "gops": 1741.66,
+        "gbps": 1741.66,
+        "mean_gops": 1693.09,
+        "min_gops": 1560.12,
+        "max_gops": 1761.73,
+        "cv_pct": 4.78
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2/L1D Row-Fused Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory/Exp-Poly",
+        "regime_28c": "Memory/Exp-Poly",
+        "isa_roofline_utilization_1c_pct": 41.54,
+        "isa_roofline_utilization_28c_pct": 78.58,
+        "machine_roofline_utilization_1c_pct": 41.54,
+        "machine_roofline_utilization_28c_pct": 78.58
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax (Reductions Only)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 1024,
+        "K": 1
+      },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 0.25,
+      "single_core": {
+        "latency_ms": 0.4736,
+        "gops": 4.43,
+        "gbps": 17.71,
+        "mean_gops": 4.41,
+        "min_gops": 4.29,
+        "max_gops": 4.43,
+        "cv_pct": 1.16
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0144,
+        "gops": 145.41,
+        "gbps": 581.66,
+        "mean_gops": 136.92,
+        "min_gops": 111.06,
+        "max_gops": 146.45,
+        "cv_pct": 10.69
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2/L1D Row-Fused Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory/Exp-Poly",
+        "regime_28c": "Memory/Exp-Poly",
+        "isa_roofline_utilization_1c_pct": 18.19,
+        "isa_roofline_utilization_28c_pct": 26.24,
+        "machine_roofline_utilization_1c_pct": 18.19,
+        "machine_roofline_utilization_28c_pct": 26.24
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_rmax + xnn_f32_raddstoreexpminusmax__avx512f_rr2_p5",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 2520,
+        "N": 2520,
+        "K": 1
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 1.0,
+      "single_core": {
+        "latency_ms": 1.767,
+        "gops": 43.13,
+        "gbps": 43.13,
+        "mean_gops": 43.1,
+        "min_gops": 42.96,
+        "max_gops": 43.15,
+        "cv_pct": 0.16
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0488,
+        "gops": 1560.26,
+        "gbps": 1560.26,
+        "mean_gops": 1587.44,
+        "min_gops": 1521.61,
+        "max_gops": 1655.49,
+        "cv_pct": 3.23
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2/L1D Row-Fused Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory/Exp-Poly",
+        "regime_28c": "Memory/Exp-Poly",
+        "isa_roofline_utilization_1c_pct": 44.29,
+        "isa_roofline_utilization_28c_pct": 70.4,
+        "machine_roofline_utilization_1c_pct": 44.29,
+        "machine_roofline_utilization_28c_pct": 70.4
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax (Reductions Only)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 2520,
+        "N": 2520,
+        "K": 1
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 0.25,
+      "single_core": {
+        "latency_ms": 3.351,
+        "gops": 3.79,
+        "gbps": 15.16,
+        "mean_gops": 3.79,
+        "min_gops": 3.78,
+        "max_gops": 3.8,
+        "cv_pct": 0.09
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.116,
+        "gops": 109.47,
+        "gbps": 437.88,
+        "mean_gops": 112.57,
+        "min_gops": 106.23,
+        "max_gops": 122.15,
+        "cv_pct": 6.23
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2/L1D Row-Fused Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory/Exp-Poly",
+        "regime_28c": "Memory/Exp-Poly",
+        "isa_roofline_utilization_1c_pct": 15.57,
+        "isa_roofline_utilization_28c_pct": 19.76,
+        "machine_roofline_utilization_1c_pct": 15.57,
+        "machine_roofline_utilization_28c_pct": 19.76
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_rmax + xnn_f32_raddstoreexpminusmax__avx512f_rr2_p5",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 4096,
+        "K": 1
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 1.0,
+      "single_core": {
+        "latency_ms": 1.1102,
+        "gops": 45.33,
+        "gbps": 45.33,
+        "mean_gops": 45.31,
+        "min_gops": 45.16,
+        "max_gops": 45.37,
+        "cv_pct": 0.16
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0347,
+        "gops": 1450.52,
+        "gbps": 1450.52,
+        "mean_gops": 1508.6,
+        "min_gops": 1259.06,
+        "max_gops": 1699.93,
+        "cv_pct": 10.64
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2/L1D Row-Fused Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory/Exp-Poly",
+        "regime_28c": "Memory/Exp-Poly",
+        "isa_roofline_utilization_1c_pct": 46.55,
+        "isa_roofline_utilization_28c_pct": 65.45,
+        "machine_roofline_utilization_1c_pct": 46.55,
+        "machine_roofline_utilization_28c_pct": 65.45
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax (Reductions Only)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512",
+      "isa": "AVX512-FP32",
+      "shape": {
+        "M": 1024,
+        "N": 4096,
+        "K": 1
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 0.25,
+      "single_core": {
+        "latency_ms": 2.1334,
+        "gops": 3.93,
+        "gbps": 15.73,
+        "mean_gops": 3.93,
+        "min_gops": 3.93,
+        "max_gops": 3.93,
+        "cv_pct": 0.05
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0642,
+        "gops": 130.57,
+        "gbps": 522.28,
+        "mean_gops": 126.61,
+        "min_gops": 105.26,
+        "max_gops": 138.97,
+        "cv_pct": 11.78
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2/L1D Row-Fused Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory/Exp-Poly",
+        "regime_28c": "Memory/Exp-Poly",
+        "isa_roofline_utilization_1c_pct": 16.15,
+        "isa_roofline_utilization_28c_pct": 23.56,
+        "machine_roofline_utilization_1c_pct": 16.15,
+        "machine_roofline_utilization_28c_pct": 23.56
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 280,
+        "N": 5376,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 276.638,
+      "single_core": {
+        "latency_ms": 2.4623,
+        "gops": 1408.52,
+        "gbps": 5.09,
+        "mean_gops": 1386.04,
+        "min_gops": 1317.14,
+        "max_gops": 1411.02,
+        "cv_pct": 2.81
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.073,
+        "gops": 47501.19,
+        "gbps": 171.71,
+        "mean_gops": 48436.41,
+        "min_gops": 45145.85,
+        "max_gops": 52840.68,
+        "cv_pct": 6.61
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 18.29,
+        "isa_roofline_utilization_28c_pct": 25.21,
+        "machine_roofline_utilization_1c_pct": 18.29,
+        "machine_roofline_utilization_28c_pct": 25.21
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 280,
+        "N": 5376,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 276.638,
+      "single_core": {
+        "latency_ms": 1.3573,
+        "gops": 2555.28,
+        "gbps": 9.24,
+        "mean_gops": 2547.65,
+        "min_gops": 2508.69,
+        "max_gops": 2558.4,
+        "cv_pct": 0.7
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0423,
+        "gops": 81985.79,
+        "gbps": 296.36,
+        "mean_gops": 80105.24,
+        "min_gops": 70449.28,
+        "max_gops": 82166.58,
+        "cv_pct": 5.38
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 33.18,
+        "isa_roofline_utilization_28c_pct": 43.52,
+        "machine_roofline_utilization_1c_pct": 33.18,
+        "machine_roofline_utilization_28c_pct": 43.52
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 2520,
+        "N": 1152,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 422.199,
+      "single_core": {
+        "latency_ms": 5.2058,
+        "gops": 1284.84,
+        "gbps": 3.04,
+        "mean_gops": 1284.0,
+        "min_gops": 1277.94,
+        "max_gops": 1285.47,
+        "cv_pct": 0.21
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.3304,
+        "gops": 20242.42,
+        "gbps": 47.95,
+        "mean_gops": 20232.16,
+        "min_gops": 20061.15,
+        "max_gops": 20385.58,
+        "cv_pct": 0.53
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 16.68,
+        "isa_roofline_utilization_28c_pct": 10.74,
+        "machine_roofline_utilization_1c_pct": 16.68,
+        "machine_roofline_utilization_28c_pct": 10.74
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 2520,
+        "N": 1152,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 422.199,
+      "single_core": {
+        "latency_ms": 4.8868,
+        "gops": 1368.72,
+        "gbps": 3.24,
+        "mean_gops": 1366.24,
+        "min_gops": 1359.01,
+        "max_gops": 1370.15,
+        "cv_pct": 0.32
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.3068,
+        "gops": 21803.46,
+        "gbps": 51.64,
+        "mean_gops": 21914.62,
+        "min_gops": 21456.73,
+        "max_gops": 22255.97,
+        "cv_pct": 1.4
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 17.77,
+        "isa_roofline_utilization_28c_pct": 11.57,
+        "machine_roofline_utilization_1c_pct": 17.77,
+        "machine_roofline_utilization_28c_pct": 11.57
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 2520,
+        "N": 4304,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 487.64,
+      "single_core": {
+        "latency_ms": 19.8156,
+        "gops": 1261.1,
+        "gbps": 2.59,
+        "mean_gops": 1252.91,
+        "min_gops": 1202.06,
+        "max_gops": 1262.63,
+        "cv_pct": 1.79
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.9928,
+        "gops": 25170.13,
+        "gbps": 51.62,
+        "mean_gops": 24860.72,
+        "min_gops": 22715.16,
+        "max_gops": 26071.93,
+        "cv_pct": 4.95
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 16.38,
+        "isa_roofline_utilization_28c_pct": 13.36,
+        "machine_roofline_utilization_1c_pct": 16.38,
+        "machine_roofline_utilization_28c_pct": 13.36
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8",
+      "isa": "AMX-INT8",
+      "shape": {
+        "M": 2520,
+        "N": 4304,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 487.64,
+      "single_core": {
+        "latency_ms": 18.3489,
+        "gops": 1361.9,
+        "gbps": 2.79,
+        "mean_gops": 1361.9,
+        "min_gops": 1360.65,
+        "max_gops": 1363.11,
+        "cv_pct": 0.07
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.0576,
+        "gops": 23628.8,
+        "gbps": 48.46,
+        "mean_gops": 22591.09,
+        "min_gops": 18379.02,
+        "max_gops": 26667.95,
+        "cv_pct": 12.3
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AMX-INT8 (tdpbssd)",
+        "compute_ceiling_1c": 7701.36,
+        "compute_ceiling_28c": 188402.15,
+        "bandwidth_ceiling_name": "L3 Shared LLC Read",
+        "bandwidth_ceiling_1c_gbps": 33.03,
+        "bandwidth_ceiling_28c_gbps": 780.35,
+        "effective_ceiling_1c": 7701.36,
+        "effective_ceiling_28c": 188402.15,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 17.68,
+        "isa_roofline_utilization_28c_pct": 12.54,
+        "machine_roofline_utilization_1c_pct": 17.68,
+        "machine_roofline_utilization_28c_pct": 12.54
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qs8_qc2w_gemm_minmax_fp32_ukernel_5x8c8__avxvnni",
+      "isa": "AVX-VNNI-256",
+      "shape": {
+        "M": 204,
+        "N": 1024,
+        "K": 1024
+      },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 629.205,
+      "single_core": {
+        "latency_ms": 1.2124,
+        "gops": 352.87,
+        "gbps": 0.56,
+        "mean_gops": 350.37,
+        "min_gops": 335.81,
+        "max_gops": 353.0,
+        "cv_pct": 1.83
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0752,
+        "gops": 5690.16,
+        "gbps": 9.04,
+        "mean_gops": 5952.65,
+        "min_gops": 5519.91,
+        "max_gops": 7470.56,
+        "cv_pct": 11.49
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-VNNI (vpdpbusd 256b)",
+        "compute_ceiling_1c": 484.59,
+        "compute_ceiling_28c": 10667.71,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 484.59,
+        "effective_ceiling_28c": 10667.71,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 72.82,
+        "isa_roofline_utilization_28c_pct": 53.34,
+        "machine_roofline_utilization_1c_pct": 4.58,
+        "machine_roofline_utilization_28c_pct": 3.02
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 204,
+        "N": 1024,
+        "K": 1024
+      },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 629.205,
+      "single_core": {
+        "latency_ms": 0.7759,
+        "gops": 551.42,
+        "gbps": 1.68,
+        "mean_gops": 547.5,
+        "min_gops": 532.33,
+        "max_gops": 552.04,
+        "cv_pct": 1.38
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0608,
+        "gops": 7035.89,
+        "gbps": 21.49,
+        "mean_gops": 7010.56,
+        "min_gops": 6436.78,
+        "max_gops": 7367.73,
+        "cv_pct": 4.65
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 58.16,
+        "isa_roofline_utilization_28c_pct": 33.55,
+        "machine_roofline_utilization_1c_pct": 7.16,
+        "machine_roofline_utilization_28c_pct": 3.73
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qs8_qc2w_gemm_minmax_fp32_ukernel_5x8c8__avxvnni",
+      "isa": "AVX-VNNI-256",
+      "shape": {
+        "M": 204,
+        "N": 4096,
+        "K": 1024
+      },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 4.8834,
+        "gops": 350.43,
+        "gbps": 0.43,
+        "mean_gops": 349.49,
+        "min_gops": 342.51,
+        "max_gops": 351.7,
+        "cv_pct": 0.92
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2032,
+        "gops": 8423.48,
+        "gbps": 10.3,
+        "mean_gops": 8314.03,
+        "min_gops": 7915.84,
+        "max_gops": 8500.35,
+        "cv_pct": 2.62
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-VNNI (vpdpbusd 256b)",
+        "compute_ceiling_1c": 484.59,
+        "compute_ceiling_28c": 10667.71,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 484.59,
+        "effective_ceiling_28c": 10667.71,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 72.31,
+        "isa_roofline_utilization_28c_pct": 78.96,
+        "machine_roofline_utilization_1c_pct": 4.55,
+        "machine_roofline_utilization_28c_pct": 4.47
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 204,
+        "N": 4096,
+        "K": 1024
+      },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 3.2451,
+        "gops": 527.34,
+        "gbps": 1.42,
+        "mean_gops": 526.77,
+        "min_gops": 524.07,
+        "max_gops": 527.79,
+        "cv_pct": 0.25
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1716,
+        "gops": 9973.45,
+        "gbps": 26.81,
+        "mean_gops": 9915.77,
+        "min_gops": 9588.87,
+        "max_gops": 10176.27,
+        "cv_pct": 2.6
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 55.62,
+        "isa_roofline_utilization_28c_pct": 47.55,
+        "machine_roofline_utilization_1c_pct": 6.85,
+        "machine_roofline_utilization_28c_pct": 5.29
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qs8_qc2w_gemm_minmax_fp32_ukernel_5x8c8__avxvnni",
+      "isa": "AVX-VNNI-256",
+      "shape": {
+        "M": 204,
+        "N": 1024,
+        "K": 4096
+      },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 4.6582,
+        "gops": 367.37,
+        "gbps": 0.45,
+        "mean_gops": 365.42,
+        "min_gops": 359.47,
+        "max_gops": 367.47,
+        "cv_pct": 0.94
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2092,
+        "gops": 8180.97,
+        "gbps": 10.01,
+        "mean_gops": 8132.99,
+        "min_gops": 7890.08,
+        "max_gops": 8379.81,
+        "cv_pct": 2.16
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-VNNI (vpdpbusd 256b)",
+        "compute_ceiling_1c": 484.59,
+        "compute_ceiling_28c": 10667.71,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 484.59,
+        "effective_ceiling_28c": 10667.71,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 75.81,
+        "isa_roofline_utilization_28c_pct": 76.69,
+        "machine_roofline_utilization_1c_pct": 4.77,
+        "machine_roofline_utilization_28c_pct": 4.34
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": {
+        "M": 204,
+        "N": 1024,
+        "K": 4096
+      },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 3.1231,
+        "gops": 547.94,
+        "gbps": 0.87,
+        "mean_gops": 547.55,
+        "min_gops": 545.55,
+        "max_gops": 548.31,
+        "cv_pct": 0.18
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2273,
+        "gops": 7529.66,
+        "gbps": 11.97,
+        "mean_gops": 7526.49,
+        "min_gops": 7335.65,
+        "max_gops": 7807.15,
+        "cv_pct": 2.55
+      },
+      "roofline": {
+        "unit": "GOPS",
+        "compute_ceiling_name": "AVX-512 VNNI (vpdpbusd 512b)",
+        "compute_ceiling_1c": 948.07,
+        "compute_ceiling_28c": 20973.59,
+        "bandwidth_ceiling_name": "L2 Cache Read",
+        "bandwidth_ceiling_1c_gbps": 190.36,
+        "bandwidth_ceiling_28c_gbps": 4473.83,
+        "effective_ceiling_1c": 948.07,
+        "effective_ceiling_28c": 20973.59,
+        "regime_1c": "Compute-Bound",
+        "regime_28c": "Compute-Bound",
+        "isa_roofline_utilization_1c_pct": 57.8,
+        "isa_roofline_utilization_28c_pct": 35.9,
+        "machine_roofline_utilization_1c_pct": 7.11,
+        "machine_roofline_utilization_28c_pct": 4.0
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "XNNPACK",
+      "kernel": "xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm",
+      "isa": "AVX512F",
+      "shape": {
+        "M": 1,
+        "N": 1024,
+        "K": 256
+      },
+      "memory_regime": "L2_Cache_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.0,
+      "single_core": {
+        "latency_ms": 0.0381,
+        "gops": 55.01,
+        "gbps": 55.01,
+        "mean_gops": 53.32,
+        "min_gops": 47.92,
+        "max_gops": 55.06,
+        "cv_pct": 5.27
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0023,
+        "gops": 912.99,
+        "gbps": 912.99,
+        "mean_gops": 914.53,
+        "min_gops": 898.2,
+        "max_gops": 942.04,
+        "cv_pct": 1.56
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2 Cache Read+Write Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 56.5,
+        "isa_roofline_utilization_28c_pct": 41.19,
+        "machine_roofline_utilization_1c_pct": 56.5,
+        "machine_roofline_utilization_28c_pct": 41.19
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "YNNPACK",
+      "kernel": "ynn::transpose_x32_avx512",
+      "isa": "AVX512F",
+      "shape": {
+        "M": 1,
+        "N": 1024,
+        "K": 256
+      },
+      "memory_regime": "L2_Cache_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.0,
+      "single_core": {
+        "latency_ms": 0.057,
+        "gops": 36.81,
+        "gbps": 36.81,
+        "mean_gops": 36.47,
+        "min_gops": 34.27,
+        "max_gops": 37.07,
+        "cv_pct": 2.69
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0028,
+        "gops": 746.86,
+        "gbps": 746.86,
+        "mean_gops": 726.02,
+        "min_gops": 550.86,
+        "max_gops": 785.85,
+        "cv_pct": 10.95
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L2 Cache Read+Write Copy",
+        "bandwidth_ceiling_1c_gbps": 97.37,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 97.37,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 37.8,
+        "isa_roofline_utilization_28c_pct": 33.7,
+        "machine_roofline_utilization_1c_pct": 37.8,
+        "machine_roofline_utilization_28c_pct": 33.7
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "XNNPACK",
+      "kernel": "xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm",
+      "isa": "AVX512F",
+      "shape": {
+        "M": 1,
+        "N": 4096,
+        "K": 512
+      },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.0,
+      "single_core": {
+        "latency_ms": 0.6328,
+        "gops": 26.51,
+        "gbps": 26.51,
+        "mean_gops": 26.23,
+        "min_gops": 25.09,
+        "max_gops": 26.52,
+        "cv_pct": 2.03
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0144,
+        "gops": 1163.57,
+        "gbps": 1163.57,
+        "mean_gops": 1172.04,
+        "min_gops": 1133.63,
+        "max_gops": 1207.7,
+        "cv_pct": 2.29
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Copy",
+        "bandwidth_ceiling_1c_gbps": 28.73,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 28.73,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 92.27,
+        "isa_roofline_utilization_28c_pct": 52.5,
+        "machine_roofline_utilization_1c_pct": 92.27,
+        "machine_roofline_utilization_28c_pct": 52.5
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "YNNPACK",
+      "kernel": "ynn::transpose_x32_avx512",
+      "isa": "AVX512F",
+      "shape": {
+        "M": 1,
+        "N": 4096,
+        "K": 512
+      },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.0,
+      "single_core": {
+        "latency_ms": 0.9246,
+        "gops": 18.14,
+        "gbps": 18.14,
+        "mean_gops": 18.13,
+        "min_gops": 18.04,
+        "max_gops": 18.17,
+        "cv_pct": 0.23
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0258,
+        "gops": 650.7,
+        "gbps": 650.7,
+        "mean_gops": 649.98,
+        "min_gops": 646.63,
+        "max_gops": 650.88,
+        "cv_pct": 0.24
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Copy",
+        "bandwidth_ceiling_1c_gbps": 28.73,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 28.73,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 63.14,
+        "isa_roofline_utilization_28c_pct": 29.36,
+        "machine_roofline_utilization_1c_pct": 63.14,
+        "machine_roofline_utilization_28c_pct": 29.36
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "XNNPACK",
+      "kernel": "xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm",
+      "isa": "AVX512F",
+      "shape": {
+        "M": 1,
+        "N": 2520,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.0,
+      "single_core": {
+        "latency_ms": 0.8444,
+        "gops": 27.51,
+        "gbps": 27.51,
+        "mean_gops": 27.5,
+        "min_gops": 27.41,
+        "max_gops": 27.54,
+        "cv_pct": 0.16
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0146,
+        "gops": 1585.56,
+        "gbps": 1585.56,
+        "mean_gops": 1579.92,
+        "min_gops": 1481.73,
+        "max_gops": 1693.19,
+        "cv_pct": 4.1
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Copy",
+        "bandwidth_ceiling_1c_gbps": 28.73,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 28.73,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 95.75,
+        "isa_roofline_utilization_28c_pct": 71.54,
+        "machine_roofline_utilization_1c_pct": 95.75,
+        "machine_roofline_utilization_28c_pct": 71.54
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "YNNPACK",
+      "kernel": "ynn::transpose_x32_avx512",
+      "isa": "AVX512F",
+      "shape": {
+        "M": 1,
+        "N": 2520,
+        "K": 1152
+      },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.0,
+      "single_core": {
+        "latency_ms": 1.3312,
+        "gops": 17.45,
+        "gbps": 17.45,
+        "mean_gops": 17.32,
+        "min_gops": 16.6,
+        "max_gops": 17.48,
+        "cv_pct": 1.85
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0177,
+        "gops": 1315.26,
+        "gbps": 1315.26,
+        "mean_gops": 1452.69,
+        "min_gops": 1185.07,
+        "max_gops": 1949.14,
+        "cv_pct": 23.07
+      },
+      "roofline": {
+        "unit": "GB/s",
+        "compute_ceiling_name": "AVX-512 FP32 FMA (vfmadd231ps)",
+        "compute_ceiling_1c": 235.72,
+        "compute_ceiling_28c": 5616.26,
+        "bandwidth_ceiling_name": "L3 (1C) / L2-Sliced (28C) Copy",
+        "bandwidth_ceiling_1c_gbps": 28.73,
+        "bandwidth_ceiling_28c_gbps": 2216.39,
+        "effective_ceiling_1c": 28.73,
+        "effective_ceiling_28c": 2216.39,
+        "regime_1c": "Memory-Bound",
+        "regime_28c": "Memory-Bound",
+        "isa_roofline_utilization_1c_pct": 60.74,
+        "isa_roofline_utilization_28c_pct": 59.34,
+        "machine_roofline_utilization_1c_pct": 60.74,
+        "machine_roofline_utilization_28c_pct": 59.34
+      }
+    }
+  ]
+}

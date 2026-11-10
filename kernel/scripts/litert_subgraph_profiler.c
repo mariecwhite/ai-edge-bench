@@ -1,5 +1,3 @@
-// Copyright 2026 Google LLC
-//
 // Reproducible LiteRT C-API LD_PRELOAD profiler hook for benchmarking and
 // extracting TFLite/XNNPACK/YNNPACK operator & microkernel profiles from
 // multimodal subgraphs (`vision_encoder`, `vision_adapter`, `audio_encoder`,
