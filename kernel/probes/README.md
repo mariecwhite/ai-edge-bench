@@ -111,4 +111,4 @@ gcc -O3 -march=sapphirerapids -fopenmp kernel/probes/cpu_ceilings.c -o /tmp/cpu_
 ## Reference Output
 
 - [ceilings_sapphire_rapids.json](../reports/gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json) — Full 7-trial empirical ceiling profile for Intel Sapphire Rapids.
-- [roofline_gemma4_31b_sapphire_rapids.md](../reports/gemma4-31b-sapphire-rapids/roofline_gemma4_31b_sapphire_rapids.md) — Roofline comparison against load-bearing XNNPACK and YNNPACK microkernels.
+- [kernel_report_gemma4_31b_sapphire_rapids.md](../reports/gemma4-31b-sapphire-rapids/kernel_report_gemma4_31b_sapphire_rapids.md) — General kernel report (hardware roofline comparison and numerical precision verification) for load-bearing XNNPACK and YNNPACK microkernels.

@@ -9,15 +9,16 @@ LITERT_BIN ?= /opt/litert-lm/bin/litert_lm_advanced_main
 LITERT_LIB_DIR ?= /opt/litert-lm/lib:/opt/litert-lm/bin
 
 .DEFAULT_GOAL := help
-.PHONY: help probes bench report test
+.PHONY: help probes bench verify report test
 
 help:
 	@echo "AI Edge Bench - Kernel Tier (Level 1)"
 	@echo
 	@echo "  make probes        compile & run repeatable compute and memory-hierarchy ceiling probes"
 	@echo "  make bench         compile & run repeatable XNNPACK/YNNPACK microkernel benchmarks"
-	@echo "  make report        generate JSON + Markdown roofline comparison report"
-	@echo "  make test          validate ceiling probe compilation and roofline report generation"
+	@echo "  make verify        compile & run XNNPACK/YNNPACK microkernel numerical precision verification"
+	@echo "  make report        generate JSON + Markdown kernel report (roofline + precision)"
+	@echo "  make test          validate probe, benchmark, and precision harness compilation and report generation"
 
 probes:
 	$(CC) $(CFLAGS) probes/cpu_ceilings.c -o /tmp/cpu_ceilings -lm
@@ -30,11 +31,19 @@ bench:
 	  AEB_BENCH_OUTPUT=$(REPORT_DIR)/ukernel_benchmarks_sapphire_rapids.json \
 	  $(LITERT_BIN)
 
+verify:
+	$(CC) -shared -fPIC $(CFLAGS) scripts/verify_litert_microkernels.c -o /tmp/libverify_ukernels.so -lm
+	LD_LIBRARY_PATH=$(LITERT_LIB_DIR) \
+	  LD_PRELOAD=/tmp/libverify_ukernels.so \
+	  AEB_VERIFY_OUTPUT=$(REPORT_DIR)/ukernel_precision_sapphire_rapids.json \
+	  $(LITERT_BIN)
+
 report:
-	python3 scripts/generate_roofline_report.py
+	python3 scripts/generate_kernel_report.py
 
 test:
 	$(CC) -O2 -fopenmp -fsyntax-only probes/cpu_ceilings.c
 	$(CC) -O2 -fopenmp -fsyntax-only scripts/bench_litert_microkernels.c
-	python3 scripts/generate_roofline_report.py
-	@echo "[kernel] All syntax checks and roofline report generation passed (ok)"
+	$(CC) -O2 -fopenmp -fsyntax-only scripts/verify_litert_microkernels.c
+	python3 scripts/generate_kernel_report.py
+	@echo "[kernel] All syntax checks and kernel report generation passed (ok)"

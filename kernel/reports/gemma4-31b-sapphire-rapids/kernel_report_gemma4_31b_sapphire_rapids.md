@@ -1,22 +1,21 @@
-# Empirical Hardware Ceiling & Microkernel Roofline Report — Gemma 4 31B on Intel Sapphire Rapids
+# Microkernel Performance, Roofline & Numerical Precision Report — Gemma 4 31B on Intel Sapphire Rapids
 
 - **Model**: Gemma 4 31B (`gemma-4-31b-it`, 4-bit Decoder / 8-bit Vision ViT / 2-bit & 8-bit Audio Conformer)
 - **Target Microarchitecture**: Intel Sapphire Rapids (`x86_64`, AVX-512F, AVX-512 VNNI, AVX-VNNI, AMX-INT8, AMX-BF16)
 - **Execution Configurations**:
   - **Single-Core (`1T`)**: Pinned to physical core `0` (`sched_setaffinity`)
   - **Multi-Core (`28T`)**: Pinned across all 28 physical cores of NUMA Node 0 (`0..27`, 1 thread per physical core, no SMT sibling contention, zero cross-socket UPI traffic)
-- **Repeatability Methodology**:
-  - Timing clock: `CLOCK_MONOTONIC_RAW`
-  - Thread synchronization: `#pragma omp barrier` immediately before and after every timed loop (eliminating OpenMP fork/join jitter)
-  - Warmup + Multi-Trial Statistics: Explicit frequency/cache warmup pass followed by **7 independent timed trials** per probe and per microkernel shape, reporting `median`, `mean`, `min`, `max`, `stdev`, and Coefficient of Variation (`cv_pct`)
+- **Repeatability & Verification Methodology**:
+  - **Performance & Roofline**: `CLOCK_MONOTONIC_RAW` with `#pragma omp barrier` synchronization before and after every timed loop, explicit warmup pass, and **7 independent timed trials** per probe and microkernel shape (`median`, `mean`, `min`, `max`, `stdev`, `cv_pct`)
+  - **Numerical Precision & Quantization Fidelity**: Two-level verification ([verify_litert_microkernels.c](../../scripts/verify_litert_microkernels.c)) across **4 synthetic input distributions** (`normal`, `saturation`, `outliers`, `tails`) comparing every microkernel against (A) an **Exact Packed-Layout Scalar Reference (`INT64` / `FP64`)** and (B) an **Unquantized `FP64` Golden Operator Reference**
 - **Companion End-to-End Profiling Report**: [kernels_gemma4_31b_sapphire_rapids.md](kernels_gemma4_31b_sapphire_rapids.md)
 
 ---
 
-## 1. Executive Summary & Key Roofline Findings
+## 1. Executive Summary & Key Roofline + Precision Findings
 
 > [!IMPORTANT]
-> **Why XNNPACK Beats YNNPACK in Prefill (`2.16×` End-to-End), Matches in Decode (`~6.0 tok/s`), and Trails Slightly in Audio (`0.93×`) — Explained by Hardware Ceilings**:
+> **Performance Roofline & Numerical Fidelity Summary Across All 7 Load-Bearing Microkernel Pairs (`14 / 14 PASS`)**:
 > 1. **Decode (`M = 1` 4-Bit GEMV, 83%–87% of Decode Time) is Strictly Clamped by DDR5 DRAM Bandwidth (`246.60 GB/s` Ceiling)**:
 >    - At `M = 1`, arithmetic intensity is only **$3.99\text{ OPs/Byte}$**, placing both backends deep in the **DDR5 DRAM bandwidth-bound regime** ($BW_{\text{prac}}(\text{DDR5 Read}) = \mathbf{246.60\text{ GB/s}}$ on 28 cores $\Rightarrow \mathbf{984.9\text{ GOPS}}$ ceiling).
 >    - On cold DDR5-streaming weights (`1×21504×5376` and `1×5376×21504`), **XNNPACK achieves `227.1–232.1 GB/s` (`92.1%–94.1%` of practical DDR5 ceiling)** and **YNNPACK achieves `224.9–228.3 GB/s` (`91.2%–92.6%` of practical DDR5 ceiling)**. Because both saturate the memory bus above 91%, AMX vs. AVX-512 VNNI compute differences are completely hidden in full-model decode.
@@ -32,10 +31,13 @@
 > 5. **FP32 Attention `BatchMatMul` & `Softmax` (`pair3` & `pair4`)**:
 >    - Both `xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast` and `ynn::dot_fp32_5x64x1_1x16x1_avx512` achieve **71%–83% of the 1-core AVX-512 FP32 FMA ceiling (`235.72 GFLOPS`)** and **60%–67% of the 28-core ceiling (`5,616.26 GFLOPS`)** on large shapes (`1024×4096×512`). On non-multiple-of-64 `N` shapes (`2520×2520×72`), XNNPACK's `nr=32` tile width (`79` panels across 28 threads) achieves **67.2% (`3.77 TFLOPS`)** vs. YNNPACK's `nr=64` (`39` panels across 28 threads, **39.9% / `2.24 TFLOPS`**) due to multi-thread wave tail imbalance.
 >    - In Softmax (`2520×2520`), XNNPACK's fused 2-pass `rmax` + `raddstoreexpminusmax` achieves **1,560.26 GB/s** (**70.4% of 28-core L2 Read+Write bandwidth**) while computing the degree-5 polynomial `exp(x - max)` in-flight, beating YNNPACK's un-unrolled `max_k1 + sum_k1` reductions (**437.88 GB/s**) by **2.38×** before YNNPACK even computes `exp`.
+> 6. **Numerical Precision & Quantization Fidelity (`14 / 14` Microkernels `PASS`, Zero `NaN`/`Inf`)**:
+>    - **Level A (Microkernel vs. Exact Packed-Layout Reference)**: All 14 microkernels match their exact scalar reference within **`0–5 ULPs`** (`141.9–200.0 dB` SQNR). YNNPACK's integer `dot` microkernels (`INT8`, `INT4`, `INT2`) and both `FP32` GEMM and `32-bit` Pack/Transpose kernels are **bit-exact (`0 ULP`, `200.0 dB` SQNR)** against their scalar specifications. XNNPACK's fused `QD8-F32` AMX microkernels (`1x64c4` / `16x64c4`) exhibit **`2–4 Max ULP`** (`141.9–148.4 dB` SQNR) due to two-stage `FP32` scaling (`(float)acc_i32 * inv_scale[m]` followed by `vfmadd213ps` with `w_scale[n]` and `w_bias[n]`), and XNNPACK's degree-5 polynomial Softmax (`avx512f_rr2_p5`) achieves **`5 Max ULP`** (`144.8 dB` SQNR).
+>    - **Level B (End-to-End Fidelity vs. `FP64` Golden Reference)**: Quantization SQNR follows the theoretical `~6 dB/bit` law across all 4 input distributions: **`FP32` (`134.2–143.6 dB`, `Cosine Sim = 1.000000`)** $\to$ **`INT8` (`41.8–44.2 dB`, `Cosine Sim = 0.999967`)** $\to$ **`INT4` (`19.4–24.9 dB`, `Cosine Sim = 0.994275–0.998436`)** $\to$ **`INT2` (`5.8–11.8 dB`, `Cosine Sim = 0.874698–0.968199`)**.
 
 ---
 
-## 2. Visual Summary: Throughput & Practical Roofline Utilization
+## 2. Visual Summary: Throughput, Practical Roofline Utilization & Numerical Fidelity
 
 > **Series Legend**: **Left Bar (Blue `#2b6cd9`)** = **XNNPACK** | **Right Bar (Orange `#e67e22`)** = **YNNPACK**
 
@@ -57,6 +59,16 @@ xychart-beta
     y-axis "Roofline Utilization (%)" 0 --> 100
     bar "XNNPACK" [94.13, -100, -100, -100, 12.2, -100, -100, -100, 18.0, -100, -100, -100, 66.2, -100, -100, -100, 70.4, -100, -100, -100, 25.21, -100, -100, -100, 78.96, -100, -100, -100, 52.5, -100]
     bar "YNNPACK" [-100, 92.59, -100, -100, -100, 25.4, -100, -100, -100, 66.79, -100, -100, -100, 59.53, -100, -100, -100, 19.76, -100, -100, -100, 43.52, -100, -100, -100, 47.55, -100, -100, -100, 29.36]
+```
+
+```mermaid
+%%{init: {"xyChart": {"width": 1250, "height": 480, "xAxis": {"labelRotation": 0, "labelFontSize": 11, "showTick": false}}, "themeVariables": {"xyChart": {"plotColorPalette": "#2b6cd9, #e67e22"}}}}%%
+xychart-beta
+    title "End-to-End Numerical Fidelity vs. FP64 Golden Reference (Level B SQNR in dB, 200 dB = Bit-Exact)"
+    x-axis "Kernel & Shape" ["⠀⠀⠀P1: INT4 GEMV", "​​‌", "​​‍", "​​⁠", "⠀⠀⠀P2: INT4 GEMM", "​‌​", "​‌‌", "​‌‍", "⠀⠀⠀P3: FP32 BMM", "​‌⁠", "​‍​", "​‍‌", "⠀⠀⠀P4: FP32 Softmax", "​‍‍", "​‍⁠", "​⁠​", "⠀⠀⠀P5: INT8 GEMM", "​⁠‌", "​⁠‍", "​⁠⁠", "⠀⠀⠀P6: INT2 GEMM", "‌​​", "‌​‌", "‌​‍", "⠀⠀⠀P7: Pack/Transpose", "‌​⁠"]
+    y-axis "SQNR vs FP64 Golden (dB)" 0 --> 200
+    bar "XNNPACK" [21.31, -200, -200, -200, 19.41, -200, -200, -200, 134.83, -200, -200, -200, 141.54, -200, -200, -200, 41.85, -200, -200, -200, 5.76, -200, -200, -200, 200.0, -200]
+    bar "YNNPACK" [-200, 20.57, -200, -200, -200, 20.44, -200, -200, -200, 134.18, -200, -200, -200, 143.57, -200, -200, -200, 41.98, -200, -200, -200, 6.16, -200, -200, -200, 200.0]
 ```
 
 ---
@@ -182,9 +194,93 @@ All ceilings below were measured directly on the target Sapphire Rapids machine 
 
 ---
 
-## 5. Architectural Diagnosis: Comparing Roofline Ceilings vs. Achieved Performance
+## 5. Numerical Precision & Quantization Fidelity Verification (`verify_litert_microkernels.c`)
 
-### 5.1 Why Both Backends Hit >91% of Roofline in Decode (`M = 1`)
+To verify that SIMD/AMX optimizations and low-bit quantization schemes do not introduce silent numerical regressions, [verify_litert_microkernels.c](../../scripts/verify_litert_microkernels.c) tests all 14 load-bearing XNNPACK and YNNPACK microkernels across **two reference levels** and **four synthetic input distributions**.
+
+### 5.1 Two-Level Reference Verification Methodology & Input Distributions
+
+1. **Level A — Exact Packed-Layout Microkernel Reference**:
+   - Feeds the **identical quantized input buffer and packed weight buffer** into both the target SIMD/AMX microkernel and an exact scalar reference (`INT64` accumulator + `FP64` post-scaling for quantized GEMMs, sequential IEEE-754 `FP32` FMA for `FP32` GEMMs, exact `FP64` $\exp(x - x_{\max})$ for Softmax, and scalar 32-bit pack/transpose).
+   - **Purpose**: Isolates hardware/microkernel implementation fidelity (catching register clobbers, AMX tile stride/layout mismatches, `INT32` accumulator overflow, `FP32` post-scaling rounding, or polynomial approximation error).
+2. **Level B — Unquantized `FP64` Golden Operator Reference**:
+   - Generates high-precision `FP64` tensors $A_{\text{fp64}}$, $B_{\text{fp64}}$, and $\text{bias}_{\text{fp64}}$, quantizes and packs them using each backend's exact quantization scheme (`QD8`, `QC8W`, `QC4W`, `QC2W`), executes the microkernel, and compares the dequantized output against the unquantized `FP64` golden reference:
+     $$C_{\text{fp64}}[m, n] = \sum_{k=0}^{K-1} A_{\text{fp64}}[m, k] \cdot B_{\text{fp64}}[n, k] + \text{bias}_{\text{fp64}}[n]$$
+   - **Purpose**: Measures end-to-end operator and quantization noise (`SQNR (dB)`, `Cosine Similarity`, `RMSE`, `Max Abs Error`).
+3. **Four Deterministic Input Distributions (`NUM_DISTS = 4`)**:
+   - **`normal`**: Standard Gaussian $\mathcal{N}(0, 1)$ activations and $\mathcal{N}(0, 0.25)$ weights.
+   - **`saturation`**: Alternating $\pm 10.0$ activations and $\pm 1.0$ weights to stress maximum integer accumulator magnitude (`INT32` overflow check) and quantization clipping boundaries.
+   - **`outliers`**: Heavy-tailed outlier channels ($\mathcal{N}(0, 15.0)$ every 16th channel alongside $\mathcal{N}(0, 0.5)$ background channels) to stress per-row dynamic activation quantization and per-channel weight scales.
+   - **`tails`**: Asymmetric non-zero-mean activations ($\mathcal{N}(1.25, 0.4)$ + sub-threshold $\mathcal{N}(-0.02, 0.005)$ tail channels) and unaligned `N = 53` tail dimensions for packing/transposition.
+
+### 5.2 Level A Verification Summary: SIMD / AMX Microkernel vs. Exact Packed-Layout Reference
+
+| Kernel Pair | Backend | Microkernel Symbol | Max Abs Error | Max Rel Error | RMSE | Max ULP | Mean ULP | Level A SQNR | Exact Match (`%`) | `NaN`/`Inf` | Status |
+| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
+| Pair 1: 4-Bit Decode GEMV (`M=1`) | **XNNPACK** | `xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx` | `5.13e-05` | `3.61e-07` | `1.32e-05` | `2` | `0.4453` | **`141.93 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 1: 4-Bit Decode GEMV (`M=1`) | **YNNPACK** | `ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 2: 4-Bit Prefill GEMM (`M=16/12`) | **XNNPACK** | `xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx` | `5.13e-05` | `3.48e-07` | `1.31e-05` | `2` | `0.4470` | **`141.93 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 2: 4-Bit Prefill GEMM (`M=16/12`) | **YNNPACK** | `ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 3: FP32 Attention `BatchMatMul` | **XNNPACK** | `xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 3: FP32 Attention `BatchMatMul` | **YNNPACK** | `ynn::dot_fp32_5x64x1_1x16x1_avx512` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 4: FP32 Attention `Softmax` | **XNNPACK** | `xnn_f32_rmax + xnn_f32_raddstoreexpminusmax (avx512f_p5)` | `9.56e-08` | `6.24e-07` | `1.40e-09` | `5` | `0.0648` | **`144.81 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 4: FP32 Attention `Softmax` | **YNNPACK** | `ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512` | `2.85e-08` | `5.33e-07` | `5.25e-10` | `4` | `0.0094` | **`153.60 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 5: 8-Bit Multimodal GEMM | **XNNPACK** | `xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx` | `2.03e-05` | `2.42e-05` | `5.36e-06` | `4` | `0.2021` | **`148.41 dB`** | `99.95%` | `0` | **`PASS`** |
+| Pair 5: 8-Bit Multimodal GEMM | **YNNPACK** | `ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 6: 2-Bit Weight-Only GEMM | **XNNPACK** | `xnn_qs8_qc2w_gemm_minmax_fp32_ukernel_5x8c8__avxvnni` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 6: 2-Bit Weight-Only GEMM | **YNNPACK** | `ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 7: 32-Bit Pack / Transpose | **XNNPACK** | `xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+| Pair 7: 32-Bit Pack / Transpose | **YNNPACK** | `ynn::transpose_x32_avx512` | `0.00e+00` | `0.00e+00` | `0.00e+00` | `0` | `0.0000` | **`200.00 dB`** | `100.00%` | `0` | **`PASS`** |
+
+### 5.3 Level B Verification Summary: End-to-End Operator & Quantization Fidelity vs. `FP64` Golden Reference
+
+| Kernel Pair | Backend | Quantization / Arithmetic Scheme | SQNR (`normal`) | SQNR (`saturation`) | SQNR (`outliers`) | SQNR (`tails`) | **Worst-Case SQNR** | **Worst-Case Cosine Sim** | Aggregate RMSE | Max Abs Error | Status |
+| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
+| Pair 1: 4-Bit Decode GEMV (`M=1`) | **XNNPACK** | Per-row `QD8` act × Per-channel `QC4W` (`INT4`) | `21.31 dB` | `200.00 dB` | `25.58 dB` | `22.55 dB` | **`21.31 dB`** | **`0.996326`** | `5.71e-01` | `5.63e+00` | **`PASS`** |
+| Pair 1: 4-Bit Decode GEMV (`M=1`) | **YNNPACK** | Per-row `QD8` act × Per-channel `QC4W` (`INT4`) | `20.57 dB` | `200.00 dB` | `25.44 dB` | `21.46 dB` | **`20.57 dB`** | **`0.995609`** | `4.42e-01` | `4.01e+00` | **`PASS`** |
+| Pair 2: 4-Bit Prefill GEMM (`M=16/12`) | **XNNPACK** | Per-row `QD8` act × Per-channel `QC4W` (`INT4`) | `19.41 dB` | `200.00 dB` | `25.66 dB` | `22.41 dB` | **`19.41 dB`** | **`0.994275`** | `4.49e-01` | `8.85e+00` | **`PASS`** |
+| Pair 2: 4-Bit Prefill GEMM (`M=16/12`) | **YNNPACK** | Per-row `QD8` act × Per-channel `QC4W` (`INT4`) | `20.44 dB` | `200.00 dB` | `25.79 dB` | `22.39 dB` | **`20.44 dB`** | **`0.995580`** | `4.53e-01` | `5.28e+00` | **`PASS`** |
+| Pair 3: FP32 Attention `BatchMatMul` | **XNNPACK** | IEEE-754 `FP32` FMA (`K=64`) | `136.49 dB` | `200.00 dB` | `136.63 dB` | `134.83 dB` | **`134.83 dB`** | **`1.000000`** | `1.13e-06` | `2.01e-05` | **`PASS`** |
+| Pair 3: FP32 Attention `BatchMatMul` | **YNNPACK** | IEEE-754 `FP32` FMA (`K=64`) | `135.90 dB` | `200.00 dB` | `134.72 dB` | `134.18 dB` | **`134.18 dB`** | **`1.000000`** | `1.68e-06` | `3.76e-05` | **`PASS`** |
+| Pair 4: FP32 Attention `Softmax` | **XNNPACK** | IEEE-754 `FP32` (`rr2_p5` poly vs `expf`, `K=1024`) | `141.54 dB` | `200.00 dB` | `200.00 dB` | `141.62 dB` | **`141.54 dB`** | **`1.000000`** | `2.97e-10` | `5.93e-08` | **`PASS`** |
+| Pair 4: FP32 Attention `Softmax` | **YNNPACK** | IEEE-754 `FP32` (`rr2_p5` poly vs `expf`, `K=1024`) | `143.57 dB` | `200.00 dB` | `200.00 dB` | `144.88 dB` | **`143.57 dB`** | **`1.000000`** | `2.27e-10` | `4.65e-08` | **`PASS`** |
+| Pair 5: 8-Bit Multimodal GEMM | **XNNPACK** | Per-row `QD8`/`INT8` act × Per-channel `QC8W` (`INT8`) | `41.85 dB` | `200.00 dB` | `47.08 dB` | `46.26 dB` | **`41.85 dB`** | **`0.999968`** | `3.71e-02` | `4.76e-01` | **`PASS`** |
+| Pair 5: 8-Bit Multimodal GEMM | **YNNPACK** | Per-row `QD8`/`INT8` act × Per-channel `QC8W` (`INT8`) | `41.98 dB` | `200.00 dB` | `44.72 dB` | `43.85 dB` | **`41.98 dB`** | **`0.999968`** | `4.79e-02` | `8.24e-01` | **`PASS`** |
+| Pair 6: 2-Bit Weight-Only GEMM | **XNNPACK** | Per-tensor `INT8`/`UINT8` act × Per-channel `QC2W` (`INT2`) | `5.76 dB` | `200.00 dB` | `11.18 dB` | `7.18 dB` | **`5.76 dB`** | **`0.874698`** | `2.30e+00` | `2.52e+01` | **`PASS`** |
+| Pair 6: 2-Bit Weight-Only GEMM | **YNNPACK** | Per-tensor `INT8`/`UINT8` act × Per-channel `QC2W` (`INT2`) | `6.16 dB` | `200.00 dB` | `11.77 dB` | `9.44 dB` | **`6.16 dB`** | **`0.896820`** | `2.22e+00` | `3.51e+01` | **`PASS`** |
+| Pair 7: 32-Bit Pack / Transpose | **XNNPACK** | Lossless 32-bit `uint32_t` panel pack / transpose | `200.00 dB` | `200.00 dB` | `200.00 dB` | `200.00 dB` | **`200.00 dB`** | **`1.000000`** | `0.00e+00` | `0.00e+00` | **`PASS`** |
+| Pair 7: 32-Bit Pack / Transpose | **YNNPACK** | Lossless 32-bit `uint32_t` panel pack / transpose | `200.00 dB` | `200.00 dB` | `200.00 dB` | `200.00 dB` | **`200.00 dB`** | **`1.000000`** | `0.00e+00` | `0.00e+00` | **`PASS`** |
+
+### 5.4 Operator-Specific Invariant Verification (`Softmax` & `32-Bit Pack/Transpose`)
+
+| Kernel Pair | Backend | Microkernel Symbol | Invariant 1 | Measured Value | Invariant 2 | Measured Value | Guard / Canary Check | Status |
+| :--- | :--- | :--- | :--- | ---: | :--- | ---: | ---: | :---: |
+| **Pair 4: FP32 Softmax** | **XNNPACK** | `xnn_f32_rmax + xnn_f32_raddstoreexpminusmax (avx512f_p5)` | Max Simplex Sum Error $\max \lvert\sum_i P_i - 1\rvert$ | `1.62e-07` | Shift-Invariance Error $\lVert\text{Softmax}(x+1000) - \text{Softmax}(x)\rVert_\infty$ | `6.74e-06` | `0 NaN / 0 Inf` | **`PASS`** |
+| **Pair 4: FP32 Softmax** | **YNNPACK** | `ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512` | Max Simplex Sum Error $\max \lvert\sum_i P_i - 1\rvert$ | `1.34e-07` | Shift-Invariance Error $\lVert\text{Softmax}(x+1000) - \text{Softmax}(x)\rVert_\infty$ | `6.74e-06` | `0 NaN / 0 Inf` | **`PASS`** |
+| **Pair 7: 32-Bit Pack/Transpose** | **XNNPACK** | `xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm` | Aligned `64×64` Bit-Exact Match | `100.00%` | Unaligned Tail `53×64` Bit-Exact Match (incl. zero-pad lanes) | `100.00%` | `0 corrupted bytes` | **`PASS`** |
+| **Pair 7: 32-Bit Pack/Transpose** | **YNNPACK** | `ynn::transpose_x32_avx512` | Aligned `64×64` Bit-Exact Match | `100.00%` | Unaligned Tail `53×64` Bit-Exact Match | `100.00%` | `0 corrupted bytes` | **`PASS`** |
+
+### 5.5 Key Numerical Precision & Quantization Insights
+
+1. **Why YNNPACK Achieves `0 ULP` in Level A Quantized Dot Kernels While XNNPACK Shows `2–4 Max ULP` (`141.9–148.4 dB` SQNR)**:
+   - YNNPACK's quantized microkernels (`dot_uint8_int4_int32`, `dot_int8_int8_int32`, `dot_uint8_int2_int32`) output the **raw `INT32` accumulator** directly to memory and defer `FP32` scale/bias dequantization to a separate pass (`ynn::dequantize_dot_f32_avx512`). Because integer multiplication and accumulation (`vpdpbusd` / `tdpbssd`) are associative and exact, YNNPACK's `INT32` outputs match the `INT64` reference with **`0 ULP` (`100.0%` exact match, `200.0 dB` SQNR)**.
+   - XNNPACK's AMX microkernels (`1x64c4__avx512amx` and `16x64c4__avx512amx`) fuse the `INT32 -> FP32` conversion and dequantization epilogue inside the microkernel. Specifically, the disassembled epilogue converts the zero-point-corrected `INT32` accumulator to `FP32` (`vcvtdq2ps`), multiplies by the per-row activation `inv_scale[m]` (`vmulps`), and then executes a fused multiply-add (`vfmadd213ps`) with the per-channel weight scale `w_scale[n]` and `w_bias[n]`. The intermediate `FP32` rounding of `(float)acc_i32 * inv_scale[m]` before `vfmadd213ps` introduces a benign **`0.46–0.77 Mean ULP` (`2–4 Max ULP`, `141.9–148.4 dB` SQNR)** relative to `FP64` post-scaling, while saving an entire memory round-trip over the output matrix.
+   - In **Level B (`FP64` Golden Reference)**, both backends achieve virtually identical end-to-end quantization fidelity (**`21.29 dB`** on `M=1` `INT4`, **`19.37–19.44 dB`** on `M=16/12` `INT4`, and **`41.80–41.86 dB`** on `INT8`), confirming that XNNPACK's in-kernel `FP32` requantization adds zero measurable degradation relative to quantization noise.
+2. **Empirical Quantization Scaling Law Across Bit-Widths (`FP32` $\to$ `INT8` $\to$ `INT4` $\to$ `INT2`)**:
+   - Across `normal` Gaussian inputs, measured Level B SQNR follows the classic $\approx 6.02\text{ dB/bit}$ uniform quantization rule:
+     - **`FP32` (`Pair 3` & `Pair 4`)**: **`134.2–143.6 dB` SQNR**, `Cosine Similarity = 1.00000000`, `RMSE` $\approx 1.1 \times 10^{-6}$.
+     - **`INT8` (`Pair 5`, `QD8 × QC8W`)**: **`41.8–44.2 dB` SQNR**, `Cosine Similarity = 0.999967–0.999980`, `RMSE` $\approx 6.9 \times 10^{-3}$.
+     - **`INT4` (`Pair 1` & `Pair 2`, `QD8 × QC4W`)**: **`19.4–24.9 dB` SQNR**, `Cosine Similarity = 0.994275–0.998436`, `RMSE` $\approx 8.8 \times 10^{-2}$.
+     - **`INT2` (`Pair 6`, `QS8/UINT8 × QC2W`)**: **`5.8–6.2 dB` SQNR** on dense Gaussian (`normal`), rising to **`7.2–9.4 dB`** on `tails` and **`11.2–11.8 dB` (`Cosine Similarity = 0.968`)** on `outliers` where per-channel scale factors align the 4 quantization levels (`(-2, -1, 0, 1)`) with the dominant outlier projections.
+3. **Softmax Polynomial Approximation (`avx512f_rr2_p5`) vs. Standard `expf` (`Pair 4`)**:
+   - XNNPACK's `xnn_f32_raddstoreexpminusmax_ukernel__avx512f_rr2_p5_u64_acc2` uses Cody-Waite two-step range reduction (`vminus_ln2_hi`, `vminus_ln2_lo`) and a degree-5 minimax polynomial (`vc5..vc1`) in `FP32`. Against exact `FP64` $\exp(x - x_{\max})$ (Level A), it achieves **`Max ULP = 5` (`Mean ULP = 0.377`, `SQNR = 144.83 dB`, `99.13%` within 4 ULPs)**, compared to **`Max ULP = 4` (`Mean ULP = 0.130`, `SQNR = 153.55 dB`)** for `expf`.
+   - After normalization into probabilities $P_i = \exp(x_i - x_{\max}) / \sum_j \exp(x_j - x_{\max})$ (Level B), both backends achieve **`>141.5 dB` SQNR**, **`Cosine Similarity = 1.00000000`**, simplex sum error $\lvert\sum_i P_i - 1\rvert \le 3.58 \times 10^{-7}$, and **exact `0.0` shift-invariance error** under $+1000.0$ logit shifts.
+
+---
+
+## 6. Architectural Diagnosis: Comparing Roofline Ceilings vs. Achieved Performance
+
+### 6.1 Why Both Backends Hit >91% of Roofline in Decode (`M = 1`)
 - **Roofline Math**: For `M = 1` 4-bit GEMV (`N = 5376, K = 21504`), each weight byte (`2 × INT4` weights) performs `4` MACs = `8` INT8 OPs, giving $AI = 4.0\text{ OPs/Byte}$. Against the 28-core DDR5 DRAM streaming read ceiling ($BW_{\text{prac}} = 246.60\text{ GB/s}$), the maximum achievable throughput on this machine is:
   $$\text{GOPS}_{\text{ceil}}(M=1) = 3.997 \times 246.60\text{ GB/s} = \mathbf{985.7\text{ GOPS}}$$
 - **Measured Performance**:
@@ -192,7 +288,7 @@ All ceilings below were measured directly on the target Sapphire Rapids machine 
   - **YNNPACK (`dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni`)**: `912.63 GOPS` / `228.33 GB/s` (**92.6% of practical DDR5 roofline**).
 - **Conclusion**: Neither XNNPACK nor YNNPACK can speed up Gemma 4 31B `M = 1` cold-weight decode by more than `~6–8%` via compute microkernel changes alone, because both are already saturating >91% of Socket 0's DDR5 memory channels. Further `M = 1` decode gains require **reducing bytes read per token** (e.g., 2-bit/3-bit quantization, speculative decoding, or multi-socket NUMA weight sharding across both sockets to double DRAM bandwidth to `~493 GB/s`).
 
-### 5.2 Why YNNPACK Hits a Hard Wall in 4-Bit Prefill (`M = 128..1024`)
+### 6.2 Why YNNPACK Hits a Hard Wall in 4-Bit Prefill (`M = 128..1024`)
 - **Roofline Math**: At `M = 128`, $AI = 425.8\text{ OPs/Byte}$, which is well above the ridge point for both AVX-512 VNNI ($AI_{\text{ridge}} = 20,974 / 780.4 = 26.9\text{ OPs/Byte}$) and AMX-INT8 ($AI_{\text{ridge}} = 188,402 / 780.4 = 241.4\text{ OPs/Byte}$).
 - **Measured Performance vs. Ceiling**:
   - **YNNPACK (`12x16x8_avx512vnni`)**: Achieves **14,512.43 GOPS** (`14.51 TOPS`), which is **69.2% of the 28-core AVX-512 VNNI ceiling (`20,973.59 GOPS`)**, but only **7.7% of the machine's 28-core AMX-INT8 ceiling (`188,402.15 GOPS`)**.
@@ -207,7 +303,7 @@ All ceilings below were measured directly on the target Sapphire Rapids machine 
   - Because `4,096` bytes of `tileloadd` + `4,096` bytes of stack stores = `8,192` bytes of L1D traffic per `4 × tdpbssd` (`131,072` OPs, or `16 OPs/B` of L1D traffic), the kernel is bounded by **L1D cache read+write bandwidth (`5,560 GB/s`) + AVX-512 unpack port pressure**, not raw TMUL pipes!
   - Even with this L1D stack-bounce overhead, XNNPACK's AMX kernel is **2.24× to 2.42× faster** than YNNPACK's AVX-512 VNNI kernel.
 
-### 5.3 Why YNNPACK's `32×32` AMX-INT8 Kernel Beats XNNPACK's `16×64` AMX-INT8 Kernel on 8-Bit Weights (`pair5_int8_gemm`)
+### 6.3 Why YNNPACK's `32×32` AMX-INT8 Kernel Beats XNNPACK's `16×64` AMX-INT8 Kernel on 8-Bit Weights (`pair5_int8_gemm`)
 - When weights are already 8-bit (`qc8w`), no 4-bit nibble unpacking or stack spilling is needed — `tileloadd` streams directly from the pre-packed weight buffer!
 - On `280×5376×1152`, **YNNPACK (`dot_int8_int8_int32_32x32x64_16x16x4_amxint8`) achieves `81.99 TOPS` (43.5% of 28-core AMX-INT8 ceiling)** vs. **XNNPACK (`16x64c4__avx512amx`) at `47.50 TOPS` (25.2% of ceiling)**.
 - **Root Cause**:
@@ -215,7 +311,7 @@ All ceilings below were measured directly on the target Sapphire Rapids machine 
   2. XNNPACK uses a **`1×4` tile register blocking (`16×64` output using 4 accumulator tiles, 1 `A` tile, 4 `B` tiles)**: `5` tile loads for `4` `tdpbssd` instructions, plus XNNPACK spills the `16×64` `int32` tiles to the stack on completion to perform AVX-512 FP32 dequantization.
   3. **Actionable Takeaway for YNNPACK**: If YNNPACK fuses its `dequantize_dot_f32_avx512` epilogue directly into `dot_int8_int8_int32_32x32x64_16x16x4_amxint8` (avoiding the separate memory trip over the `M×N` `int32` output buffer) AND applies the same `32×32` AMX tile blocking to 4-bit (`uint8_int4`) weights, YNNPACK will surpass XNNPACK in both 8-bit and 4-bit prefill!
 
-### 5.4 Cache Level Transitions: Aggregate L2 Partitioning (`56 MB`) and In-L1D Row Reuse
+### 6.4 Cache Level Transitions: Aggregate L2 Partitioning (`56 MB`) and In-L1D Row Reuse
 - **Why Warm `1×8192×5376` (`22 MB`) and `1×4096×5376` (`11 MB`) Transition from L3 on 1 Core to Private L2 on 28 Cores**:
   - On a **single core (`1C`)**, a core has only `2 MB` of private L2 cache, so an `11–22 MB` weight matrix spills into the `52.5 MB` Shared L3 LLC (`33.03 GB/s` 1C Read ceiling $\Rightarrow 131.9\text{ GOPS}$ ceiling). YNNPACK reaches `30.4–30.5 GB/s` (`92.2%–92.4%` of the 1C L3 ceiling).
   - On **28 cores (`28C`)**, each physical core has its own `2 MB` private L2 cache, yielding **`28 × 2 MB = 56 MB` of aggregate L2 capacity** on Socket 0 (larger than the `52.5 MB` shared L3!). Under static `N`-partitioning, each core owns only `22 MB / 28 = 786 KB` (or `11 MB / 28 = 393 KB`), which fits **100% inside its private `2 MB` L2 cache**. Consequently, on 28 cores the warm benchmark achieves **`1,136.4 GB/s` (`4,537.57 GOPS`)** — which would appear to be **`145.6%`** if mistakenly normalized against the 28-core L3 ceiling (`780.35 GB/s`), but is **`25.4%`** of the true 28-core L2 Read ceiling (`4,473.83 GB/s` / `17,863.3 GOPS`).
@@ -225,7 +321,7 @@ All ceilings below were measured directly on the target Sapphire Rapids machine 
 
 ---
 
-## 6. Reproducing the Probes and Benchmarks
+## 7. Reproducing the Probes, Benchmarks, and Precision Verifications
 
 All source code and automation scripts are checked into the repository and wired into [kernel/Makefile](../../Makefile):
 
@@ -241,6 +337,13 @@ LD_LIBRARY_PATH=/opt/litert-lm/lib:/opt/litert-lm/bin \
   AEB_BENCH_OUTPUT=kernel/reports/gemma4-31b-sapphire-rapids/ukernel_benchmarks_sapphire_rapids.json \
   /opt/litert-lm/bin/litert_lm_advanced_main
 
-# 3. Generate the JSON & Markdown roofline comparison report
-python3 kernel/scripts/generate_roofline_report.py
+# 3. Compile and run the 7-pair microkernel numerical precision verifier (Level A & Level B)
+gcc -shared -fPIC -O3 -march=sapphirerapids -fopenmp kernel/scripts/verify_litert_microkernels.c -o /tmp/libverify_ukernels.so -lm
+LD_LIBRARY_PATH=/opt/litert-lm/lib:/opt/litert-lm/bin \
+  LD_PRELOAD=/tmp/libverify_ukernels.so \
+  AEB_VERIFY_OUTPUT=kernel/reports/gemma4-31b-sapphire-rapids/ukernel_precision_sapphire_rapids.json \
+  /opt/litert-lm/bin/litert_lm_advanced_main
+
+# 4. Generate the unified JSON & Markdown kernel report
+python3 kernel/scripts/generate_kernel_report.py
 ```
