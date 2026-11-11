@@ -81,6 +81,9 @@ class Driver:
       ov_kwargs["INFERENCE_PRECISION_HINT"] = "bf16"
     elif getattr(args, "dtype", None) == "fp16":
       ov_kwargs["INFERENCE_PRECISION_HINT"] = "f16"
+    if getattr(args, "cache_dir", None):
+      Path(args.cache_dir).mkdir(parents=True, exist_ok=True)
+      ov_kwargs["CACHE_DIR"] = str(args.cache_dir)
 
     started = time.monotonic_ns()
     self._cache_prefix = bool(getattr(args, "cache_prefix", False))
@@ -324,6 +327,7 @@ def main(argv=None) -> int:
       choices=["auto", "fp32", "bf16", "fp16", "int8", "int4"],
       help="inference precision hint for OpenVINO CPU plugin",
   )
+  ap.add_argument("--cache-dir", default=None, help="optional OpenVINO compilation cache directory")
   ap.add_argument("--cache-prefix", action="store_true", help="enable cached-prefix mode")
   args = ap.parse_args(argv)
   try:

@@ -241,7 +241,8 @@ def _find_resumable_accuracy(results_dir: Path | None, machine: str, fw: str, la
 
 
 def _has_complete_repro(results_dir: Path | None, machine: str, fw: str, label: str,
-                        mode: str, seed: int | None, proc: int, threads: int) -> bool:
+                        mode: str, seed: int | None, proc: int, threads: int,
+                        repeats: int | None = None, max_tokens: int | None = None) -> bool:
   if results_dir is None:
     return False
   cfg_dir = results_dir / machine / "repro" / fw / label
@@ -261,6 +262,10 @@ def _has_complete_repro(results_dir: Path | None, machine: str, fw: str, label: 
       continue
     if int((summ.get("within_process") or {}).get("compared", 0)) <= 0:
       continue
+    if repeats is not None and int(meta.get("repeats") or 0) != int(repeats):
+      continue
+    if max_tokens is not None and int(meta.get("max_tokens") or 0) != int(max_tokens):
+      continue
     if (meta.get("mode") == mode and int(meta.get("process", -1)) == int(proc)
         and meta.get("seed") == expected_seed and int(meta.get("threads") or 0) == int(threads)):
       return True
@@ -275,17 +280,21 @@ def perf_commands(suite, ctx, machine, rounds, only, dev,
   for r in range(rounds):
     order = cfgs if r % 2 == 0 else list(reversed(cfgs))
     for c in order:
+      cw = {**w, **(c.get("workload") or {})}
+      c_rounds = int(cw.get("rounds", rounds))
+      if r >= c_rounds:
+        continue
       fw, label = c["framework"], c["id"].split("/", 1)[1]
       if skip_existing and _has_complete_perf(
-          results_dir, machine, fw, label, c["track"], r, int(w["repetitions"])):
+          results_dir, machine, fw, label, c["track"], r, int(cw["repetitions"])):
         print(f"[suite] skip existing perf {c['id']} (round {r})", flush=True)
         continue
       args = ["aeb.perf", "--framework", fw, "--label", label, "--track", c["track"],
-              "--round", str(r), "--prompt-tokens", str(w["prompt_tokens"])]
-      if int(w.get("prefix_tokens") or 0) > 0:
-        args += ["--prefix-tokens", str(w["prefix_tokens"])]
-      args += ["--gen-tokens", str(w["gen_tokens"]), "--warmup", str(w["warmup"]),
-               "--repetitions", str(w["repetitions"]), "--cooldown-s", str(w["cooldown_s"]),
+              "--round", str(r), "--prompt-tokens", str(cw["prompt_tokens"])]
+      if int(cw.get("prefix_tokens") or 0) > 0:
+        args += ["--prefix-tokens", str(cw["prefix_tokens"])]
+      args += ["--gen-tokens", str(cw["gen_tokens"]), "--warmup", str(cw["warmup"]),
+               "--repetitions", str(cw["repetitions"]), "--cooldown-s", str(cw["cooldown_s"]),
                "--notes", f"suite={suite['name']}", "--"]
       args += [resolve(a, ctx) for a in c["args"]]
       out.append((c["id"], run_cmd(machine, fw, args, dev)))
@@ -543,7 +552,7 @@ def sequence_commands(suite, ctx, machine, rounds, only, dev, results_dir: Path 
         repetitions=sweep.get("repetitions", suite["workload"]["repetitions"]),
         cooldown_s=sweep.get("cooldown_s", suite["workload"]["cooldown_s"]),
     )
-    point["configs"] = [dict(c, id=f"{c['id']}-n{n}-d{gen}", track="sweep-sequence")
+    point["configs"] = [dict(c, id=f"{c['id']}-n{n}-d{gen}", track="sweep-sequence", workload={})
                         for c in cfgs]
     out += perf_commands(point, sweep_ctx, machine, sweep_rounds, None, dev,
                          results_dir=results_dir, skip_existing=skip_existing)
@@ -617,7 +626,7 @@ def accuracy_commands(suite, ctx, machine, only, dev, tasks, threads=None, shard
       if limit is None:
         continue
       n_items = limit or TASK_ITEMS[task]
-      k = shards if not limit else 1
+      k = shards if (not limit or limit >= shards) else 1
       for shard in range(k):
         shard_str = f"{shard}/{k}"
         if skip_existing and _has_complete_accuracy(
@@ -662,7 +671,8 @@ def repro_commands(suite, ctx, machine, only, dev, seed=1234,
       i = driver.index("--threads") + 1
       driver[i] = str(max(1, int(int(driver[i]) * tfrac)))
       if skip_existing and _has_complete_repro(
-          results_dir, machine, fw, label, mode, sd, proc, int(driver[i])):
+          results_dir, machine, fw, label, mode, sd, proc, int(driver[i]),
+          repeats=repro_cfg.get("repeats"), max_tokens=repro_cfg.get("max_tokens")):
         print(f"[suite] skip existing repro {c['id']}:{mode}:seed={sd}:p{proc}:t{driver[i]}",
               flush=True)
         continue
@@ -689,8 +699,15 @@ def execute_parallel(cmds, dry: bool, n_queues: int) -> int:
     queues[i].append((cid, cmd))
     load[i] += cost
   results = []
-  threads = [threading.Thread(target=lambda q=q: results.append(execute(q, dry, 0.0)))
-             for q in queues if q]
+  threads = [
+      threading.Thread(
+          target=lambda q=q, qi=qi: results.append(
+              execute(q, dry, 0.0, extra_env={"AEB_NUMA_NODE": str(qi)})
+          )
+      )
+      for qi, q in enumerate(queues)
+      if q
+  ]
   for t in threads:
     t.start()
   for t in threads:
@@ -698,13 +715,17 @@ def execute_parallel(cmds, dry: bool, n_queues: int) -> int:
   return sum(results)
 
 
-def execute(cmds, dry: bool, cooldown: float) -> int:
+def execute(cmds, dry: bool, cooldown: float, extra_env: dict[str, str] | None = None) -> int:
   failures = 0
+  env = None
+  if extra_env:
+    env = dict(os.environ)
+    env.update(extra_env)
   for i, (cid, cmd) in enumerate(cmds):
     print(f"\n[suite] ({i + 1}/{len(cmds)}) {cid}\n  {shlex.join(cmd)}", flush=True)
     if dry:
       continue
-    rc = subprocess.call(cmd, cwd=ROOT)
+    rc = subprocess.call(cmd, cwd=ROOT, env=env)
     if rc != 0:
       failures += 1
       print(f"[suite] {cid} exited {rc}", flush=True)
@@ -806,6 +827,8 @@ def main(argv=None) -> int:
     args.parallel = 0
   if args.action == "accuracy" and args.parallel:
     return 1 if execute_parallel(acc, dry, args.parallel) else 0
+  if args.action == "repro" and args.parallel:
+    return 1 if execute_parallel([(cid, cmd, 1.0) for cid, cmd in cmds], dry, args.parallel) else 0
   cmds += [(cid, cmd) for cid, cmd, _ in acc]
   return 1 if execute(cmds, dry, args.cooldown_s) else 0
 

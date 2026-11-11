@@ -312,6 +312,8 @@ def config_runs(runs, suite, since: str | None) -> dict[str, list[dict]]:
   tag = f"suite={suite['name']}"
   out = {}
   for c in suite["configs"]:
+    if c.get("disabled"):
+      continue
     fw, label = c["framework"], c["id"].split("/", 1)[1]
     mine = [r for r in runs if r["meta"].get("framework") == fw and r["meta"].get("label") == label
             and r["meta"].get("track") != "prefix-cache"
@@ -979,6 +981,7 @@ HIST_STYLE = {  # config -> (color, marker, linestyle)
     "litert-lm/matched": ("#2b6cd9", "o", "-"),
     "litert-lm/fastest": ("#13408f", "s", "--"),
     "litert-lm/ynnpack": ("#5c9aff", "^", "-."),
+    "litert-lm/ynnpack-fastest": ("#3d7be0", "v", ":"),
     "xla/matched-ynnpack": ("#2e8b57", "o", "-"),
     "xla/matched-onednn": ("#1b5e20", "s", "--"),
     "xla/bf16-ynnpack": ("#43a047", "^", "-"),
@@ -987,6 +990,8 @@ HIST_STYLE = {  # config -> (color, marker, linestyle)
     "xla/int8-onednn": ("#388e3c", "p", ":"),
     "xla/fp32-ynnpack": ("#81c784", "x", ":"),
     "xla/fp32-onednn": ("#4caf50", "+", ":"),
+    "openvino/matched": ("#0095a8", "o", "-"),
+    "openvino/fastest": ("#006978", "s", "--"),
     "openvino/int4": ("#0095a8", "s", "--"),
     "openvino/int8": ("#006064", "o", "-"),
     "openvino/bf16": ("#00acc1", "v", "-."),
@@ -1358,7 +1363,12 @@ def _config_dtype_info(suite: dict, cid: str, meta: dict) -> tuple[str, str, str
       threads_str += f" ({report['thread_usage']})"
     return group, f"`{checkpoint}`", "`" + " / ".join(precisions) + "`", threads_str
 
-  if "qat-mobile" in mp or "litert-lm" in mp or fw == "litert-lm":
+  is_31b = "31b" in mp.lower() or "31b" in suite.get("name", "").lower()
+  if "qat-mobile" in mp:
+    checkpoint = "`qat-mobile`"
+  elif "qat-q4_0" in mp or (fw == "litert-lm" and is_31b):
+    checkpoint = "`qat-q4_0`"
+  elif "litert-lm" in mp or fw == "litert-lm":
     checkpoint = "`qat-mobile`"
   elif fw == "llama.cpp" or mp.endswith(".gguf"):
     checkpoint = "`it` (GGUF)"
@@ -1390,7 +1400,7 @@ def _config_dtype_info(suite: dict, cid: str, meta: dict) -> tuple[str, str, str
     else:
       wak = "`int4_asym / bf16 / int8`"
   elif fw == "litert-lm":
-    wak = "`int2_int4_int8 / int8 / int8`"
+    wak = "`int4_int8 / fp32 / fp32`" if is_31b else "`int2_int4_int8 / int8 / int8`"
   elif fw == "onnxruntime":
     wak = "`fp16 / fp16 / fp16`" if group == "fp16" else "`q4_k_m / fp32 / fp32`"
   elif fw == "llama.cpp":
@@ -1406,9 +1416,9 @@ def _config_dtype_info(suite: dict, cid: str, meta: dict) -> tuple[str, str, str
       wak = f"`bf16 / fp32 / {kv}`"
     elif group == "int8":
       wak = f"`q8_0 / q8_0 / {kv}`"
-    elif "matched-q4" in mp or cid_lo.endswith("/fastest"):
+    elif "matched-q4" in mp or (not is_31b and cid_lo.endswith("/fastest")):
       wak = f"`q4_0_q8_0 / q8_0 / {kv}`"
-    elif "matched" in mp or cid_lo.endswith("/matched"):
+    elif "qat-mobile" in mp or (not is_31b and cid_lo.endswith("/matched")):
       wak = f"`q2_k_q4_0_q8_0 / q8_0 / {kv}`"
     else:
       wak = f"`q4_0 / q8_0 / {kv}`"
@@ -1419,9 +1429,9 @@ def _config_dtype_info(suite: dict, cid: str, meta: dict) -> tuple[str, str, str
 
 
 def _resolve_acc_lookup(cfg_runs: dict, acc_rows: list[dict]):
-  """Return a helper _get_acc(cid, task) that resolves accuracy by cid or shared (framework, model_sha256)."""
+  """Return a helper _get_acc(cid, task) that resolves accuracy by cid or shared (framework, is_ynn, model_sha256)."""
   acc_by_id: dict[tuple[str, str], dict] = {}
-  acc_by_model: dict[tuple[str, str, str], dict] = {}
+  acc_by_model: dict[tuple[str, bool, str, str], dict] = {}
   for a in acc_rows:
     acc_by_id[(a["id"], a["task"])] = a
     runs_for_a = cfg_runs.get(a["id"])
@@ -1429,8 +1439,9 @@ def _resolve_acc_lookup(cfg_runs: dict, acc_rows: list[dict]):
       m0 = runs_for_a[0]["meta"]
       fw = m0.get("framework") or a["id"].split("/")[0]
       sha = m0.get("model_sha256")
+      is_ynn = "ynnpack" in a["id"].lower()
       if fw and sha:
-        acc_by_model[(fw, sha, a["task"])] = a
+        acc_by_model[(fw, is_ynn, sha, a["task"])] = a
 
   def _get_acc(cid: str, task: str) -> float | None:
     if (cid, task) in acc_by_id:
@@ -1441,8 +1452,9 @@ def _resolve_acc_lookup(cfg_runs: dict, acc_rows: list[dict]):
     m0 = runs_for_c[0]["meta"]
     fw = m0.get("framework") or cid.split("/")[0]
     sha = m0.get("model_sha256")
-    if fw and sha and (fw, sha, task) in acc_by_model:
-      return acc_by_model[(fw, sha, task)]["accuracy"]
+    is_ynn = "ynnpack" in cid.lower()
+    if fw and sha and (fw, is_ynn, sha, task) in acc_by_model:
+      return acc_by_model[(fw, is_ynn, sha, task)]["accuracy"]
     return None
 
   return _get_acc
@@ -1457,7 +1469,7 @@ def pareto_chart(path: Path, suite: dict, cfg_ids: list[str], cfg_runs: dict,
     e2e_d = agg.get(cid, {}).get("e2e_ms")
     e2e = e2e_d.get("median") if e2e_d else None
     mmlu = _get_acc(cid, "mmlu")
-    if e2e is None or mmlu is None:
+    if e2e is None or mmlu is None or mmlu <= 0.0:
       continue
     m0 = cfg_runs[cid][0]["meta"]
     grp, _, _, _ = _config_dtype_info(suite, cid, m0)

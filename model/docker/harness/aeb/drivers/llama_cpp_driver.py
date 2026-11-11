@@ -126,7 +126,7 @@ def _parse_args(argv=None):
   ap.add_argument("--ctx", type=int, default=4096)
   ap.add_argument("--batch", type=int, default=2048)
   ap.add_argument("--ubatch", type=int, default=512)
-  ap.add_argument("--flash-attn", default="auto")
+  ap.add_argument("--flash-attn", nargs="?", const="on", default="auto")
   ap.add_argument("--cache-type-k", default="f16")
   ap.add_argument("--cache-type-v", default="f16")
   ap.add_argument("--no-mmap", dest="mmap", action="store_false", default=True)

@@ -185,8 +185,17 @@ def _build_tunix_model_config(
       )
       for f in dataclasses.fields(gemma4_model.ShardingConfig)
   })
-  base = gemma4_model.ModelConfig.gemma4_e2b(sharding_config=shd_cfg)
-  num_layers = int(tcfg.get("num_hidden_layers", base.num_layers))
+  num_layers = int(tcfg.get("num_hidden_layers", 35))
+  if num_layers == 60 and hasattr(gemma4_model.ModelConfig, "gemma4_31b"):
+    base = gemma4_model.ModelConfig.gemma4_31b(sharding_config=shd_cfg)
+  elif num_layers == 42 and hasattr(gemma4_model.ModelConfig, "gemma4_e4b"):
+    base = gemma4_model.ModelConfig.gemma4_e4b(sharding_config=shd_cfg)
+  elif tcfg.get("enable_moe_block") and hasattr(
+      gemma4_model.ModelConfig, "gemma4_26b_a4b"
+  ):
+    base = gemma4_model.ModelConfig.gemma4_26b_a4b(sharding_config=shd_cfg)
+  else:
+    base = gemma4_model.ModelConfig.gemma4_e2b(sharding_config=shd_cfg)
   num_kv_shared = int(
       tcfg.get("num_kv_shared_layers", round(base.frac_shared_layers * num_layers))
   )
@@ -204,6 +213,12 @@ def _build_tunix_model_config(
       head_dim=int(tcfg.get("head_dim", base.head_dim)),
       global_key_size=int(tcfg.get("global_head_dim", base.global_key_size)),
       num_kv_heads=int(tcfg.get("num_key_value_heads", base.num_kv_heads)),
+      num_global_kv_heads=(
+          int(tcfg["num_global_key_value_heads"])
+          if tcfg.get("num_global_key_value_heads") is not None
+          else base.num_global_kv_heads
+      ),
+      k_eq_v_global=bool(tcfg.get("attention_k_eq_v", base.k_eq_v_global)),
       sliding_window_size=int(tcfg.get("sliding_window", base.sliding_window_size)),
       per_layer_input_dim=int(
           tcfg.get("hidden_size_per_layer_input", base.per_layer_input_dim)
@@ -901,13 +916,6 @@ class XLAGemma4Engine:
         self.compute_dtype,
         use_sliding_window_kv_cache=not self._cache_prefix,
     )
-
-    if args.onednn and args.dtype != "fp32":
-      raise ValueError(
-          f"XLA oneDNN (--onednn) is only supported with --dtype=fp32 "
-          f"(got --dtype={args.dtype}); jaxlib==0.11.2 oneDNN segfaults on "
-          f"Intel AMX BF16 / QArray contractions."
-      )
 
     if self.quant_cfg:
       self.quantizer_name = f"checkpoint-{self.quant_cfg.get('quant_method', 'quantized')}"
