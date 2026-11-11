@@ -549,7 +549,7 @@
         </div>
       </div>
       <div class="header-meta">
-        <span class="meta-pill">Updated: 2026-11-04 09:00:05 UTC</span>
+        <span class="meta-pill">Updated: 2026-11-11 01:21:06 UTC</span>
         <span>Update command: <code>python3 scripts/update_dashboard.py</code></span>
       </div>
     </div>
@@ -559,12 +559,12 @@
     <div class="kpi-grid" id="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">Benchmark Suites</div>
-        <div class="kpi-value">4</div>
+        <div class="kpi-value">5</div>
         <div class="kpi-sub">Tracked across x86 AMX &amp; ARM CPUs (10 snapshots)</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Configurations Tracked</div>
-        <div class="kpi-value">28</div>
+        <div class="kpi-value">40</div>
         <div class="kpi-sub">Across FP32, BF16, INT8, INT4/Mixed</div>
       </div>
       <div class="kpi-card">
@@ -604,7 +604,7 @@
 
   <script id="dashboard-data" type="application/json">
 {
-  "generated_at": "2026-11-04 09:00:05 UTC",
+  "generated_at": "2026-11-11 01:21:06 UTC",
   "suites": [
     {
       "id": "gemma4-e2b-cpu-sapphire-rapids--sapphire-rapids",
@@ -621,11 +621,6 @@
       },
       "reports": [
         {
-          "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-          "date": "2026-10-12",
-          "report_url": null
-        },
-        {
           "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
           "date": "2026-10-13",
           "report_url": "../reports/2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
@@ -639,11 +634,6 @@
           "report_id": "2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
           "date": "2026-10-22",
           "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
-        },
-        {
-          "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-          "date": "2026-10-23",
-          "report_url": null
         },
         {
           "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
@@ -679,39 +669,6 @@
           "delta_ms": -3.49,
           "delta_pct": -0.13,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 1343.52,
-                "min": 1309.49,
-                "max": 1380.38,
-                "cv": 0.02193,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 68.92,
-                "min": 68.17,
-                "max": 69.58,
-                "cv": 0.00811,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2602.21,
-                "min": 2572.47,
-                "max": 2643.53,
-                "cv": 0.01185,
-                "n": 6
-              },
-              "ttft_ms": 762.2,
-              "itl_p99_ms": 15.4,
-              "rss_max_mb": 4358.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11259",
-              "framework_commit": "d280808f5d82fcc3142b53f94ea5f594250cd765",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -812,39 +769,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 1361.84,
-                "min": 1345.88,
-                "max": 1393.57,
-                "cv": 0.01346,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 65.92,
-                "min": 65.09,
-                "max": 66.11,
-                "cv": 0.0056,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2682.29,
-                "min": 2670.07,
-                "max": 2699.02,
-                "cv": 0.00401,
-                "n": 6
-              },
-              "ttft_ms": 751.9,
-              "itl_p99_ms": 15.9,
-              "rss_max_mb": 4381.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11820",
-              "framework_commit": "d77256999f211f8c0a5b12d13564f48d685b59e7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -934,39 +858,6 @@
           "delta_ms": 166.29,
           "delta_pct": 5.74,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 1024.04,
-                "min": 1001.25,
-                "max": 1032.96,
-                "cv": 0.01108,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 69.1,
-                "min": 68.75,
-                "max": 69.95,
-                "cv": 0.00688,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2838.59,
-                "min": 2817.2,
-                "max": 2868.99,
-                "cv": 0.00668,
-                "n": 6
-              },
-              "ttft_ms": 1000.0,
-              "itl_p99_ms": 15.7,
-              "rss_max_mb": 2502.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "v0.17.1",
-              "framework_commit": "5e58e9a0aef7abf7091207a8b1d1063a1c800f08",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -1067,39 +958,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 949.6,
-                "min": 946.36,
-                "max": 954.89,
-                "cv": 0.00319,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 69.76,
-                "min": 69.43,
-                "max": 70.02,
-                "cv": 0.00303,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2898.24,
-                "min": 2896.03,
-                "max": 2902.09,
-                "cv": 0.00092,
-                "n": 6
-              },
-              "ttft_ms": 1078.4,
-              "itl_p99_ms": 15.5,
-              "rss_max_mb": 2501.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "v0.18.1",
-              "framework_commit": "bda624851d74be34d4e1f7fac1fc4155939539c7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -1189,39 +1047,6 @@
           "delta_ms": 25.77,
           "delta_pct": 0.93,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 1351.75,
-                "min": 1324.95,
-                "max": 1361.52,
-                "cv": 0.01011,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 65.57,
-                "min": 65.23,
-                "max": 66.02,
-                "cv": 0.00482,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2694.14,
-                "min": 2679.82,
-                "max": 2719.74,
-                "cv": 0.00573,
-                "n": 6
-              },
-              "ttft_ms": 757.5,
-              "itl_p99_ms": 16.1,
-              "rss_max_mb": 4541.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11259",
-              "framework_commit": "d280808f5d82fcc3142b53f94ea5f594250cd765",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -1322,39 +1147,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 1371.05,
-                "min": 1339.3,
-                "max": 1402.41,
-                "cv": 0.02276,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 62.79,
-                "min": 62.69,
-                "max": 62.85,
-                "cv": 0.00096,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2769.72,
-                "min": 2750.78,
-                "max": 2790.51,
-                "cv": 0.00677,
-                "n": 6
-              },
-              "ttft_ms": 747.1,
-              "itl_p99_ms": 16.7,
-              "rss_max_mb": 4565.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11820",
-              "framework_commit": "d77256999f211f8c0a5b12d13564f48d685b59e7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -1444,39 +1236,6 @@
           "delta_ms": 128.58,
           "delta_pct": 4.37,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 1018.21,
-                "min": 1011.04,
-                "max": 1029.13,
-                "cv": 0.00698,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 68.59,
-                "min": 68.17,
-                "max": 69.51,
-                "cv": 0.00708,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2853.98,
-                "min": 2834.28,
-                "max": 2862.09,
-                "cv": 0.00338,
-                "n": 6
-              },
-              "ttft_ms": 1005.7,
-              "itl_p99_ms": 20.0,
-              "rss_max_mb": 2502.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "v0.17.1",
-              "framework_commit": "5e58e9a0aef7abf7091207a8b1d1063a1c800f08",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -1577,39 +1336,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 933.25,
-                "min": 921.25,
-                "max": 956.24,
-                "cv": 0.01383,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 68.79,
-                "min": 67.91,
-                "max": 69.13,
-                "cv": 0.0067,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 2942.45,
-                "min": 2914.2,
-                "max": 2981.7,
-                "cv": 0.00844,
-                "n": 6
-              },
-              "ttft_ms": 1097.2,
-              "itl_p99_ms": 15.5,
-              "rss_max_mb": 2500.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "v0.18.1",
-              "framework_commit": "bda624851d74be34d4e1f7fac1fc4155939539c7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -1699,39 +1425,6 @@
           "delta_ms": -176.01,
           "delta_pct": -3.68,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 422.21,
-                "min": 416.77,
-                "max": 429.02,
-                "cv": 0.01022,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 53.98,
-                "min": 53.92,
-                "max": 54.21,
-                "cv": 0.00198,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 4774.48,
-                "min": 4736.56,
-                "max": 4808.9,
-                "cv": 0.00523,
-                "n": 6
-              },
-              "ttft_ms": 2425.4,
-              "itl_p99_ms": 19.6,
-              "rss_max_mb": 3445.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11259",
-              "framework_commit": "d280808f5d82fcc3142b53f94ea5f594250cd765",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -1832,39 +1525,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 418.09,
-                "min": 395.54,
-                "max": 432.98,
-                "cv": 0.0411,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 54.52,
-                "min": 53.79,
-                "max": 54.76,
-                "cv": 0.0069,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 4781.11,
-                "min": 4684.26,
-                "max": 4950.13,
-                "cv": 0.02437,
-                "n": 6
-              },
-              "ttft_ms": 2451.6,
-              "itl_p99_ms": 19.3,
-              "rss_max_mb": 3454.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11820",
-              "framework_commit": "d77256999f211f8c0a5b12d13564f48d685b59e7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -1954,39 +1614,6 @@
           "delta_ms": 56.42,
           "delta_pct": 1.71,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 1001.72,
-                "min": 981.14,
-                "max": 1017.53,
-                "cv": 0.01359,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 53.65,
-                "min": 52.83,
-                "max": 54.64,
-                "cv": 0.01267,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3401.77,
-                "min": 3330.81,
-                "max": 3439.95,
-                "cv": 0.0115,
-                "n": 6
-              },
-              "ttft_ms": 1022.3,
-              "itl_p99_ms": 19.9,
-              "rss_max_mb": 2636.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "v0.17.1",
-              "framework_commit": "5e58e9a0aef7abf7091207a8b1d1063a1c800f08",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -2087,39 +1714,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 1059.75,
-                "min": 1050.45,
-                "max": 1081.48,
-                "cv": 0.01018,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 54.64,
-                "min": 54.19,
-                "max": 55.21,
-                "cv": 0.00754,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3293.33,
-                "min": 3257.27,
-                "max": 3318.6,
-                "cv": 0.00766,
-                "n": 6
-              },
-              "ttft_ms": 966.3,
-              "itl_p99_ms": 19.6,
-              "rss_max_mb": 2603.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "v0.18.1",
-              "framework_commit": "bda624851d74be34d4e1f7fac1fc4155939539c7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -2209,39 +1803,6 @@
           "delta_ms": 39.98,
           "delta_pct": 1.31,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 3290.23,
-                "min": 3044.63,
-                "max": 3324.65,
-                "cv": 0.03197,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 46.68,
-                "min": 45.44,
-                "max": 47.74,
-                "cv": 0.02087,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3035.49,
-                "min": 2969.91,
-                "max": 3116.72,
-                "cv": 0.021,
-                "n": 6
-              },
-              "ttft_ms": 311.2,
-              "itl_p99_ms": 28.7,
-              "rss_max_mb": 3667.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1.0",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -2342,39 +1903,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 3212.82,
-                "min": 2842.51,
-                "max": 3258.43,
-                "cv": 0.05049,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 46.46,
-                "min": 45.23,
-                "max": 47.02,
-                "cv": 0.01296,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3050.17,
-                "min": 3019.61,
-                "max": 3170.18,
-                "cv": 0.01717,
-                "n": 6
-              },
-              "ttft_ms": 318.7,
-              "itl_p99_ms": 29.5,
-              "rss_max_mb": 3669.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -2464,39 +1992,6 @@
           "delta_ms": 180.87,
           "delta_pct": 2.06,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 270.09,
-                "min": 267.46,
-                "max": 274.3,
-                "cv": 0.0088,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 24.74,
-                "min": 24.38,
-                "max": 25.03,
-                "cv": 0.01081,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 8933.06,
-                "min": 8812.67,
-                "max": 9019.8,
-                "cv": 0.00933,
-                "n": 6
-              },
-              "ttft_ms": 3791.3,
-              "itl_p99_ms": 42.7,
-              "rss_max_mb": 19156.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "onnxruntime-genai==0.17.1",
-              "framework_commit": null,
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -2595,39 +2090,6 @@
               "framework_ref": "onnxruntime-genai==0.18.0",
               "framework_commit": null,
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
-            },
-            {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 271.07,
-                "min": 266.28,
-                "max": 275.35,
-                "cv": 0.01303,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 25.49,
-                "min": 25.25,
-                "max": 25.87,
-                "cv": 0.00839,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 8774.08,
-                "min": 8679.95,
-                "max": 8853.09,
-                "cv": 0.00802,
-                "n": 6
-              },
-              "ttft_ms": 3777.7,
-              "itl_p99_ms": 41.7,
-              "rss_max_mb": 19264.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "onnxruntime-genai==0.18.0",
-              "framework_commit": null,
-              "report_url": null
             },
             {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
@@ -2819,39 +2281,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 777.91,
-                "min": 760.9,
-                "max": 786.9,
-                "cv": 0.01225,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 3.53,
-                "min": 3.52,
-                "max": 3.54,
-                "cv": 0.00199,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 37242.14,
-                "min": 37197.51,
-                "max": 37395.24,
-                "cv": 0.00202,
-                "n": 6
-              },
-              "ttft_ms": 1316.4,
-              "itl_p99_ms": 295.0,
-              "rss_max_mb": 15488.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "jax==0.12.0.1",
-              "framework_commit": "google-tunix==0.1.7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -2941,39 +2370,6 @@
           "delta_ms": -44.14,
           "delta_pct": -1.2,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 1036.83,
-                "min": 1011.16,
-                "max": 1075.49,
-                "cv": 0.02102,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 49.07,
-                "min": 48.77,
-                "max": 49.35,
-                "cv": 0.00429,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3578.9,
-                "min": 3525.42,
-                "max": 3616.86,
-                "cv": 0.00825,
-                "n": 6
-              },
-              "ttft_ms": 987.6,
-              "itl_p99_ms": 21.9,
-              "rss_max_mb": 7587.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11259",
-              "framework_commit": "d280808f5d82fcc3142b53f94ea5f594250cd765",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -3074,39 +2470,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 1058.0,
-                "min": 1046.37,
-                "max": 1068.01,
-                "cv": 0.00726,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 46.97,
-                "min": 46.79,
-                "max": 47.1,
-                "cv": 0.00216,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3671.34,
-                "min": 3655.41,
-                "max": 3692.8,
-                "cv": 0.00348,
-                "n": 6
-              },
-              "ttft_ms": 967.9,
-              "itl_p99_ms": 21.9,
-              "rss_max_mb": 7602.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11820",
-              "framework_commit": "d77256999f211f8c0a5b12d13564f48d685b59e7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -3196,39 +2559,6 @@
           "delta_ms": 57.02,
           "delta_pct": 1.59,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 3213.56,
-                "min": 3082.23,
-                "max": 3253.22,
-                "cv": 0.0186,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 39.84,
-                "min": 39.3,
-                "max": 40.31,
-                "cv": 0.00944,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3506.79,
-                "min": 3473.26,
-                "max": 3565.82,
-                "cv": 0.00969,
-                "n": 6
-              },
-              "ttft_ms": 318.6,
-              "itl_p99_ms": 32.2,
-              "rss_max_mb": 5291.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1.0",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -3329,39 +2659,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 3153.62,
-                "min": 3088.3,
-                "max": 3203.08,
-                "cv": 0.014,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 39.0,
-                "min": 36.26,
-                "max": 39.56,
-                "cv": 0.03131,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3583.24,
-                "min": 3532.32,
-                "max": 3832.45,
-                "cv": 0.03036,
-                "n": 6
-              },
-              "ttft_ms": 324.7,
-              "itl_p99_ms": 34.2,
-              "rss_max_mb": 5291.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -3451,39 +2748,6 @@
           "delta_ms": 139.83,
           "delta_pct": 2.48,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 519.51,
-                "min": 507.97,
-                "max": 532.78,
-                "cv": 0.01521,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 35.28,
-                "min": 34.32,
-                "max": 35.56,
-                "cv": 0.01244,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 5574.2,
-                "min": 5493.59,
-                "max": 5671.05,
-                "cv": 0.01116,
-                "n": 6
-              },
-              "ttft_ms": 1971.1,
-              "itl_p99_ms": 29.2,
-              "rss_max_mb": 4633.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11259",
-              "framework_commit": "d280808f5d82fcc3142b53f94ea5f594250cd765",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -3584,39 +2848,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 552.78,
-                "min": 550.01,
-                "max": 556.69,
-                "cv": 0.00478,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 33.53,
-                "min": 33.46,
-                "max": 33.69,
-                "cv": 0.00262,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 5641.55,
-                "min": 5614.58,
-                "max": 5649.9,
-                "cv": 0.00264,
-                "n": 6
-              },
-              "ttft_ms": 1852.4,
-              "itl_p99_ms": 30.7,
-              "rss_max_mb": 4647.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "b11820",
-              "framework_commit": "d77256999f211f8c0a5b12d13564f48d685b59e7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -3706,39 +2937,6 @@
           "delta_ms": 72.02,
           "delta_pct": 1.69,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 3456.7,
-                "min": 3354.07,
-                "max": 3537.49,
-                "cv": 0.02055,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 34.47,
-                "min": 33.48,
-                "max": 34.86,
-                "cv": 0.01599,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 3984.53,
-                "min": 3934.94,
-                "max": 4088.67,
-                "cv": 0.01513,
-                "n": 6
-              },
-              "ttft_ms": 296.3,
-              "itl_p99_ms": 36.5,
-              "rss_max_mb": 9570.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1.0",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -3837,39 +3035,6 @@
               "framework_ref": "openvino-genai==2026.4.1.0",
               "framework_commit": "openvino==2026.4.1",
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
-            },
-            {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 3420.64,
-                "min": 3215.63,
-                "max": 3484.23,
-                "cv": 0.02785,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 32.08,
-                "min": 30.05,
-                "max": 32.73,
-                "cv": 0.02906,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 4259.54,
-                "min": 4180.11,
-                "max": 4531.1,
-                "cv": 0.02848,
-                "n": 6
-              },
-              "ttft_ms": 299.4,
-              "itl_p99_ms": 53.3,
-              "rss_max_mb": 9571.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1",
-              "report_url": null
             },
             {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
@@ -4061,39 +3226,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 980.88,
-                "min": 960.16,
-                "max": 990.0,
-                "cv": 0.01021,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 3.02,
-                "min": 2.98,
-                "max": 3.06,
-                "cv": 0.01314,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 43034.93,
-                "min": 42542.84,
-                "max": 43625.99,
-                "cv": 0.01279,
-                "n": 6
-              },
-              "ttft_ms": 1044.0,
-              "itl_p99_ms": 345.5,
-              "rss_max_mb": 22614.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "jax==0.12.0.1",
-              "framework_commit": "google-tunix==0.1.7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -4183,39 +3315,6 @@
           "delta_ms": 7.24,
           "delta_pct": 0.13,
           "points": [
-            {
-              "report_id": "2026-10-12-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-12",
-              "prefill_tps": {
-                "median": 889.07,
-                "min": 870.77,
-                "max": 905.58,
-                "cv": 0.0159,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 30.29,
-                "min": 28.77,
-                "max": 30.8,
-                "cv": 0.02307,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 5357.24,
-                "min": 5256.88,
-                "max": 5586.36,
-                "cv": 0.0207,
-                "n": 6
-              },
-              "ttft_ms": 1151.9,
-              "itl_p99_ms": 44.2,
-              "rss_max_mb": 9892.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1.0",
-              "report_url": null
-            },
             {
               "report_id": "2026-10-13-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-13",
@@ -4314,39 +3413,6 @@
               "framework_ref": "openvino-genai==2026.4.1.0",
               "framework_commit": "openvino==2026.4.1",
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
-            },
-            {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 880.67,
-                "min": 836.64,
-                "max": 906.17,
-                "cv": 0.03644,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 28.9,
-                "min": 28.09,
-                "max": 29.27,
-                "cv": 0.01586,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 5559.74,
-                "min": 5470.39,
-                "max": 5744.87,
-                "cv": 0.01985,
-                "n": 6
-              },
-              "ttft_ms": 1163.2,
-              "itl_p99_ms": 49.4,
-              "rss_max_mb": 9892.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "openvino-genai==2026.4.1.0",
-              "framework_commit": "openvino==2026.4.1",
-              "report_url": null
             },
             {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
@@ -4538,39 +3604,6 @@
               "report_url": "../reports/2026-10-22-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             },
             {
-              "report_id": "2026-10-23-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
-              "date": "2026-10-23",
-              "prefill_tps": {
-                "median": 644.0,
-                "min": 633.53,
-                "max": 654.26,
-                "cv": 0.01103,
-                "n": 6
-              },
-              "decode_tps": {
-                "median": 4.68,
-                "min": 4.67,
-                "max": 4.7,
-                "cv": 0.00242,
-                "n": 6
-              },
-              "e2e_ms": {
-                "median": 28712.25,
-                "min": 28624.1,
-                "max": 28783.22,
-                "cv": 0.00231,
-                "n": 6
-              },
-              "ttft_ms": 1590.1,
-              "itl_p99_ms": 219.0,
-              "rss_max_mb": 24605.0,
-              "mmlu": null,
-              "gsm8k": null,
-              "framework_ref": "jax==0.12.0.1",
-              "framework_commit": "google-tunix==0.1.7",
-              "report_url": null
-            },
-            {
               "report_id": "2026-10-26-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids",
               "date": "2026-10-26",
               "prefill_tps": {
@@ -4635,6 +3668,1114 @@
               "framework_ref": "jax==0.12.0.1",
               "framework_commit": "google-tunix==0.1.7",
               "report_url": "../reports/2026-11-03-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gemma4-31b-cpu-sapphire-rapids--sapphire-rapids",
+      "suite": "gemma4-31b-cpu-sapphire-rapids",
+      "machine": "sapphire-rapids",
+      "machine_notes": "x86_64 server pinned to Socket 0 physical cores",
+      "description": "Gemma 4 31B (dense 60-layer, 50 sliding-window + 10 global attention layers) on Intel(R) Xeon(R) Sapphire Rapids (AVX-512 + AMX) across CPU runtimes (LiteRT-LM XNNPACK & YNNPACK, llama.cpp, OpenVINO, XLA/PJRT CPU) grouped by precision track (INT4, INT8, BF16).",
+      "workload": {
+        "prompt_tokens": 1024,
+        "gen_tokens": 128,
+        "ctx": 4096,
+        "rounds": 3,
+        "repetitions": 5
+      },
+      "reports": [
+        {
+          "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+          "date": "2026-11-10",
+          "report_url": null
+        },
+        {
+          "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+          "date": "2026-11-11",
+          "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+        }
+      ],
+      "configs": [
+        {
+          "id": "llama.cpp/matched",
+          "framework": "llama.cpp",
+          "track": "matched",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (GGUF)",
+          "weights_acts_kv": "q2_k_q4_0_q8_0 / q8_0 / fp16",
+          "threads": "32",
+          "color": "#d9822b",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 115.76,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 10.55,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 20893.67,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 115.76,
+                "min": 112.61,
+                "max": 121.51,
+                "cv": 0.02745,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 10.55,
+                "min": 10.49,
+                "max": 10.59,
+                "cv": 0.00321,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 20893.67,
+                "min": 20417.24,
+                "max": 21168.5,
+                "cv": 0.01238,
+                "n": 15
+              },
+              "ttft_ms": 8845.7,
+              "itl_p99_ms": 96.4,
+              "rss_max_mb": 35446.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 115.76,
+                "min": 112.61,
+                "max": 121.51,
+                "cv": 0.02745,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 10.55,
+                "min": 10.49,
+                "max": 10.59,
+                "cv": 0.00321,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 20893.67,
+                "min": 20417.24,
+                "max": 21168.5,
+                "cv": 0.01238,
+                "n": 15
+              },
+              "ttft_ms": 8845.7,
+              "itl_p99_ms": 96.4,
+              "rss_max_mb": 35446.0,
+              "mmlu": 0.855,
+              "gsm8k": 1.0,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "llama.cpp/fastest",
+          "framework": "llama.cpp",
+          "track": "fastest",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (GGUF)",
+          "weights_acts_kv": "q4_0_q8_0 / q8_0 / fp16",
+          "threads": "32",
+          "color": "#a85a10",
+          "marker": "square",
+          "linestyle": "dashed",
+          "latest_prefill_tps": 114.38,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 10.44,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 21129.58,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 114.38,
+                "min": 110.67,
+                "max": 120.09,
+                "cv": 0.02785,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 10.44,
+                "min": 10.32,
+                "max": 10.48,
+                "cv": 0.004,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 21129.58,
+                "min": 20688.74,
+                "max": 21414.59,
+                "cv": 0.01069,
+                "n": 15
+              },
+              "ttft_ms": 8952.2,
+              "itl_p99_ms": 97.6,
+              "rss_max_mb": 36269.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 114.38,
+                "min": 110.67,
+                "max": 120.09,
+                "cv": 0.02785,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 10.44,
+                "min": 10.32,
+                "max": 10.48,
+                "cv": 0.004,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 21129.58,
+                "min": 20688.74,
+                "max": 21414.59,
+                "cv": 0.01069,
+                "n": 15
+              },
+              "ttft_ms": 8952.2,
+              "itl_p99_ms": 97.6,
+              "rss_max_mb": 36269.0,
+              "mmlu": 0.855,
+              "gsm8k": 1.0,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "openvino/fastest",
+          "framework": "openvino",
+          "track": "fastest",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (OV)",
+          "weights_acts_kv": "int4_asym / bf16 / int8",
+          "threads": "56",
+          "color": "#0095a8",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 344.19,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 8.05,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 18856.86,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 344.19,
+                "min": 319.92,
+                "max": 356.56,
+                "cv": 0.03154,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 8.05,
+                "min": 7.81,
+                "max": 8.17,
+                "cv": 0.01502,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 18856.86,
+                "min": 18473.51,
+                "max": 19465.28,
+                "cv": 0.01573,
+                "n": 15
+              },
+              "ttft_ms": 2975.1,
+              "itl_p99_ms": 336.4,
+              "rss_max_mb": 35179.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "openvino-genai==2026.4.1.0",
+              "framework_commit": "openvino==2026.4.1",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 344.19,
+                "min": 319.92,
+                "max": 356.56,
+                "cv": 0.03154,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 8.05,
+                "min": 7.81,
+                "max": 8.17,
+                "cv": 0.01502,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 18856.86,
+                "min": 18473.51,
+                "max": 19465.28,
+                "cv": 0.01573,
+                "n": 15
+              },
+              "ttft_ms": 2975.1,
+              "itl_p99_ms": 336.4,
+              "rss_max_mb": 35179.0,
+              "mmlu": 0.86,
+              "gsm8k": 1.0,
+              "framework_ref": "openvino-genai==2026.4.1.0",
+              "framework_commit": "openvino==2026.4.1",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "openvino/matched",
+          "framework": "openvino",
+          "track": "matched",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (OV)",
+          "weights_acts_kv": "int4_asym / bf16 / int8",
+          "threads": "32",
+          "color": "#0095a8",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 279.35,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 7.33,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 21028.79,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 279.35,
+                "min": 260.78,
+                "max": 285.82,
+                "cv": 0.02214,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 7.33,
+                "min": 7.02,
+                "max": 7.46,
+                "cv": 0.0207,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 21028.79,
+                "min": 20614.98,
+                "max": 21710.05,
+                "cv": 0.01671,
+                "n": 15
+              },
+              "ttft_ms": 3665.7,
+              "itl_p99_ms": 235.2,
+              "rss_max_mb": 35096.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "openvino-genai==2026.4.1.0",
+              "framework_commit": "openvino==2026.4.1",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 279.35,
+                "min": 260.78,
+                "max": 285.82,
+                "cv": 0.02214,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 7.33,
+                "min": 7.02,
+                "max": 7.46,
+                "cv": 0.0207,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 21028.79,
+                "min": 20614.98,
+                "max": 21710.05,
+                "cv": 0.01671,
+                "n": 15
+              },
+              "ttft_ms": 3665.7,
+              "itl_p99_ms": 235.2,
+              "rss_max_mb": 35096.0,
+              "mmlu": 0.86,
+              "gsm8k": 1.0,
+              "framework_ref": "openvino-genai==2026.4.1.0",
+              "framework_commit": "openvino==2026.4.1",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/matched",
+          "framework": "litert-lm",
+          "track": "matched",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-mobile",
+          "weights_acts_kv": "int2_int4_int8 / int8 / int8",
+          "threads": "32",
+          "color": "#2b6cd9",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 179.45,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 6.47,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 25359.34,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 179.45,
+                "min": 173.35,
+                "max": 182.07,
+                "cv": 0.01273,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 6.47,
+                "min": 6.34,
+                "max": 6.52,
+                "cv": 0.00818,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 25359.34,
+                "min": 25134.74,
+                "max": 25936.11,
+                "cv": 0.00848,
+                "n": 15
+              },
+              "ttft_ms": 5706.2,
+              "itl_p99_ms": 311.9,
+              "rss_max_mb": 23767.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "v0.19.1",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 179.45,
+                "min": 173.35,
+                "max": 182.07,
+                "cv": 0.01273,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 6.47,
+                "min": 6.34,
+                "max": 6.52,
+                "cv": 0.00818,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 25359.34,
+                "min": 25134.74,
+                "max": 25936.11,
+                "cv": 0.00848,
+                "n": 15
+              },
+              "ttft_ms": 5706.2,
+              "itl_p99_ms": 311.9,
+              "rss_max_mb": 23767.0,
+              "mmlu": 0.71,
+              "gsm8k": 0.94,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "v0.19.1",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/fastest",
+          "framework": "litert-lm",
+          "track": "fastest",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-mobile",
+          "weights_acts_kv": "int2_int4_int8 / int8 / int8",
+          "threads": "56",
+          "color": "#13408f",
+          "marker": "square",
+          "linestyle": "dashed",
+          "latest_prefill_tps": 203.59,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 6.17,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 25658.96,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 203.59,
+                "min": 199.48,
+                "max": 206.32,
+                "cv": 0.01131,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 6.17,
+                "min": 5.96,
+                "max": 6.32,
+                "cv": 0.02245,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 25658.96,
+                "min": 25096.46,
+                "max": 26411.32,
+                "cv": 0.01826,
+                "n": 15
+              },
+              "ttft_ms": 5029.7,
+              "itl_p99_ms": 329.4,
+              "rss_max_mb": 23768.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "v0.19.1",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 203.59,
+                "min": 199.48,
+                "max": 206.32,
+                "cv": 0.01131,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 6.17,
+                "min": 5.96,
+                "max": 6.32,
+                "cv": 0.02245,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 25658.96,
+                "min": 25096.46,
+                "max": 26411.32,
+                "cv": 0.01826,
+                "n": 15
+              },
+              "ttft_ms": 5029.7,
+              "itl_p99_ms": 329.4,
+              "rss_max_mb": 23768.0,
+              "mmlu": 0.0,
+              "gsm8k": 0.0,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "v0.19.1",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/ynnpack",
+          "framework": "litert-lm",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-mobile",
+          "weights_acts_kv": "int2_int4_int8 / int8 / int8",
+          "threads": "32",
+          "color": "#5c9aff",
+          "marker": "triangle",
+          "linestyle": "dashdot",
+          "latest_prefill_tps": 102.78,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 4.75,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 36723.25,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 102.78,
+                "min": 102.1,
+                "max": 103.93,
+                "cv": 0.00482,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 4.75,
+                "min": 4.72,
+                "max": 4.77,
+                "cv": 0.00277,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 36723.25,
+                "min": 36557.68,
+                "max": 36895.33,
+                "cv": 0.00261,
+                "n": 15
+              },
+              "ttft_ms": 9962.6,
+              "itl_p99_ms": 259.1,
+              "rss_max_mb": 39213.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "7a03724cece417f1724c923b3d527b4319730841",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 102.78,
+                "min": 102.1,
+                "max": 103.93,
+                "cv": 0.00482,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 4.75,
+                "min": 4.72,
+                "max": 4.77,
+                "cv": 0.00277,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 36723.25,
+                "min": 36557.68,
+                "max": 36895.33,
+                "cv": 0.00261,
+                "n": 15
+              },
+              "ttft_ms": 9962.6,
+              "itl_p99_ms": 259.1,
+              "rss_max_mb": 39213.0,
+              "mmlu": 0.0,
+              "gsm8k": 0.0,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "7a03724cece417f1724c923b3d527b4319730841",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/ynnpack-fastest",
+          "framework": "litert-lm",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-mobile",
+          "weights_acts_kv": "int2_int4_int8 / int8 / int8",
+          "threads": "56",
+          "color": "#2b6cd9",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 120.25,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 4.44,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 37141.1,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 120.25,
+                "min": 117.46,
+                "max": 123.03,
+                "cv": 0.01277,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 4.44,
+                "min": 4.38,
+                "max": 4.47,
+                "cv": 0.00523,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 37141.1,
+                "min": 36754.02,
+                "max": 37533.2,
+                "cv": 0.00508,
+                "n": 15
+              },
+              "ttft_ms": 8515.7,
+              "itl_p99_ms": 297.6,
+              "rss_max_mb": 39702.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "7a03724cece417f1724c923b3d527b4319730841",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 120.25,
+                "min": 117.46,
+                "max": 123.03,
+                "cv": 0.01277,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 4.44,
+                "min": 4.38,
+                "max": 4.47,
+                "cv": 0.00523,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 37141.1,
+                "min": 36754.02,
+                "max": 37533.2,
+                "cv": 0.00508,
+                "n": 15
+              },
+              "ttft_ms": 8515.7,
+              "itl_p99_ms": 297.6,
+              "rss_max_mb": 39702.0,
+              "mmlu": 0.0,
+              "gsm8k": 0.0,
+              "framework_ref": "v0.19.1",
+              "framework_commit": "7a03724cece417f1724c923b3d527b4319730841",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "llama.cpp/q8_0",
+          "framework": "llama.cpp",
+          "track": "reference",
+          "dtype": "int8",
+          "dtype_label": "INT8",
+          "checkpoint": "it (GGUF)",
+          "weights_acts_kv": "q8_0 / q8_0 / fp16",
+          "threads": "32",
+          "color": "#c46d1f",
+          "marker": "diamond",
+          "linestyle": "dashdot",
+          "latest_prefill_tps": 108.31,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 6.08,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 30394.27,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 108.31,
+                "min": 107.21,
+                "max": 109.23,
+                "cv": 0.00569,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 6.08,
+                "min": 6.04,
+                "max": 6.09,
+                "cv": 0.00289,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 30394.27,
+                "min": 30225.4,
+                "max": 30520.41,
+                "cv": 0.00255,
+                "n": 15
+              },
+              "ttft_ms": 9454.4,
+              "itl_p99_ms": 167.4,
+              "rss_max_mb": 67690.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 108.31,
+                "min": 107.21,
+                "max": 109.23,
+                "cv": 0.00569,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 6.08,
+                "min": 6.04,
+                "max": 6.09,
+                "cv": 0.00289,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 30394.27,
+                "min": 30225.4,
+                "max": 30520.41,
+                "cv": 0.00255,
+                "n": 15
+              },
+              "ttft_ms": 9454.4,
+              "itl_p99_ms": 167.4,
+              "rss_max_mb": 67690.0,
+              "mmlu": 0.855,
+              "gsm8k": null,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "openvino/int8",
+          "framework": "openvino",
+          "track": "reference",
+          "dtype": "int8",
+          "dtype_label": "INT8",
+          "checkpoint": "it (OV)",
+          "weights_acts_kv": "int8_asym / bf16 / int8",
+          "threads": "56",
+          "color": "#006064",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 299.3,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 5.72,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 25623.88,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 299.3,
+                "min": 268.62,
+                "max": 324.84,
+                "cv": 0.05161,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 5.72,
+                "min": 5.6,
+                "max": 5.92,
+                "cv": 0.01295,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 25623.88,
+                "min": 24667.18,
+                "max": 25986.23,
+                "cv": 0.0141,
+                "n": 15
+              },
+              "ttft_ms": 3421.4,
+              "itl_p99_ms": 775.3,
+              "rss_max_mb": 60423.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "openvino-genai==2026.4.1.0",
+              "framework_commit": "openvino==2026.4.1",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 299.3,
+                "min": 268.62,
+                "max": 324.84,
+                "cv": 0.05161,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 5.72,
+                "min": 5.6,
+                "max": 5.92,
+                "cv": 0.01295,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 25623.88,
+                "min": 24667.18,
+                "max": 25986.23,
+                "cv": 0.0141,
+                "n": 15
+              },
+              "ttft_ms": 3421.4,
+              "itl_p99_ms": 775.3,
+              "rss_max_mb": 60423.0,
+              "mmlu": 0.86,
+              "gsm8k": null,
+              "framework_ref": "openvino-genai==2026.4.1.0",
+              "framework_commit": "openvino==2026.4.1",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "llama.cpp/bf16",
+          "framework": "llama.cpp",
+          "track": "reference",
+          "dtype": "bf16",
+          "dtype_label": "BF16",
+          "checkpoint": "it (GGUF)",
+          "weights_acts_kv": "bf16 / fp32 / fp16",
+          "threads": "32",
+          "color": "#8c4600",
+          "marker": "inverted_triangle",
+          "linestyle": "dotted",
+          "latest_prefill_tps": 41.17,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 2.84,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 69646.03,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 41.17,
+                "min": 40.5,
+                "max": 41.97,
+                "cv": 0.01099,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 2.84,
+                "min": 2.79,
+                "max": 2.87,
+                "cv": 0.00854,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 69646.03,
+                "min": 68667.18,
+                "max": 70546.48,
+                "cv": 0.0068,
+                "n": 15
+              },
+              "ttft_ms": 24873.2,
+              "itl_p99_ms": 373.4,
+              "rss_max_mb": 60374.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 41.17,
+                "min": 40.5,
+                "max": 41.97,
+                "cv": 0.01099,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 2.84,
+                "min": 2.79,
+                "max": 2.87,
+                "cv": 0.00854,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 69646.03,
+                "min": 68667.18,
+                "max": 70546.48,
+                "cv": 0.0068,
+                "n": 15
+              },
+              "ttft_ms": 24873.2,
+              "itl_p99_ms": 373.4,
+              "rss_max_mb": 60374.0,
+              "mmlu": 0.865,
+              "gsm8k": null,
+              "framework_ref": "b12247",
+              "framework_commit": "c1a4febe9d107de438922f7c8ebb88108d235ea4",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        },
+        {
+          "id": "xla/bf16-ynnpack",
+          "framework": "xla",
+          "track": "reference",
+          "dtype": "bf16",
+          "dtype_label": "BF16",
+          "checkpoint": "it (HF)",
+          "weights_acts_kv": "bf16 / bf16 / bf16",
+          "threads": "56",
+          "color": "#43a047",
+          "marker": "triangle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 116.53,
+          "delta_prefill_tps": 0.0,
+          "delta_prefill_pct": 0.0,
+          "latest_decode_tps": 0.33,
+          "delta_decode_tps": 0.0,
+          "delta_decode_pct": 0.0,
+          "latest_e2e_ms": 393548.1,
+          "delta_ms": 0.0,
+          "delta_pct": 0.0,
+          "points": [
+            {
+              "report_id": "2026-11-10-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-10",
+              "prefill_tps": {
+                "median": 116.53,
+                "min": 116.17,
+                "max": 116.98,
+                "cv": 0.00344,
+                "n": 4
+              },
+              "decode_tps": {
+                "median": 0.33,
+                "min": 0.33,
+                "max": 0.33,
+                "cv": 0.00569,
+                "n": 4
+              },
+              "e2e_ms": {
+                "median": 393548.1,
+                "min": 391594.99,
+                "max": 396387.61,
+                "cv": 0.00577,
+                "n": 4
+              },
+              "ttft_ms": 8787.6,
+              "itl_p99_ms": 3103.9,
+              "rss_max_mb": 181427.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "jax==0.12.0.1",
+              "framework_commit": "google-tunix==0.1.7",
+              "report_url": null
+            },
+            {
+              "report_id": "2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids",
+              "date": "2026-11-11",
+              "prefill_tps": {
+                "median": 116.53,
+                "min": 116.17,
+                "max": 116.98,
+                "cv": 0.00344,
+                "n": 4
+              },
+              "decode_tps": {
+                "median": 0.33,
+                "min": 0.33,
+                "max": 0.33,
+                "cv": 0.00569,
+                "n": 4
+              },
+              "e2e_ms": {
+                "median": 393548.1,
+                "min": 391594.99,
+                "max": 396387.61,
+                "cv": 0.00577,
+                "n": 4
+              },
+              "ttft_ms": 8787.6,
+              "itl_p99_ms": 3103.9,
+              "rss_max_mb": 181427.0,
+              "mmlu": 0.86,
+              "gsm8k": null,
+              "framework_ref": "jax==0.12.0.1",
+              "framework_commit": "google-tunix==0.1.7",
+              "report_url": "../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
             }
           ]
         }

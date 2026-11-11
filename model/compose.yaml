@@ -96,7 +96,7 @@ services:
         EXTRA_RUNTIME_PACKAGES: ${AEB_LLAMA_CPP_RUNTIME_PACKAGES:-}
         CMAKE_EXTRA_FLAGS: ${AEB_LLAMA_CPP_CMAKE_FLAGS:-}
         CMAKE_BUILD_JOBS: ${AEB_BUILD_JOBS:-0}
-        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b12070}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b12247}
         AEB_VARIANT: ${AEB_LLAMA_CPP_VARIANT:-cpu}
     <<: *aeb-service
     environment:
@@ -127,7 +127,7 @@ services:
         BAZEL_CONFIG: ${AEB_LITERTLM_BAZEL_CONFIG:-linux_x86_64}
         BAZEL_EXTRA_FLAGS: ${AEB_LITERTLM_BAZEL_FLAGS:---define=litert_enable_ynnpack=true}
         BAZEL_JOBS: ${AEB_BUILD_JOBS:-0}
-        LITERT_LM_REF: ${AEB_LITERTLM_REF:-v0.19.0}
+        LITERT_LM_REF: ${AEB_LITERTLM_REF:-v0.19.1}
     <<: *aeb-service
     environment: &litert-lm-env
       <<: *aeb-workload
@@ -243,8 +243,8 @@ services:
       dockerfile: tools/Dockerfile
       args:
         AEB_BASE_IMAGE: ${AEB_BASE_IMAGE:-aeb/base:latest}
-        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b12070}
-        LITERT_LM_PYPI_VERSION: ${AEB_LITERTLM_PYPI_VERSION:-0.19.0}
+        LLAMA_CPP_REF: ${AEB_LLAMA_CPP_REF:-b12247}
+        LITERT_LM_PYPI_VERSION: ${AEB_LITERTLM_PYPI_VERSION:-0.19.1}
     init: true
     volumes:
       - ./models:/models
