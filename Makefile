@@ -18,7 +18,7 @@ MODEL_TARGETS := images models bench bench-llama-cpp bench-litert-lm \
                  suite-sequence native gpu-models native-report native-crosscheck
 
 .DEFAULT_GOAL := help
-.PHONY: help base test kernel-probes kernel-bench kernel-test \
+.PHONY: help base test kernel-probes kernel-bench kernel-dashboard kernel-test \
         layer-bench layer-test model-test $(MODEL_TARGETS)
 
 help:
@@ -30,6 +30,7 @@ help:
 	@echo "  Level 1 — Kernel Tier (kernel/):"
 	@echo "    make kernel-probes              run compute & memory-hierarchy ceiling probes"
 	@echo "    make kernel-bench               run microkernel & GPU shader suites"
+	@echo "    make kernel-dashboard           update kernel/dashboards/index.html, data.json & README.md"
 	@echo "    make kernel-test                run kernel validation tests"
 	@echo
 	@echo "  Level 2 — Layer Tier (layer/):"
@@ -58,6 +59,9 @@ kernel-probes:
 
 kernel-bench:
 	$(MAKE) -C kernel MACHINE=$(MACHINE) bench
+
+kernel-dashboard:
+	$(MAKE) -C kernel dashboard
 
 kernel-test:
 	$(MAKE) -C kernel MACHINE=$(MACHINE) test

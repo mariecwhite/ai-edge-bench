@@ -51,4 +51,5 @@ No kernel optimization can graduate if it introduces unverified numerical drift:
 | :--- | :--- |
 | [probes/](probes/README.md) | Hardware ceiling software probes for compute ($C_{\text{prac}}$) and cache/DRAM bandwidth ($BW_{\text{prac}}$). |
 | [suites/](suites/README.md) | Kernel benchmark suite specifications (operator families, `(M, N, K)` shape grids, data types, and numeric tolerances). |
-| [scripts/](scripts/README.md) | Runners, roofline utilization calculators, and cost-model fitting scripts. |
+| [scripts/](scripts/README.md) | Runners, roofline utilization calculators, dashboard updater, and cost-model fitting scripts. |
+| [dashboards/](dashboards/README.md) | Interactive HTML/SVG dashboard ([index.html](dashboards/index.html)), time-series JSON ([data.json](dashboards/data.json)), and Markdown summary tracking microkernel improvements over time. |

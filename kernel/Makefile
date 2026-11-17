@@ -9,7 +9,7 @@ LITERT_BIN ?= /opt/litert-lm/bin/litert_lm_advanced_main
 LITERT_LIB_DIR ?= /opt/litert-lm/lib:/opt/litert-lm/bin
 
 .DEFAULT_GOAL := help
-.PHONY: help probes bench verify report test
+.PHONY: help probes bench verify report dashboard test
 
 help:
 	@echo "AI Edge Bench - Kernel Tier (Level 1)"
@@ -17,7 +17,8 @@ help:
 	@echo "  make probes        compile & run repeatable compute and memory-hierarchy ceiling probes"
 	@echo "  make bench         compile & run repeatable XNNPACK/YNNPACK microkernel benchmarks"
 	@echo "  make verify        compile & run XNNPACK/YNNPACK microkernel numerical precision verification"
-	@echo "  make report        generate JSON + Markdown kernel report (roofline + precision)"
+	@echo "  make report        generate JSON + Markdown kernel report (roofline + precision) and update dashboard"
+	@echo "  make dashboard     update kernel/dashboards/index.html, data.json, and README.md"
 	@echo "  make test          validate probe, benchmark, and precision harness compilation and report generation"
 
 probes:
@@ -44,10 +45,15 @@ verify:
 
 report:
 	python3 scripts/generate_kernel_report.py --report-dir $(REPORT_DIR)
+	python3 scripts/update_dashboard.py
+
+dashboard:
+	python3 scripts/update_dashboard.py
 
 test:
 	$(CC) -O2 -fopenmp -fsyntax-only probes/cpu_ceilings.c
 	$(CC) -O2 -fopenmp -fsyntax-only scripts/bench_litert_microkernels.c
 	$(CC) -O2 -fopenmp -fsyntax-only scripts/verify_litert_microkernels.c
 	python3 scripts/generate_kernel_report.py --report-dir $(REPORT_DIR)
-	@echo "[kernel] All syntax checks and kernel report generation passed (ok)"
+	python3 scripts/update_dashboard.py
+	@echo "[kernel] All syntax checks, kernel report generation, and dashboard updates passed (ok)"
