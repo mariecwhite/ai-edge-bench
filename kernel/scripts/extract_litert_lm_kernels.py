@@ -26,7 +26,7 @@ Usage examples:
       --model /models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it.litertlm \\
       --threads 28 \\
       --with-perf \\
-      --out-dir kernel/reports/gemma4-31b-sapphire-rapids
+      --out-dir kernel/reports/YYYY-MM-DD-gemma4-31b-sapphire-rapids
 
   # Run remotely over SSH on a Sapphire Rapids machine:
   python3 kernel/scripts/extract_litert_lm_kernels.py \\
@@ -34,12 +34,12 @@ Usage examples:
       --model /models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it.litertlm \\
       --threads 28 \\
       --with-perf \\
-      --out-dir kernel/reports/gemma4-31b-sapphire-rapids
+      --out-dir kernel/reports/YYYY-MM-DD-gemma4-31b-sapphire-rapids
 
   # Re-parse saved raw profiler and perf logs into JSON + Markdown reports:
   python3 kernel/scripts/extract_litert_lm_kernels.py \\
-      --from-logs kernel/reports/gemma4-31b-sapphire-rapids/raw \\
-      --out-dir kernel/reports/gemma4-31b-sapphire-rapids
+      --from-logs kernel/reports/2026-11-10-gemma4-31b-sapphire-rapids/raw \\
+      --out-dir kernel/reports/2026-11-10-gemma4-31b-sapphire-rapids
 """
 
 from __future__ import annotations

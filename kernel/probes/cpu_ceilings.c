@@ -40,6 +40,7 @@
 #endif
 
 #define MAX_TRIALS 32
+#define MAX_THREAD_CFGS 8
 
 typedef struct __tile_config {
   uint8_t palette_id;
@@ -589,7 +590,13 @@ static probe_stats_t run_bw_probe(int num_threads, size_t bytes_per_thread,
                                   int num_trials) {
   size_t aligned_bytes = (bytes_per_thread + 511) & ~(size_t)511;
   size_t num_floats = aligned_bytes / sizeof(float);
+  // Guarantee a non-zero 4K page-offset delta (+1024 bytes) between buf_a,
+  // buf_b, and buf_c so Golden Cove's 4K load-after-store aliasing stall
+  // cannot halve L1D read-write copy throughput on unlucky heap alignments.
+  size_t stride_bytes = aligned_bytes + (((aligned_bytes & 4095) == 0) ? 1024 : 0);
+  size_t total_thread_bytes = 3 * stride_bytes + 64;
 
+  float **buf_raw = (float **)calloc(num_threads, sizeof(float *));
   float **buf_a = (float **)calloc(num_threads, sizeof(float *));
   float **buf_b = (float **)calloc(num_threads, sizeof(float *));
   float **buf_c = (float **)calloc(num_threads, sizeof(float *));
@@ -604,9 +611,11 @@ static probe_stats_t run_bw_probe(int num_threads, size_t bytes_per_thread,
   {
     int tid = omp_get_thread_num();
     pin_thread_to_core(tid);
-    buf_a[tid] = (float *)aligned_alloc(64, aligned_bytes);
-    buf_b[tid] = (float *)aligned_alloc(64, aligned_bytes);
-    buf_c[tid] = (float *)aligned_alloc(64, aligned_bytes);
+    uint8_t *raw = (uint8_t *)aligned_alloc(64, total_thread_bytes);
+    buf_raw[tid] = (float *)raw;
+    buf_a[tid] = (float *)(raw + 0);
+    buf_b[tid] = (float *)(raw + stride_bytes);
+    buf_c[tid] = (float *)(raw + 2 * stride_bytes);
     for (size_t i = 0; i < num_floats; ++i) {
       buf_a[tid][i] = 1.0f;
       buf_b[tid][i] = 2.0f;
@@ -701,10 +710,9 @@ static probe_stats_t run_bw_probe(int num_threads, size_t bytes_per_thread,
   }
 
   for (int t = 0; t < num_threads; ++t) {
-    free(buf_a[t]);
-    free(buf_b[t]);
-    free(buf_c[t]);
+    free(buf_raw[t]);
   }
+  free(buf_raw);
   free(buf_a);
   free(buf_b);
   free(buf_c);
@@ -808,32 +816,56 @@ static probe_stats_t run_shared_l3_bw_probe(int num_threads, int64_t reps,
 }
 
 static void print_stat_obj(FILE *out, const char *indent, const char *name,
-                           probe_stats_t s1, probe_stats_t smc, int mc_threads,
+                           probe_stats_t s1, const probe_stats_t *smc,
+                           const int *mc_threads, int num_mc,
                            int trailing_comma) {
   fprintf(out, "%s\"%s\": {\n", indent, name);
   fprintf(out,
           "%s  \"single_core\": %.2f,\n"
           "%s  \"single_core_stats\": { \"median\": %.2f, \"mean\": %.2f, "
-          "\"min\": %.2f, \"max\": %.2f, \"stdev\": %.2f, \"cv_pct\": %.2f },\n",
+          "\"min\": %.2f, \"max\": %.2f, \"stdev\": %.2f, \"cv_pct\": %.2f }%s\n",
           indent, s1.median, indent, s1.median, s1.mean, s1.min, s1.max,
-          s1.stdev, s1.cv_pct);
-  fprintf(out,
-          "%s  \"numa_node0_%dc\": %.2f,\n"
-          "%s  \"numa_node0_%dc_stats\": { \"median\": %.2f, \"mean\": %.2f, "
-          "\"min\": %.2f, \"max\": %.2f, \"stdev\": %.2f, \"cv_pct\": %.2f }\n",
-          indent, mc_threads, smc.median, indent, mc_threads, smc.median,
-          smc.mean, smc.min, smc.max, smc.stdev, smc.cv_pct);
+          s1.stdev, s1.cv_pct, num_mc > 0 ? "," : "");
+  for (int i = 0; i < num_mc; ++i) {
+    int comma = (i + 1 < num_mc);
+    fprintf(out,
+            "%s  \"numa_node0_%dc\": %.2f,\n"
+            "%s  \"numa_node0_%dc_stats\": { \"median\": %.2f, \"mean\": %.2f, "
+            "\"min\": %.2f, \"max\": %.2f, \"stdev\": %.2f, \"cv_pct\": %.2f }%s\n",
+            indent, mc_threads[i], smc[i].median, indent, mc_threads[i],
+            smc[i].median, smc[i].mean, smc[i].min, smc[i].max, smc[i].stdev,
+            smc[i].cv_pct, comma ? "," : "");
+  }
   fprintf(out, "%s}%s\n", indent, trailing_comma ? "," : "");
 }
 
+static int parse_thread_list(const char *arg, int *out, int max_count) {
+  int count = 0;
+  const char *p = arg;
+  while (*p && count < max_count) {
+    char *end = NULL;
+    long v = strtol(p, &end, 10);
+    if (end == p) break;
+    if (v > 1) out[count++] = (int)v;
+    if (*end == ',') {
+      p = end + 1;
+    } else {
+      break;
+    }
+  }
+  return count;
+}
+
 int main(int argc, char **argv) {
-  int multi_threads = 28;
+  int mc_threads[MAX_THREAD_CFGS] = {28};
+  int num_mc = 1;
   int num_trials = 7;
   const char *out_path = NULL;
 
   for (int i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "--threads") == 0 && i + 1 < argc) {
-      multi_threads = atoi(argv[++i]);
+      int n = parse_thread_list(argv[++i], mc_threads, MAX_THREAD_CFGS);
+      if (n > 0) num_mc = n;
     } else if (strcmp(argv[i], "--trials") == 0 && i + 1 < argc) {
       num_trials = atoi(argv[++i]);
       if (num_trials < 1) num_trials = 1;
@@ -841,74 +873,94 @@ int main(int argc, char **argv) {
     } else if (strcmp(argv[i], "--output") == 0 && i + 1 < argc) {
       out_path = argv[++i];
     } else if (argv[i][0] != '-') {
-      multi_threads = atoi(argv[i]);
+      int n = parse_thread_list(argv[i], mc_threads, MAX_THREAD_CFGS);
+      if (n > 0) num_mc = n;
     }
+  }
+
+  // Pin master thread to core 0 (NUMA Node 0) so shared allocations first-touch locally.
+  pin_thread_to_core(0);
+
+  int max_mc = mc_threads[0];
+  for (int i = 1; i < num_mc; ++i) {
+    if (mc_threads[i] > max_mc) max_mc = mc_threads[i];
   }
 
   int64_t compute_iters = 2000000LL;
   probe_stats_t amx_int8_1c = run_amx_int8_probe(1, compute_iters, num_trials);
-  probe_stats_t amx_int8_mc =
-      run_amx_int8_probe(multi_threads, compute_iters, num_trials);
-
   probe_stats_t amx_bf16_1c = run_amx_bf16_probe(1, compute_iters, num_trials);
-  probe_stats_t amx_bf16_mc =
-      run_amx_bf16_probe(multi_threads, compute_iters, num_trials);
-
   probe_stats_t avx512_vnni_1c =
       run_avx512_vnni_probe(1, compute_iters * 8, num_trials);
-  probe_stats_t avx512_vnni_mc =
-      run_avx512_vnni_probe(multi_threads, compute_iters * 8, num_trials);
-
   probe_stats_t avx_vnni_256_1c =
       run_avx_vnni_256_probe(1, compute_iters * 8, num_trials);
-  probe_stats_t avx_vnni_256_mc =
-      run_avx_vnni_256_probe(multi_threads, compute_iters * 8, num_trials);
-
   probe_stats_t avx512_fp32_1c =
       run_avx512_fp32_fma_probe(1, compute_iters * 8, num_trials);
-  probe_stats_t avx512_fp32_mc =
-      run_avx512_fp32_fma_probe(multi_threads, compute_iters * 8, num_trials);
 
-  // Memory Hierarchy Bandwidth Ceilings
   probe_stats_t l1_read_1c =
       run_bw_probe(1, 16 * 1024, 150000, BW_MODE_READ_ONLY, num_trials);
-  probe_stats_t l1_read_mc = run_bw_probe(
-      multi_threads, 16 * 1024, 150000, BW_MODE_READ_ONLY, num_trials);
   probe_stats_t l1_copy_1c =
       run_bw_probe(1, 8 * 1024, 150000, BW_MODE_READ_WRITE_COPY, num_trials);
-  probe_stats_t l1_copy_mc = run_bw_probe(
-      multi_threads, 8 * 1024, 150000, BW_MODE_READ_WRITE_COPY, num_trials);
-
   probe_stats_t l2_read_1c =
       run_bw_probe(1, 512 * 1024, 8000, BW_MODE_READ_ONLY, num_trials);
-  probe_stats_t l2_read_mc = run_bw_probe(
-      multi_threads, 512 * 1024, 8000, BW_MODE_READ_ONLY, num_trials);
   probe_stats_t l2_copy_1c =
       run_bw_probe(1, 256 * 1024, 8000, BW_MODE_READ_WRITE_COPY, num_trials);
-  probe_stats_t l2_copy_mc = run_bw_probe(
-      multi_threads, 256 * 1024, 8000, BW_MODE_READ_WRITE_COPY, num_trials);
-
   probe_stats_t l3_read_1c =
       run_bw_probe(1, 16 * 1024 * 1024, 300, BW_MODE_READ_ONLY, num_trials);
-  probe_stats_t l3_read_mc =
-      run_shared_l3_bw_probe(multi_threads, 200, BW_MODE_READ_ONLY, num_trials);
   probe_stats_t l3_copy_1c = run_bw_probe(
       1, 8 * 1024 * 1024, 300, BW_MODE_READ_WRITE_COPY, num_trials);
-  probe_stats_t l3_copy_mc = run_shared_l3_bw_probe(
-      multi_threads, 200, BW_MODE_READ_WRITE_COPY, num_trials);
-
   probe_stats_t dram_read_1c =
       run_bw_probe(1, 256 * 1024 * 1024, 30, BW_MODE_READ_ONLY, num_trials);
-  probe_stats_t dram_read_mc = run_bw_probe(
-      multi_threads, 32 * 1024 * 1024, 40, BW_MODE_READ_ONLY, num_trials);
   probe_stats_t dram_copy_1c = run_bw_probe(
       1, 128 * 1024 * 1024, 30, BW_MODE_READ_WRITE_COPY, num_trials);
-  probe_stats_t dram_copy_mc = run_bw_probe(
-      multi_threads, 16 * 1024 * 1024, 40, BW_MODE_READ_WRITE_COPY, num_trials);
   probe_stats_t dram_triad_1c =
       run_bw_probe(1, 128 * 1024 * 1024, 30, BW_MODE_STREAM_TRIAD, num_trials);
-  probe_stats_t dram_triad_mc = run_bw_probe(
-      multi_threads, 16 * 1024 * 1024, 40, BW_MODE_STREAM_TRIAD, num_trials);
+
+  probe_stats_t amx_int8_mc[MAX_THREAD_CFGS];
+  probe_stats_t amx_bf16_mc[MAX_THREAD_CFGS];
+  probe_stats_t avx512_vnni_mc[MAX_THREAD_CFGS];
+  probe_stats_t avx_vnni_256_mc[MAX_THREAD_CFGS];
+  probe_stats_t avx512_fp32_mc[MAX_THREAD_CFGS];
+  probe_stats_t l1_read_mc[MAX_THREAD_CFGS];
+  probe_stats_t l1_copy_mc[MAX_THREAD_CFGS];
+  probe_stats_t l2_read_mc[MAX_THREAD_CFGS];
+  probe_stats_t l2_copy_mc[MAX_THREAD_CFGS];
+  probe_stats_t l3_read_mc[MAX_THREAD_CFGS];
+  probe_stats_t l3_copy_mc[MAX_THREAD_CFGS];
+  probe_stats_t dram_read_mc[MAX_THREAD_CFGS];
+  probe_stats_t dram_copy_mc[MAX_THREAD_CFGS];
+  probe_stats_t dram_triad_mc[MAX_THREAD_CFGS];
+
+  for (int t = 0; t < num_mc; ++t) {
+    int nt = mc_threads[t];
+    fprintf(stderr, "[cpu_ceilings] Running probes for %d threads (trials=%d)...\n",
+            nt, num_trials);
+    amx_int8_mc[t] = run_amx_int8_probe(nt, compute_iters, num_trials);
+    amx_bf16_mc[t] = run_amx_bf16_probe(nt, compute_iters, num_trials);
+    avx512_vnni_mc[t] = run_avx512_vnni_probe(nt, compute_iters * 8, num_trials);
+    avx_vnni_256_mc[t] =
+        run_avx_vnni_256_probe(nt, compute_iters * 8, num_trials);
+    avx512_fp32_mc[t] =
+        run_avx512_fp32_fma_probe(nt, compute_iters * 8, num_trials);
+
+    l1_read_mc[t] =
+        run_bw_probe(nt, 16 * 1024, 150000, BW_MODE_READ_ONLY, num_trials);
+    l1_copy_mc[t] =
+        run_bw_probe(nt, 8 * 1024, 150000, BW_MODE_READ_WRITE_COPY, num_trials);
+    l2_read_mc[t] =
+        run_bw_probe(nt, 512 * 1024, 8000, BW_MODE_READ_ONLY, num_trials);
+    l2_copy_mc[t] =
+        run_bw_probe(nt, 256 * 1024, 8000, BW_MODE_READ_WRITE_COPY, num_trials);
+    l3_read_mc[t] =
+        run_shared_l3_bw_probe(nt, 200, BW_MODE_READ_ONLY, num_trials);
+    l3_copy_mc[t] =
+        run_shared_l3_bw_probe(nt, 200, BW_MODE_READ_WRITE_COPY, num_trials);
+    dram_read_mc[t] = run_bw_probe(nt, 32 * 1024 * 1024, 40, BW_MODE_READ_ONLY,
+                                   num_trials);
+    dram_copy_mc[t] = run_bw_probe(nt, 16 * 1024 * 1024, 40,
+                                   BW_MODE_READ_WRITE_COPY, num_trials);
+    dram_triad_mc[t] = run_bw_probe(nt, 16 * 1024 * 1024, 40,
+                                    BW_MODE_STREAM_TRIAD, num_trials);
+  }
 
   FILE *outs[2] = {stdout, NULL};
   int num_outs = 1;
@@ -925,51 +977,54 @@ int main(int argc, char **argv) {
     fprintf(out, "  \"methodology\": {\n");
     fprintf(out, "    \"clock\": \"CLOCK_MONOTONIC_RAW\",\n");
     fprintf(out, "    \"affinity\": \"sched_setaffinity physical cores 0..%d (NUMA Node 0)\",\n",
-            multi_threads - 1);
+            max_mc - 1);
     fprintf(out, "    \"synchronization\": \"omp barrier before and after timed loop\",\n");
     fprintf(out, "    \"num_trials\": %d,\n", num_trials);
     fprintf(out, "    \"reported_value\": \"median\"\n");
     fprintf(out, "  },\n");
     fprintf(out, "  \"threads_single_core\": 1,\n");
-    fprintf(out, "  \"threads_numa_node0\": %d,\n", multi_threads);
+    fprintf(out, "  \"threads_numa_node0\": %d,\n", max_mc);
+    fprintf(out, "  \"thread_configs\": [1");
+    for (int t = 0; t < num_mc; ++t) fprintf(out, ", %d", mc_threads[t]);
+    fprintf(out, "],\n");
     fprintf(out, "  \"compute_ceilings_gops\": {\n");
     print_stat_obj(out, "    ", "amx_int8_tdpbssd", amx_int8_1c, amx_int8_mc,
-                   multi_threads, 1);
+                   mc_threads, num_mc, 1);
     print_stat_obj(out, "    ", "amx_bf16_tdpbf16ps", amx_bf16_1c, amx_bf16_mc,
-                   multi_threads, 1);
+                   mc_threads, num_mc, 1);
     print_stat_obj(out, "    ", "avx512_vnni_int8_vpdpbusd", avx512_vnni_1c,
-                   avx512_vnni_mc, multi_threads, 1);
+                   avx512_vnni_mc, mc_threads, num_mc, 1);
     print_stat_obj(out, "    ", "avx_vnni_256_int8_vpdpbusd", avx_vnni_256_1c,
-                   avx_vnni_256_mc, multi_threads, 1);
+                   avx_vnni_256_mc, mc_threads, num_mc, 1);
     print_stat_obj(out, "    ", "avx512_fp32_fma", avx512_fp32_1c,
-                   avx512_fp32_mc, multi_threads, 0);
+                   avx512_fp32_mc, mc_threads, num_mc, 0);
     fprintf(out, "  },\n");
     fprintf(out, "  \"bandwidth_ceilings_gbps\": {\n");
     fprintf(out, "    \"l1d_16kb_per_core\": {\n");
     print_stat_obj(out, "      ", "read_only", l1_read_1c, l1_read_mc,
-                   multi_threads, 1);
+                   mc_threads, num_mc, 1);
     print_stat_obj(out, "      ", "read_write_copy", l1_copy_1c, l1_copy_mc,
-                   multi_threads, 0);
+                   mc_threads, num_mc, 0);
     fprintf(out, "    },\n");
     fprintf(out, "    \"l2_512kb_per_core\": {\n");
     print_stat_obj(out, "      ", "read_only", l2_read_1c, l2_read_mc,
-                   multi_threads, 1);
+                   mc_threads, num_mc, 1);
     print_stat_obj(out, "      ", "read_write_copy", l2_copy_1c, l2_copy_mc,
-                   multi_threads, 0);
+                   mc_threads, num_mc, 0);
     fprintf(out, "    },\n");
     fprintf(out, "    \"l3_llc\": {\n");
     print_stat_obj(out, "      ", "read_only", l3_read_1c, l3_read_mc,
-                   multi_threads, 1);
+                   mc_threads, num_mc, 1);
     print_stat_obj(out, "      ", "read_write_copy", l3_copy_1c, l3_copy_mc,
-                   multi_threads, 0);
+                   mc_threads, num_mc, 0);
     fprintf(out, "    },\n");
     fprintf(out, "    \"ddr5_dram\": {\n");
     print_stat_obj(out, "      ", "read_only", dram_read_1c, dram_read_mc,
-                   multi_threads, 1);
+                   mc_threads, num_mc, 1);
     print_stat_obj(out, "      ", "read_write_copy", dram_copy_1c, dram_copy_mc,
-                   multi_threads, 1);
+                   mc_threads, num_mc, 1);
     print_stat_obj(out, "      ", "stream_triad", dram_triad_1c, dram_triad_mc,
-                   multi_threads, 0);
+                   mc_threads, num_mc, 0);
     fprintf(out, "    }\n");
     fprintf(out, "  }\n");
     fprintf(out, "}\n");

@@ -18,7 +18,7 @@
 //       -o /tmp/libverify_ukernels.so -lm
 //   LD_LIBRARY_PATH=/opt/litert-lm/lib:/opt/litert-lm/bin
 //     LD_PRELOAD=/tmp/libverify_ukernels.so
-//     AEB_VERIFY_OUTPUT=kernel/reports/gemma4-31b-sapphire-rapids/ukernel_precision_sapphire_rapids.json
+//     AEB_VERIFY_OUTPUT=kernel/reports/YYYY-MM-DD-gemma4-31b-sapphire-rapids/ukernel_precision_sapphire_rapids.json
 //     /opt/litert-lm/bin/litert_lm_advanced_main
 
 #define _GNU_SOURCE

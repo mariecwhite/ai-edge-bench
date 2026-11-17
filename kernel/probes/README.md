@@ -104,11 +104,13 @@ Every probe in [cpu_ceilings.c](cpu_ceilings.c) enforces strict measurement repe
 
 ```bash
 gcc -O3 -march=sapphirerapids -fopenmp kernel/probes/cpu_ceilings.c -o /tmp/cpu_ceilings -lm
-/tmp/cpu_ceilings --threads 28 --trials 7 \
-    --output kernel/reports/gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json
+/tmp/cpu_ceilings --threads 28,56 --trials 7 \
+    --output kernel/reports/YYYY-MM-DD-gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json
 ```
 
 ## Reference Output
 
-- [ceilings_sapphire_rapids.json](../reports/gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json) — Full 7-trial empirical ceiling profile for Intel Sapphire Rapids.
-- [kernel_report_gemma4_31b_sapphire_rapids.md](../reports/gemma4-31b-sapphire-rapids/kernel_report_gemma4_31b_sapphire_rapids.md) — General kernel report (hardware roofline comparison and numerical precision verification) for load-bearing XNNPACK and YNNPACK microkernels.
+- [2026-11-17 ceilings_sapphire_rapids.json](../reports/2026-11-17-gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json) — Latest 7-trial empirical ceiling profile for Intel Sapphire Rapids (`1T`, `28T`, `56T`).
+- [2026-11-17 kernel_report_gemma4_31b_sapphire_rapids.md](../reports/2026-11-17-gemma4-31b-sapphire-rapids/kernel_report_gemma4_31b_sapphire_rapids.md) — Latest kernel report (hardware roofline comparison and numerical precision verification) for load-bearing XNNPACK and YNNPACK microkernels.
+- [2026-11-13 ceilings_sapphire_rapids.json](../reports/2026-11-13-gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json) and [2026-11-13 kernel_report_gemma4_31b_sapphire_rapids.md](../reports/2026-11-13-gemma4-31b-sapphire-rapids/kernel_report_gemma4_31b_sapphire_rapids.md) — Previous `1T` / `28T` / `56T` ceiling profile and kernel report (`6e5b0566`).
+- [2026-11-10 ceilings_sapphire_rapids.json](../reports/2026-11-10-gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json) and [2026-11-10 kernel_report_gemma4_31b_sapphire_rapids.md](../reports/2026-11-10-gemma4-31b-sapphire-rapids/kernel_report_gemma4_31b_sapphire_rapids.md) — Initial `28T` baseline ceiling profile and kernel report.

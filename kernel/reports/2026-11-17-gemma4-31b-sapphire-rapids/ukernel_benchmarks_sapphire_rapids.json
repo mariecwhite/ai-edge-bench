@@ -1,0 +1,1191 @@
+{
+  "model": "Gemma 4 31B",
+  "microarchitecture": "Intel Sapphire Rapids",
+  "xnnpack_commit": "328e0a0e2fd373ff7c8bb724402eca68f4ea2fb1",
+  "threads_single_core": 1,
+  "threads_numa_node0": 56,
+  "thread_configs": [1, 28, 56],
+  "num_trials": 7,
+  "benchmarks": [
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 21504, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.994,
+      "single_core": {
+        "latency_ms": 6.0124, "gops": 38.46, "gbps": 9.63, "mean_gops": 38.36, "min_gops": 37.87, "max_gops": 38.89, "cv_pct": 0.94
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2880, "gops": 802.79, "gbps": 201.01, "mean_gops": 788.91, "min_gops": 664.89, "max_gops": 841.05, "cv_pct": 7.40
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2348, "gops": 984.76, "gbps": 246.58, "mean_gops": 962.16, "min_gops": 849.35, "max_gops": 1009.28, "cv_pct": 6.27
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 21504, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.994,
+      "single_core": {
+        "latency_ms": 5.4134, "gops": 42.71, "gbps": 10.69, "mean_gops": 42.66, "min_gops": 42.38, "max_gops": 42.85, "cv_pct": 0.45
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2702, "gops": 855.82, "gbps": 214.29, "mean_gops": 850.00, "min_gops": 816.90, "max_gops": 867.75, "cv_pct": 2.10
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2363, "gops": 978.50, "gbps": 245.01, "mean_gops": 967.79, "min_gops": 932.29, "max_gops": 997.41, "cv_pct": 2.79
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 5376, "K": 21504 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.997,
+      "single_core": {
+        "latency_ms": 5.9428, "gops": 38.91, "gbps": 9.73, "mean_gops": 38.77, "min_gops": 38.03, "max_gops": 38.99, "cv_pct": 0.89
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2751, "gops": 840.42, "gbps": 210.26, "mean_gops": 833.17, "min_gops": 808.09, "max_gops": 847.11, "cv_pct": 1.71
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2927, "gops": 789.86, "gbps": 197.61, "mean_gops": 787.18, "min_gops": 757.51, "max_gops": 817.52, "cv_pct": 2.32
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 5376, "K": 21504 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.997,
+      "single_core": {
+        "latency_ms": 5.3134, "gops": 43.51, "gbps": 10.89, "mean_gops": 43.43, "min_gops": 42.87, "max_gops": 43.75, "cv_pct": 0.64
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2680, "gops": 862.73, "gbps": 215.84, "mean_gops": 862.14, "min_gops": 828.53, "max_gops": 879.36, "cv_pct": 2.23
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2359, "gops": 980.16, "gbps": 245.22, "mean_gops": 979.02, "min_gops": 939.98, "max_gops": 1003.30, "cv_pct": 2.62
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 8192, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 2.2757, "gops": 38.70, "gbps": 9.69, "mean_gops": 38.59, "min_gops": 38.00, "max_gops": 38.81, "cv_pct": 0.72
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1110, "gops": 793.78, "gbps": 198.79, "mean_gops": 782.81, "min_gops": 739.69, "max_gops": 799.30, "cv_pct": 2.75
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.8760, "gops": 100.55, "gbps": 25.18, "mean_gops": 124.03, "min_gops": 97.05, "max_gops": 261.45, "cv_pct": 48.90
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 8192, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 2.0440, "gops": 43.09, "gbps": 10.79, "mean_gops": 42.99, "min_gops": 42.11, "max_gops": 43.24, "cv_pct": 0.93
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1064, "gops": 827.96, "gbps": 207.35, "mean_gops": 814.69, "min_gops": 765.46, "max_gops": 834.48, "cv_pct": 2.98
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0891, "gops": 988.38, "gbps": 247.52, "mean_gops": 971.81, "min_gops": 877.77, "max_gops": 1013.79, "cv_pct": 5.10
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 8192, "K": 5376 },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 1.7224, "gops": 51.14, "gbps": 12.81, "mean_gops": 51.06, "min_gops": 50.58, "max_gops": 51.19, "cv_pct": 0.42
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0655, "gops": 1344.74, "gbps": 336.77, "mean_gops": 1309.31, "min_gops": 1207.03, "max_gops": 1352.20, "cv_pct": 4.46
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0394, "gops": 2233.35, "gbps": 559.30, "mean_gops": 2232.32, "min_gops": 2218.64, "max_gops": 2239.33, "cv_pct": 0.32
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 8192, "K": 5376 },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 1.6602, "gops": 53.05, "gbps": 13.29, "mean_gops": 53.03, "min_gops": 52.81, "max_gops": 53.14, "cv_pct": 0.19
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0626, "gops": 1407.14, "gbps": 352.39, "mean_gops": 1404.82, "min_gops": 1346.69, "max_gops": 1434.16, "cv_pct": 2.08
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0321, "gops": 2745.32, "gbps": 687.52, "mean_gops": 2652.04, "min_gops": 2385.51, "max_gops": 2781.81, "cv_pct": 6.64
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_1x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 4096, "K": 5376 },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.992,
+      "single_core": {
+        "latency_ms": 0.8599, "gops": 51.21, "gbps": 12.83, "mean_gops": 51.20, "min_gops": 51.10, "max_gops": 51.29, "cv_pct": 0.13
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0392, "gops": 1123.74, "gbps": 281.49, "mean_gops": 1121.03, "min_gops": 1101.83, "max_gops": 1127.95, "cv_pct": 0.81
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0267, "gops": 1650.77, "gbps": 413.51, "mean_gops": 1643.38, "min_gops": 1600.65, "max_gops": 1655.89, "cv_pct": 1.17
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1, "N": 4096, "K": 5376 },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.992,
+      "single_core": {
+        "latency_ms": 0.8343, "gops": 52.79, "gbps": 13.22, "mean_gops": 52.61, "min_gops": 51.75, "max_gops": 52.92, "cv_pct": 0.78
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0311, "gops": 1418.25, "gbps": 355.26, "mean_gops": 1411.63, "min_gops": 1378.23, "max_gops": 1429.60, "cv_pct": 1.30
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0187, "gops": 2356.53, "gbps": 590.30, "mean_gops": 2348.84, "min_gops": 2272.37, "max_gops": 2380.44, "cv_pct": 1.62
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 128, "N": 21504, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 425.822,
+      "single_core": {
+        "latency_ms": 36.5664, "gops": 809.35, "gbps": 1.90, "mean_gops": 802.05, "min_gops": 763.21, "max_gops": 813.34, "cv_pct": 2.25
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.3040, "gops": 22695.08, "gbps": 53.30, "mean_gops": 22695.48, "min_gops": 22662.73, "max_gops": 22716.73, "cv_pct": 0.08
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.6537, "gops": 45270.91, "gbps": 106.31, "mean_gops": 45178.64, "min_gops": 44551.68, "max_gops": 45544.96, "cv_pct": 0.78
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 128, "N": 21504, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 425.822,
+      "single_core": {
+        "latency_ms": 22.6351, "gops": 1307.48, "gbps": 3.07, "mean_gops": 1293.66, "min_gops": 1212.08, "max_gops": 1313.96, "cv_pct": 2.81
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.8258, "gops": 35837.60, "gbps": 84.16, "mean_gops": 35730.67, "min_gops": 35330.89, "max_gops": 35993.38, "cv_pct": 0.74
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.4128, "gops": 71686.55, "gbps": 168.35, "mean_gops": 71748.45, "min_gops": 71481.71, "max_gops": 72383.88, "cv_pct": 0.44
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 128, "N": 5376, "K": 21504 },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 467.478,
+      "single_core": {
+        "latency_ms": 36.0365, "gops": 821.25, "gbps": 1.76, "mean_gops": 819.89, "min_gops": 812.81, "max_gops": 824.72, "cv_pct": 0.54
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.2669, "gops": 23360.39, "gbps": 49.97, "mean_gops": 23347.77, "min_gops": 23308.73, "max_gops": 23382.76, "cv_pct": 0.13
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.6380, "gops": 46386.00, "gbps": 99.23, "mean_gops": 45556.57, "min_gops": 42728.00, "max_gops": 46594.71, "cv_pct": 3.32
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 128, "N": 5376, "K": 21504 },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 467.478,
+      "single_core": {
+        "latency_ms": 26.6326, "gops": 1111.23, "gbps": 2.38, "mean_gops": 1091.48, "min_gops": 975.11, "max_gops": 1114.07, "cv_pct": 4.71
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.8449, "gops": 35029.69, "gbps": 74.93, "mean_gops": 35060.36, "min_gops": 34824.21, "max_gops": 35224.46, "cv_pct": 0.46
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.5091, "gops": 58127.36, "gbps": 124.34, "mean_gops": 58213.51, "min_gops": 57413.48, "max_gops": 59086.91, "cv_pct": 0.89
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 128, "N": 8192, "K": 5376 },
+      "memory_regime": "L3_LLC_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 419.079,
+      "single_core": {
+        "latency_ms": 13.9544, "gops": 807.94, "gbps": 1.93, "mean_gops": 807.19, "min_gops": 802.73, "max_gops": 809.38, "cv_pct": 0.27
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.5035, "gops": 22391.46, "gbps": 53.43, "mean_gops": 22395.77, "min_gops": 22324.05, "max_gops": 22460.71, "cv_pct": 0.23
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2619, "gops": 43044.02, "gbps": 102.71, "mean_gops": 42929.17, "min_gops": 41993.49, "max_gops": 43294.48, "cv_pct": 1.00
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 128, "N": 8192, "K": 5376 },
+      "memory_regime": "L3_LLC_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 419.079,
+      "single_core": {
+        "latency_ms": 8.7421, "gops": 1289.66, "gbps": 3.08, "mean_gops": 1288.49, "min_gops": 1280.25, "max_gops": 1291.49, "cv_pct": 0.30
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.3139, "gops": 35920.93, "gbps": 85.71, "mean_gops": 35908.29, "min_gops": 35428.43, "max_gops": 36208.42, "cv_pct": 0.75
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.1618, "gops": 69664.69, "gbps": 166.23, "mean_gops": 69509.94, "min_gops": 67897.38, "max_gops": 70182.48, "cv_pct": 1.11
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1024, "N": 21504, "K": 5376 },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1563.927,
+      "single_core": {
+        "latency_ms": 308.3020, "gops": 767.95, "gbps": 0.49, "mean_gops": 765.06, "min_gops": 746.24, "max_gops": 769.30, "cv_pct": 1.09
+      },
+      "numa_node0_28c": {
+        "latency_ms": 10.7302, "gops": 22064.81, "gbps": 14.11, "mean_gops": 22048.47, "min_gops": 21806.24, "max_gops": 22177.02, "cv_pct": 0.57
+      },
+      "numa_node0_56c": {
+        "latency_ms": 5.4471, "gops": 43465.03, "gbps": 27.79, "mean_gops": 43407.56, "min_gops": 43099.22, "max_gops": 43495.42, "cv_pct": 0.32
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1024, "N": 21504, "K": 5376 },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1563.927,
+      "single_core": {
+        "latency_ms": 225.7147, "gops": 1048.94, "gbps": 0.67, "mean_gops": 1045.69, "min_gops": 1026.94, "max_gops": 1055.49, "cv_pct": 0.87
+      },
+      "numa_node0_28c": {
+        "latency_ms": 7.3293, "gops": 32303.10, "gbps": 20.66, "mean_gops": 32244.10, "min_gops": 31053.92, "max_gops": 32879.12, "cv_pct": 1.78
+      },
+      "numa_node0_56c": {
+        "latency_ms": 3.9727, "gops": 59597.12, "gbps": 38.11, "mean_gops": 51847.73, "min_gops": 3176.44, "max_gops": 60606.17, "cv_pct": 41.41
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc4w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1024, "N": 8192, "K": 5376 },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1476.670,
+      "single_core": {
+        "latency_ms": 114.8218, "gops": 785.52, "gbps": 0.53, "mean_gops": 784.04, "min_gops": 776.57, "max_gops": 789.10, "cv_pct": 0.62
+      },
+      "numa_node0_28c": {
+        "latency_ms": 3.9939, "gops": 22583.25, "gbps": 15.29, "mean_gops": 22590.45, "min_gops": 22544.22, "max_gops": 22651.95, "cv_pct": 0.18
+      },
+      "numa_node0_56c": {
+        "latency_ms": 2.0251, "gops": 44538.13, "gbps": 30.16, "mean_gops": 44443.32, "min_gops": 44144.13, "max_gops": 44588.95, "cv_pct": 0.38
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int4_int32_32x32x64_16x16x8_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 1024, "N": 8192, "K": 5376 },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1476.670,
+      "single_core": {
+        "latency_ms": 83.5271, "gops": 1079.82, "gbps": 0.73, "mean_gops": 1071.88, "min_gops": 1028.23, "max_gops": 1082.51, "cv_pct": 1.81
+      },
+      "numa_node0_28c": {
+        "latency_ms": 2.6804, "gops": 33649.14, "gbps": 22.79, "mean_gops": 33427.13, "min_gops": 31896.40, "max_gops": 33856.32, "cv_pct": 2.05
+      },
+      "numa_node0_56c": {
+        "latency_ms": 1.4255, "gops": 63273.23, "gbps": 42.85, "mean_gops": 62989.30, "min_gops": 61997.60, "max_gops": 63470.42, "cv_pct": 0.90
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 128, "N": 1024, "K": 256 },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 39.385,
+      "single_core": {
+        "latency_ms": 0.5754, "gops": 116.63, "gbps": 2.96, "mean_gops": 116.63, "min_gops": 116.13, "max_gops": 117.09, "cv_pct": 0.31
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0220, "gops": 3057.12, "gbps": 77.62, "mean_gops": 3012.75, "min_gops": 2760.37, "max_gops": 3068.34, "cv_pct": 3.72
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0107, "gops": 6248.07, "gbps": 158.64, "mean_gops": 6138.18, "min_gops": 5299.83, "max_gops": 6408.37, "cv_pct": 6.20
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 128, "N": 1024, "K": 256 },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 39.385,
+      "single_core": {
+        "latency_ms": 0.5611, "gops": 119.60, "gbps": 3.04, "mean_gops": 119.74, "min_gops": 119.00, "max_gops": 120.55, "cv_pct": 0.51
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0203, "gops": 3300.09, "gbps": 83.79, "mean_gops": 3237.89, "min_gops": 2863.24, "max_gops": 3318.17, "cv_pct": 5.13
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0110, "gops": 6106.18, "gbps": 155.04, "mean_gops": 5947.85, "min_gops": 5061.23, "max_gops": 6167.31, "cv_pct": 6.73
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 1024, "K": 256 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 85.333,
+      "single_core": {
+        "latency_ms": 4.6162, "gops": 116.30, "gbps": 1.36, "mean_gops": 116.46, "min_gops": 116.05, "max_gops": 116.98, "cv_pct": 0.33
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1662, "gops": 3231.01, "gbps": 37.86, "mean_gops": 3218.26, "min_gops": 3117.58, "max_gops": 3254.78, "cv_pct": 1.47
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0845, "gops": 6352.04, "gbps": 74.44, "mean_gops": 6300.04, "min_gops": 6032.36, "max_gops": 6460.80, "cv_pct": 2.14
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 1024, "K": 256 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 85.333,
+      "single_core": {
+        "latency_ms": 4.6663, "gops": 115.05, "gbps": 1.35, "mean_gops": 115.07, "min_gops": 114.90, "max_gops": 115.36, "cv_pct": 0.14
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1707, "gops": 3144.36, "gbps": 36.85, "mean_gops": 3131.66, "min_gops": 3057.13, "max_gops": 3171.42, "cv_pct": 1.24
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0839, "gops": 6397.22, "gbps": 74.97, "mean_gops": 6429.87, "min_gops": 6185.32, "max_gops": 6622.22, "cv_pct": 2.19
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 4096, "K": 512 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 157.538,
+      "single_core": {
+        "latency_ms": 40.5152, "gops": 106.01, "gbps": 0.67, "mean_gops": 106.24, "min_gops": 102.90, "max_gops": 109.88, "cv_pct": 2.42
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.4321, "gops": 2999.07, "gbps": 19.04, "mean_gops": 3005.34, "min_gops": 2992.85, "max_gops": 3044.72, "cv_pct": 0.60
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.7302, "gops": 5881.58, "gbps": 37.33, "mean_gops": 5894.18, "min_gops": 5865.98, "max_gops": 5947.94, "cv_pct": 0.48
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 4096, "K": 512 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 157.538,
+      "single_core": {
+        "latency_ms": 37.2371, "gops": 115.34, "gbps": 0.73, "mean_gops": 115.32, "min_gops": 114.76, "max_gops": 115.74, "cv_pct": 0.30
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.3703, "gops": 3134.39, "gbps": 19.90, "mean_gops": 3056.20, "min_gops": 2826.67, "max_gops": 3154.62, "cv_pct": 4.03
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.6899, "gops": 6225.24, "gbps": 39.52, "mean_gops": 6195.29, "min_gops": 6081.15, "max_gops": 6254.49, "cv_pct": 1.04
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_gemm_minmax_ukernel_7x32__avx512f_broadcast",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 2520, "N": 2520, "K": 72 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 34.054,
+      "single_core": {
+        "latency_ms": 8.2268, "gops": 111.16, "gbps": 3.26, "mean_gops": 110.80, "min_gops": 108.46, "max_gops": 111.92, "cv_pct": 1.06
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.3245, "gops": 2818.22, "gbps": 82.76, "mean_gops": 2817.60, "min_gops": 2800.15, "max_gops": 2831.16, "cv_pct": 0.38
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.1663, "gops": 5500.29, "gbps": 161.52, "mean_gops": 5505.16, "min_gops": 5450.50, "max_gops": 5560.14, "cv_pct": 0.81
+      }
+    },
+    {
+      "pair_id": "pair3_fp32_attn_bmm",
+      "category": "FP32 Attention BatchMatMul",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_fp32_5x64x1_1x16x1_avx512",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 2520, "N": 2520, "K": 72 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 34.054,
+      "single_core": {
+        "latency_ms": 8.4218, "gops": 108.58, "gbps": 3.19, "mean_gops": 108.86, "min_gops": 107.71, "max_gops": 110.82, "cv_pct": 0.98
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.3372, "gops": 2711.73, "gbps": 79.63, "mean_gops": 2711.22, "min_gops": 2708.69, "max_gops": 2714.37, "cv_pct": 0.08
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2054, "gops": 4451.90, "gbps": 130.73, "mean_gops": 4790.34, "min_gops": 4062.98, "max_gops": 5534.63, "cv_pct": 14.20
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_rmax + xnn_f32_raddstoreexpminusmax__avx512f_rr2_p5",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 1024, "K": 1 },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 1.000,
+      "single_core": {
+        "latency_ms": 0.6310, "gops": 19.94, "gbps": 19.94, "mean_gops": 21.40, "min_gops": 19.58, "max_gops": 25.45, "cv_pct": 12.78
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0121, "gops": 1041.86, "gbps": 1041.86, "mean_gops": 1015.03, "min_gops": 848.52, "max_gops": 1062.23, "cv_pct": 7.37
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0064, "gops": 1965.28, "gbps": 1965.28, "mean_gops": 1894.75, "min_gops": 1625.41, "max_gops": 2027.50, "cv_pct": 8.13
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax (Reductions Only)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 1024, "K": 1 },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 0.250,
+      "single_core": {
+        "latency_ms": 0.3841, "gops": 5.46, "gbps": 21.84, "mean_gops": 5.46, "min_gops": 5.44, "max_gops": 5.47, "cv_pct": 0.18
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0041, "gops": 512.17, "gbps": 2048.66, "mean_gops": 500.16, "min_gops": 433.95, "max_gops": 554.11, "cv_pct": 9.67
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0024, "gops": 880.06, "gbps": 3520.22, "mean_gops": 860.29, "min_gops": 791.83, "max_gops": 932.64, "cv_pct": 5.62
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_rmax + xnn_f32_raddstoreexpminusmax__avx512f_rr2_p5",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 2520, "N": 2520, "K": 1 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 1.000,
+      "single_core": {
+        "latency_ms": 2.9321, "gops": 25.99, "gbps": 25.99, "mean_gops": 25.95, "min_gops": 25.76, "max_gops": 26.03, "cv_pct": 0.36
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0771, "gops": 987.87, "gbps": 987.87, "mean_gops": 981.00, "min_gops": 929.64, "max_gops": 995.57, "cv_pct": 2.36
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0382, "gops": 1995.69, "gbps": 1995.69, "mean_gops": 1948.91, "min_gops": 1744.33, "max_gops": 2027.17, "cv_pct": 5.35
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax (Reductions Only)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 2520, "N": 2520, "K": 1 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 0.250,
+      "single_core": {
+        "latency_ms": 2.3300, "gops": 5.45, "gbps": 21.80, "mean_gops": 5.45, "min_gops": 5.43, "max_gops": 5.46, "cv_pct": 0.20
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0346, "gops": 367.50, "gbps": 1470.02, "mean_gops": 367.06, "min_gops": 348.24, "max_gops": 384.11, "cv_pct": 3.40
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0153, "gops": 828.63, "gbps": 3314.50, "mean_gops": 826.79, "min_gops": 775.56, "max_gops": 847.35, "cv_pct": 2.94
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax",
+      "backend": "XNNPACK",
+      "kernel": "xnn_f32_rmax + xnn_f32_raddstoreexpminusmax__avx512f_rr2_p5",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 4096, "K": 1 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 1.000,
+      "single_core": {
+        "latency_ms": 1.8970, "gops": 26.53, "gbps": 26.53, "mean_gops": 26.56, "min_gops": 26.53, "max_gops": 26.67, "cv_pct": 0.20
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0489, "gops": 1029.08, "gbps": 1029.08, "mean_gops": 1013.63, "min_gops": 932.05, "max_gops": 1038.03, "cv_pct": 3.71
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0256, "gops": 1964.62, "gbps": 1964.62, "mean_gops": 1944.18, "min_gops": 1811.59, "max_gops": 1986.83, "cv_pct": 3.11
+      }
+    },
+    {
+      "pair_id": "pair4_fp32_softmax",
+      "category": "FP32 Attention Softmax (Reductions Only)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::max_k1_fp32_avx512 + ynn::sum_k1_fp32_avx512",
+      "isa": "AVX512-FP32",
+      "shape": { "M": 1024, "N": 4096, "K": 1 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 0.250,
+      "single_core": {
+        "latency_ms": 1.5411, "gops": 5.44, "gbps": 21.77, "mean_gops": 5.44, "min_gops": 5.39, "max_gops": 5.45, "cv_pct": 0.38
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0144, "gops": 581.37, "gbps": 2325.47, "mean_gops": 498.95, "min_gops": 128.35, "max_gops": 593.02, "cv_pct": 33.92
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0085, "gops": 989.46, "gbps": 3957.85, "mean_gops": 1012.61, "min_gops": 906.80, "max_gops": 1116.03, "cv_pct": 7.82
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 280, "N": 5376, "K": 1152 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 276.638,
+      "single_core": {
+        "latency_ms": 3.1710, "gops": 1093.73, "gbps": 3.95, "mean_gops": 1100.21, "min_gops": 1083.49, "max_gops": 1115.44, "cv_pct": 1.16
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1185, "gops": 29277.30, "gbps": 105.83, "mean_gops": 30603.81, "min_gops": 15800.77, "max_gops": 43155.68, "cv_pct": 30.85
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0751, "gops": 46198.27, "gbps": 167.00, "mean_gops": 45723.27, "min_gops": 42547.23, "max_gops": 46398.60, "cv_pct": 3.07
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 280, "N": 5376, "K": 1152 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 276.638,
+      "single_core": {
+        "latency_ms": 2.4880, "gops": 1393.95, "gbps": 5.04, "mean_gops": 1396.76, "min_gops": 1363.01, "max_gops": 1422.04, "cv_pct": 1.37
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0754, "gops": 46004.45, "gbps": 166.30, "mean_gops": 46323.93, "min_gops": 34531.07, "max_gops": 58428.03, "cv_pct": 21.50
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0350, "gops": 99206.93, "gbps": 358.62, "mean_gops": 97340.02, "min_gops": 84950.59, "max_gops": 110236.96, "cv_pct": 9.01
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 2520, "N": 1152, "K": 1152 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 422.199,
+      "single_core": {
+        "latency_ms": 6.6808, "gops": 1001.16, "gbps": 2.37, "mean_gops": 996.95, "min_gops": 985.16, "max_gops": 1004.74, "cv_pct": 0.76
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2806, "gops": 23833.26, "gbps": 56.45, "mean_gops": 23423.55, "min_gops": 20997.27, "max_gops": 25997.76, "cv_pct": 8.71
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0824, "gops": 81197.94, "gbps": 192.32, "mean_gops": 78824.12, "min_gops": 65855.40, "max_gops": 82441.25, "cv_pct": 7.43
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 2520, "N": 1152, "K": 1152 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 422.199,
+      "single_core": {
+        "latency_ms": 7.0572, "gops": 947.77, "gbps": 2.24, "mean_gops": 955.29, "min_gops": 945.25, "max_gops": 973.14, "cv_pct": 1.31
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2071, "gops": 32295.93, "gbps": 76.49, "mean_gops": 29797.98, "min_gops": 24185.93, "max_gops": 32461.41, "cv_pct": 12.70
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0998, "gops": 67047.51, "gbps": 158.81, "mean_gops": 65977.61, "min_gops": 59534.31, "max_gops": 68980.78, "cv_pct": 5.32
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qd8_f32_qc8w_gemm_minmax_ukernel_16x64c4__avx512amx",
+      "isa": "AMX-INT8",
+      "shape": { "M": 2520, "N": 4304, "K": 1152 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 487.640,
+      "single_core": {
+        "latency_ms": 25.2549, "gops": 989.49, "gbps": 2.03, "mean_gops": 985.60, "min_gops": 950.34, "max_gops": 998.59, "cv_pct": 1.67
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.8855, "gops": 28221.06, "gbps": 57.87, "mean_gops": 28121.43, "min_gops": 26877.68, "max_gops": 28739.68, "cv_pct": 2.22
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.4681, "gops": 53385.95, "gbps": 109.48, "mean_gops": 52984.34, "min_gops": 51513.25, "max_gops": 53561.62, "cv_pct": 1.51
+      }
+    },
+    {
+      "pair_id": "pair5_int8_gemm",
+      "category": "8-Bit Linear GEMM (Vision/Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_int8_int8_int32_32x32x64_16x16x4_amxint8",
+      "isa": "AMX-INT8",
+      "shape": { "M": 2520, "N": 4304, "K": 1152 },
+      "memory_regime": "L3_LLC_Resident",
+      "arithmetic_intensity_ops_per_byte": 487.640,
+      "single_core": {
+        "latency_ms": 26.1049, "gops": 957.27, "gbps": 1.96, "mean_gops": 961.41, "min_gops": 947.45, "max_gops": 976.45, "cv_pct": 1.27
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.8987, "gops": 27807.60, "gbps": 57.02, "mean_gops": 26549.05, "min_gops": 17711.25, "max_gops": 29140.25, "cv_pct": 14.81
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.4237, "gops": 58975.38, "gbps": 120.94, "mean_gops": 58034.64, "min_gops": 55703.70, "max_gops": 59863.22, "cv_pct": 3.13
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qs8_qc2w_gemm_minmax_fp32_ukernel_5x8c8__avxvnni",
+      "isa": "AVX-VNNI-256",
+      "shape": { "M": 204, "N": 1024, "K": 1024 },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 629.205,
+      "single_core": {
+        "latency_ms": 2.3610, "gops": 181.20, "gbps": 0.29, "mean_gops": 181.30, "min_gops": 180.93, "max_gops": 181.58, "cv_pct": 0.14
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0854, "gops": 5011.36, "gbps": 7.96, "mean_gops": 5011.44, "min_gops": 5002.15, "max_gops": 5019.25, "cv_pct": 0.11
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0429, "gops": 9961.94, "gbps": 15.83, "mean_gops": 9088.65, "min_gops": 6601.85, "max_gops": 9985.35, "cv_pct": 15.73
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 204, "N": 1024, "K": 1024 },
+      "memory_regime": "L2_Cache_Resident",
+      "arithmetic_intensity_ops_per_byte": 629.205,
+      "single_core": {
+        "latency_ms": 1.5474, "gops": 276.48, "gbps": 0.84, "mean_gops": 274.61, "min_gops": 270.43, "max_gops": 277.20, "cv_pct": 1.04
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0587, "gops": 7291.94, "gbps": 22.27, "mean_gops": 7265.11, "min_gops": 7046.19, "max_gops": 7316.06, "cv_pct": 1.34
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.6267, "gops": 682.63, "gbps": 2.08, "mean_gops": 937.88, "min_gops": 670.07, "max_gops": 2481.97, "cv_pct": 72.60
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qs8_qc2w_gemm_minmax_fp32_ukernel_5x8c8__avxvnni",
+      "isa": "AVX-VNNI-256",
+      "shape": { "M": 204, "N": 4096, "K": 1024 },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 9.4792, "gops": 180.53, "gbps": 0.22, "mean_gops": 180.53, "min_gops": 180.22, "max_gops": 180.88, "cv_pct": 0.13
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.3384, "gops": 5056.94, "gbps": 6.19, "mean_gops": 5049.02, "min_gops": 4965.32, "max_gops": 5080.47, "cv_pct": 0.76
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.1690, "gops": 10123.06, "gbps": 12.38, "mean_gops": 10097.88, "min_gops": 9920.76, "max_gops": 10145.27, "cv_pct": 0.78
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 204, "N": 4096, "K": 1024 },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 6.3506, "gops": 269.47, "gbps": 0.72, "mean_gops": 267.71, "min_gops": 259.47, "max_gops": 273.05, "cv_pct": 2.07
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2307, "gops": 7417.25, "gbps": 19.94, "mean_gops": 7309.41, "min_gops": 7022.41, "max_gops": 7537.90, "cv_pct": 3.07
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.1461, "gops": 11710.52, "gbps": 31.48, "mean_gops": 11750.04, "min_gops": 11499.55, "max_gops": 12067.97, "cv_pct": 1.73
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "XNNPACK",
+      "kernel": "xnn_qs8_qc2w_gemm_minmax_fp32_ukernel_5x8c8__avxvnni",
+      "isa": "AVX-VNNI-256",
+      "shape": { "M": 204, "N": 1024, "K": 4096 },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 9.0574, "gops": 188.94, "gbps": 0.23, "mean_gops": 188.63, "min_gops": 187.52, "max_gops": 189.22, "cv_pct": 0.33
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.3395, "gops": 5040.39, "gbps": 6.16, "mean_gops": 4986.34, "min_gops": 4402.62, "max_gops": 5281.79, "cv_pct": 5.81
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.1701, "gops": 10060.75, "gbps": 12.31, "mean_gops": 10055.56, "min_gops": 9567.44, "max_gops": 10558.86, "cv_pct": 4.00
+      }
+    },
+    {
+      "pair_id": "pair6_int2_gemm",
+      "category": "2-Bit Linear GEMM (Audio)",
+      "backend": "YNNPACK",
+      "kernel": "ynn::dot_uint8_int2_int32_4x64x16_1x16x16_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 204, "N": 1024, "K": 4096 },
+      "memory_regime": "L2_L3_Resident",
+      "arithmetic_intensity_ops_per_byte": 817.597,
+      "single_core": {
+        "latency_ms": 6.3024, "gops": 271.53, "gbps": 0.43, "mean_gops": 271.45, "min_gops": 265.28, "max_gops": 277.86, "cv_pct": 1.47
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2324, "gops": 7362.69, "gbps": 11.70, "mean_gops": 7387.49, "min_gops": 7179.26, "max_gops": 7568.17, "cv_pct": 1.82
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.1208, "gops": 14165.96, "gbps": 22.51, "mean_gops": 14349.85, "min_gops": 13964.37, "max_gops": 14888.00, "cv_pct": 2.59
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "XNNPACK",
+      "kernel": "xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm",
+      "isa": "AVX512F",
+      "shape": { "M": 1, "N": 1024, "K": 256 },
+      "memory_regime": "L2_Cache_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.000,
+      "single_core": {
+        "latency_ms": 0.0621, "gops": 33.78, "gbps": 33.78, "mean_gops": 33.85, "min_gops": 32.93, "max_gops": 34.50, "cv_pct": 1.92
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0035, "gops": 591.50, "gbps": 591.50, "mean_gops": 585.77, "min_gops": 530.44, "max_gops": 601.55, "cv_pct": 4.24
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0017, "gops": 1235.96, "gbps": 1235.96, "mean_gops": 1236.99, "min_gops": 1151.17, "max_gops": 1301.54, "cv_pct": 4.71
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "YNNPACK",
+      "kernel": "ynn::transpose_x32_avx512",
+      "isa": "AVX512F",
+      "shape": { "M": 1, "N": 1024, "K": 256 },
+      "memory_regime": "L2_Cache_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.000,
+      "single_core": {
+        "latency_ms": 0.1343, "gops": 15.61, "gbps": 15.61, "mean_gops": 14.37, "min_gops": 6.85, "max_gops": 15.75, "cv_pct": 23.09
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0069, "gops": 306.15, "gbps": 306.15, "mean_gops": 304.85, "min_gops": 290.86, "max_gops": 311.06, "cv_pct": 2.32
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0055, "gops": 381.90, "gbps": 381.90, "mean_gops": 370.95, "min_gops": 284.71, "max_gops": 400.51, "cv_pct": 10.61
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "XNNPACK",
+      "kernel": "xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm",
+      "isa": "AVX512F",
+      "shape": { "M": 1, "N": 4096, "K": 512 },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.000,
+      "single_core": {
+        "latency_ms": 1.0705, "gops": 15.67, "gbps": 15.67, "mean_gops": 15.72, "min_gops": 14.75, "max_gops": 16.80, "cv_pct": 4.58
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0247, "gops": 679.39, "gbps": 679.39, "mean_gops": 664.33, "min_gops": 587.77, "max_gops": 682.70, "cv_pct": 5.13
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0151, "gops": 1108.66, "gbps": 1108.66, "mean_gops": 1083.06, "min_gops": 1014.64, "max_gops": 1126.97, "cv_pct": 4.64
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "YNNPACK",
+      "kernel": "ynn::transpose_x32_avx512",
+      "isa": "AVX512F",
+      "shape": { "M": 1, "N": 4096, "K": 512 },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.000,
+      "single_core": {
+        "latency_ms": 1.8690, "gops": 8.98, "gbps": 8.98, "mean_gops": 8.98, "min_gops": 8.88, "max_gops": 9.12, "cv_pct": 0.84
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0561, "gops": 299.15, "gbps": 299.15, "mean_gops": 298.57, "min_gops": 293.87, "max_gops": 299.83, "cv_pct": 0.70
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0340, "gops": 493.12, "gbps": 493.12, "mean_gops": 489.93, "min_gops": 467.09, "max_gops": 496.25, "cv_pct": 2.10
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "XNNPACK",
+      "kernel": "xnn_x32_packw_gemm_goi_ukernel_x32__avx512f_u4_prfm",
+      "isa": "AVX512F",
+      "shape": { "M": 1, "N": 2520, "K": 1152 },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.000,
+      "single_core": {
+        "latency_ms": 1.2325, "gops": 18.84, "gbps": 18.84, "mean_gops": 18.55, "min_gops": 18.02, "max_gops": 18.89, "cv_pct": 2.17
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0231, "gops": 1003.32, "gbps": 1003.32, "mean_gops": 997.70, "min_gops": 957.05, "max_gops": 1013.28, "cv_pct": 1.87
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0154, "gops": 1505.79, "gbps": 1505.79, "mean_gops": 1487.83, "min_gops": 1414.54, "max_gops": 1522.45, "cv_pct": 2.83
+      }
+    },
+    {
+      "pair_id": "pair7_pack_transpose",
+      "category": "Matrix Packing / 32-Bit Transpose",
+      "backend": "YNNPACK",
+      "kernel": "ynn::transpose_x32_avx512",
+      "isa": "AVX512F",
+      "shape": { "M": 1, "N": 2520, "K": 1152 },
+      "memory_regime": "L3_LLC_Copy",
+      "arithmetic_intensity_ops_per_byte": 0.000,
+      "single_core": {
+        "latency_ms": 2.5099, "gops": 9.25, "gbps": 9.25, "mean_gops": 9.29, "min_gops": 9.20, "max_gops": 9.47, "cv_pct": 1.05
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0293, "gops": 792.39, "gbps": 792.39, "mean_gops": 756.44, "min_gops": 621.38, "max_gops": 795.56, "cv_pct": 8.97
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0253, "gops": 917.53, "gbps": 917.53, "mean_gops": 945.14, "min_gops": 841.03, "max_gops": 1107.70, "cv_pct": 10.95
+      }
+    }
+  ],
+  "baseline_comparisons": [
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 1, "N": 21504, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.994,
+      "single_core": {
+        "latency_ms": 5.6580, "gops": 40.86, "gbps": 10.23, "mean_gops": 40.74, "min_gops": 39.23, "max_gops": 41.52, "cv_pct": 1.74
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2805, "gops": 824.38, "gbps": 206.42, "mean_gops": 818.65, "min_gops": 790.71, "max_gops": 836.09, "cv_pct": 2.07
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2376, "gops": 973.24, "gbps": 243.69, "mean_gops": 951.52, "min_gops": 807.88, "max_gops": 1005.52, "cv_pct": 6.94
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 1, "N": 5376, "K": 21504 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.997,
+      "single_core": {
+        "latency_ms": 5.5212, "gops": 41.88, "gbps": 10.48, "mean_gops": 41.77, "min_gops": 41.44, "max_gops": 41.92, "cv_pct": 0.45
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.2768, "gops": 835.33, "gbps": 208.99, "mean_gops": 813.14, "min_gops": 677.17, "max_gops": 849.95, "cv_pct": 7.46
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.2305, "gops": 1002.99, "gbps": 250.93, "mean_gops": 995.37, "min_gops": 952.29, "max_gops": 1023.64, "cv_pct": 2.80
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 1, "N": 8192, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_Streaming",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 2.1137, "gops": 41.67, "gbps": 10.44, "mean_gops": 41.35, "min_gops": 39.15, "max_gops": 42.44, "cv_pct": 2.53
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.1123, "gops": 784.58, "gbps": 196.48, "mean_gops": 776.45, "min_gops": 740.58, "max_gops": 799.91, "cv_pct": 2.74
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0878, "gops": 1003.28, "gbps": 251.26, "mean_gops": 985.23, "min_gops": 898.73, "max_gops": 1026.95, "cv_pct": 5.08
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 1, "N": 8192, "K": 5376 },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.993,
+      "single_core": {
+        "latency_ms": 1.0598, "gops": 83.11, "gbps": 20.81, "mean_gops": 83.40, "min_gops": 81.95, "max_gops": 85.01, "cv_pct": 1.40
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0329, "gops": 2676.89, "gbps": 670.38, "mean_gops": 2670.26, "min_gops": 2633.89, "max_gops": 2682.05, "cv_pct": 0.65
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0166, "gops": 5309.01, "gbps": 1329.55, "mean_gops": 5276.67, "min_gops": 5154.32, "max_gops": 5328.97, "cv_pct": 1.29
+      }
+    },
+    {
+      "pair_id": "pair1_int4_gemv",
+      "category": "4-Bit Linear GEMV (Decode, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_1x32x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 1, "N": 4096, "K": 5376 },
+      "memory_regime": "L3_LLC_Warm",
+      "arithmetic_intensity_ops_per_byte": 3.992,
+      "single_core": {
+        "latency_ms": 0.5448, "gops": 80.83, "gbps": 20.25, "mean_gops": 81.74, "min_gops": 77.35, "max_gops": 85.32, "cv_pct": 3.55
+      },
+      "numa_node0_28c": {
+        "latency_ms": 0.0166, "gops": 2655.47, "gbps": 665.18, "mean_gops": 2474.64, "min_gops": 1546.96, "max_gops": 2678.50, "cv_pct": 16.71
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.0100, "gops": 4408.62, "gbps": 1104.33, "mean_gops": 4392.20, "min_gops": 4270.40, "max_gops": 4434.30, "cv_pct": 1.28
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 128, "N": 21504, "K": 5376 },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 425.822,
+      "single_core": {
+        "latency_ms": 134.9769, "gops": 219.26, "gbps": 0.51, "mean_gops": 216.94, "min_gops": 211.33, "max_gops": 219.32, "cv_pct": 1.47
+      },
+      "numa_node0_28c": {
+        "latency_ms": 4.7757, "gops": 6197.03, "gbps": 14.55, "mean_gops": 6185.33, "min_gops": 6146.10, "max_gops": 6212.29, "cv_pct": 0.40
+      },
+      "numa_node0_56c": {
+        "latency_ms": 2.3752, "gops": 12460.25, "gbps": 29.26, "mean_gops": 12423.97, "min_gops": 12310.36, "max_gops": 12497.44, "cv_pct": 0.57
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 128, "N": 5376, "K": 21504 },
+      "memory_regime": "DDR5_DRAM_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 467.478,
+      "single_core": {
+        "latency_ms": 132.8715, "gops": 222.73, "gbps": 0.48, "mean_gops": 222.09, "min_gops": 218.52, "max_gops": 223.37, "cv_pct": 0.75
+      },
+      "numa_node0_28c": {
+        "latency_ms": 5.0037, "gops": 5914.62, "gbps": 12.65, "mean_gops": 5941.35, "min_gops": 5842.96, "max_gops": 6111.35, "cv_pct": 1.44
+      },
+      "numa_node0_56c": {
+        "latency_ms": 2.3832, "gops": 12417.94, "gbps": 26.56, "mean_gops": 12417.46, "min_gops": 12379.62, "max_gops": 12463.66, "cv_pct": 0.27
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 128, "N": 8192, "K": 5376 },
+      "memory_regime": "L3_LLC_to_L2_Tiled",
+      "arithmetic_intensity_ops_per_byte": 419.079,
+      "single_core": {
+        "latency_ms": 50.7406, "gops": 222.19, "gbps": 0.53, "mean_gops": 221.67, "min_gops": 219.00, "max_gops": 222.43, "cv_pct": 0.56
+      },
+      "numa_node0_28c": {
+        "latency_ms": 1.8075, "gops": 6237.47, "gbps": 14.88, "mean_gops": 6232.30, "min_gops": 6217.50, "max_gops": 6246.04, "cv_pct": 0.17
+      },
+      "numa_node0_56c": {
+        "latency_ms": 0.9051, "gops": 12456.23, "gbps": 29.72, "mean_gops": 12459.33, "min_gops": 12445.46, "max_gops": 12472.67, "cv_pct": 0.08
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 1024, "N": 21504, "K": 5376 },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1563.927,
+      "single_core": {
+        "latency_ms": 1096.5182, "gops": 215.92, "gbps": 0.14, "mean_gops": 215.83, "min_gops": 214.93, "max_gops": 216.79, "cv_pct": 0.32
+      },
+      "numa_node0_28c": {
+        "latency_ms": 38.4497, "gops": 6157.65, "gbps": 3.94, "mean_gops": 6148.01, "min_gops": 6082.68, "max_gops": 6184.62, "cv_pct": 0.55
+      },
+      "numa_node0_56c": {
+        "latency_ms": 19.5147, "gops": 12132.39, "gbps": 7.76, "mean_gops": 12131.02, "min_gops": 11975.93, "max_gops": 12222.12, "cv_pct": 0.64
+      }
+    },
+    {
+      "pair_id": "pair2_int4_gemm",
+      "category": "4-Bit Linear GEMM (Prefill, Prior VNNI)",
+      "backend": "YNNPACK_VNNI_BASELINE",
+      "kernel": "ynn::dot_uint8_int4_int32_12x16x8_1x16x8_avx512vnni",
+      "isa": "AVX512-VNNI",
+      "shape": { "M": 1024, "N": 8192, "K": 5376 },
+      "memory_regime": "Compute_Bound_Tiled",
+      "arithmetic_intensity_ops_per_byte": 1476.670,
+      "single_core": {
+        "latency_ms": 405.4695, "gops": 222.44, "gbps": 0.15, "mean_gops": 222.40, "min_gops": 221.73, "max_gops": 223.03, "cv_pct": 0.22
+      },
+      "numa_node0_28c": {
+        "latency_ms": 14.7739, "gops": 6104.98, "gbps": 4.13, "mean_gops": 6075.23, "min_gops": 5910.57, "max_gops": 6212.32, "cv_pct": 1.90
+      },
+      "numa_node0_56c": {
+        "latency_ms": 7.3222, "gops": 12318.00, "gbps": 8.34, "mean_gops": 11900.93, "min_gops": 11229.57, "max_gops": 12405.25, "cv_pct": 4.85
+      }
+    }
+  ]
+}
