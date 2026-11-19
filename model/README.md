@@ -8,7 +8,7 @@ The `model/` tier benchmarks end-to-end model inference pipelines to:
 
 ## Reports, History & Dashboards
 
-- **Interactive Dashboard:** [dashboards/index.html](dashboards/index.html)
+- **Interactive Dashboard:** [dashboards/index.html](dashboards/index.html) ([Markdown summary](dashboards/README.md), [time-series JSON](dashboards/data.json))
 - **Generated Reports:** [reports/](reports)
 - **Performance History:** [reports/history/](reports/history)
 - **Benchmark Suites:** [suites/](suites)

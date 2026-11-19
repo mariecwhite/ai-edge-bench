@@ -30,19 +30,27 @@ echo "[1/4] Resolving latest upstream versions for all frameworks ..."
 echo "=================================================================="
 
 export AEB_LLAMA_CPP_REF="${AEB_LLAMA_CPP_REF:-$(git ls-remote --tags --refs https://github.com/ggml-org/llama.cpp.git 'b[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^b[0-9]+$' | sort -V | tail -n1)}"
-export AEB_LITERTLM_REF="${AEB_LITERTLM_REF:-$(git ls-remote --tags --refs https://github.com/google-ai-edge/LiteRT-LM.git 'v[0-9]*' | sed 's|.*refs/tags/||' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)}"
+export AEB_LITERTLM_REF="${AEB_LITERTLM_REF:-$(git ls-remote https://github.com/google-ai-edge/LiteRT-LM.git refs/heads/main | awk '{print $1}')}"
 
 read -r LITERT_PYPI_VER JAX_VER FLAX_VER QWIX_VER TUNIX_VER SAFETENSORS_VER JAXTYPING_VER TOKENIZERS_VER OV_VER OV_GENAI_VER ORT_VER ORT_GENAI_VER < <(python3 - << 'PY'
 import json
+import re
 import urllib.request
 
 def latest(pkg: str) -> str:
   with urllib.request.urlopen(f"https://pypi.org/pypi/{pkg}/json", timeout=30) as r:
     return json.load(r)["info"]["version"]
 
+def latest_jax_main() -> str:
+  url = "https://us-python.pkg.dev/ml-oss-artifacts-published/jax/simple/jax/"
+  with urllib.request.urlopen(url, timeout=30) as r:
+    txt = r.read().decode("utf-8", errors="ignore")
+  devs = sorted(set(re.findall(r'jax-([0-9]+\.[0-9]+\.[0-9]+\.dev[0-9]{8})', txt)))
+  return devs[-1] if devs else latest("jax")
+
 print(
     latest("litert-lm"),
-    latest("jax"),
+    latest_jax_main(),
     latest("flax"),
     latest("qwix"),
     latest("google-tunix"),
@@ -59,8 +67,8 @@ PY
 export AEB_LITERTLM_PYPI_VERSION="${AEB_LITERTLM_PYPI_VERSION:-${LITERT_PYPI_VER}}"
 
 echo "  llama.cpp          : ${AEB_LLAMA_CPP_REF}"
-echo "  litert-lm          : ${AEB_LITERTLM_REF} (pypi: ${AEB_LITERTLM_PYPI_VERSION})"
-echo "  jax / jaxlib       : ${JAX_VER}"
+echo "  litert-lm (main)   : ${AEB_LITERTLM_REF} (pypi: ${AEB_LITERTLM_PYPI_VERSION})"
+echo "  jax / jaxlib (main): ${JAX_VER}"
 echo "  flax               : ${FLAX_VER}"
 echo "  qwix               : ${QWIX_VER}"
 echo "  google-tunix       : ${TUNIX_VER}"

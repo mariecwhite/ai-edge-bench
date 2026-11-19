@@ -10,7 +10,10 @@ import unittest
 REPO_ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(REPO_ROOT / "kernel" / "scripts"))
 
-import extract_litert_lm_kernels as ext  # noqa: E402
+try:
+  import extract_litert_lm_kernels as ext  # noqa: E402
+except ModuleNotFoundError:
+  ext = None  # type: ignore[assignment]
 
 
 SAMPLE_XNNPACK_TFLITE_LOG = """\
@@ -71,6 +74,7 @@ SAMPLE_PERF_REPORT = """\
 """
 
 
+@unittest.skipIf(ext is None, "kernel/scripts not mounted in model container")
 class ExtractLitertLmKernelsTest(unittest.TestCase):
 
   def test_parse_xnnpack_tflite_profiler_output(self) -> None:

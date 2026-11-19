@@ -12,8 +12,8 @@ COPY harness/ /opt/aeb/harness/
 RUN chmod -R 0755 /opt/aeb/bin
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG ONNXRUNTIME_VERSION=1.31.1
-ARG ONNXRUNTIME_GENAI_VERSION=0.19.0
+ARG ONNXRUNTIME_VERSION=1.32.0
+ARG ONNXRUNTIME_GENAI_VERSION=0.20.0
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libgomp1 python3-pip \

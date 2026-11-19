@@ -43,7 +43,7 @@ RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "${RUST_VER
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 ARG LITERT_LM_REPO=https://github.com/google-ai-edge/LiteRT-LM
-ARG LITERT_LM_REF=v0.19.1
+ARG LITERT_LM_REF=b5391c5ceec447c78bd8f1d78460a4b1239f442d
 
 WORKDIR /src
 RUN git init -q . \

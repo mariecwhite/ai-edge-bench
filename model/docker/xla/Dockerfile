@@ -12,9 +12,9 @@ COPY harness/ /opt/aeb/harness/
 RUN chmod -R 0755 /opt/aeb/bin
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG JAX_VERSION=0.12.0.1
+ARG JAX_VERSION=0.12.1.dev20261116
 ARG FLAX_VERSION=0.12.12
-ARG QWIX_VERSION=0.1.8
+ARG QWIX_VERSION=0.1.10
 ARG TUNIX_VERSION=0.1.7
 ARG SAFETENSORS_VERSION=0.8.0
 ARG JAXTYPING_VERSION=0.3.11
@@ -25,6 +25,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir --only-binary=:all: \
+      --extra-index-url https://us-python.pkg.dev/ml-oss-artifacts-published/jax/simple/ \
       "jax==${JAX_VERSION}" \
       "jaxlib==${JAX_VERSION}" \
       "flax==${FLAX_VERSION}" \
@@ -35,12 +36,12 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir --only-binary=
       "huggingface_hub" \
       "numpy==2.3.3" \
       "tokenizers==${TOKENIZERS_VERSION}" \
- && python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
+ && python3 -m pip install --break-system-packages --no-cache-dir --no-deps --only-binary=:all: \
       "google-tunix==${TUNIX_VERSION}" \
  && python3 -c "import pathlib, importlib.util; p = pathlib.Path(importlib.util.find_spec('tunix').origin); p.write_text('__version__ = \"${TUNIX_VERSION}\"\\n')"
 
-RUN printf '{"framework":"xla","ref":"jax==%s","commit":"google-tunix==%s","runtime":"jaxlib==%s","tunix":"google-tunix==%s","qwix":"qwix==%s","flax":"flax==%s","tokenizers":"tokenizers==%s","built_at":"%s"}\n' \
-      "${JAX_VERSION}" "${TUNIX_VERSION}" "${JAX_VERSION}" "${TUNIX_VERSION}" "${QWIX_VERSION}" "${FLAX_VERSION}" "${TOKENIZERS_VERSION}" \
+RUN printf '{"framework":"xla","ref":"jax==%s","commit":"jaxlib==%s","runtime":"jaxlib==%s","tunix":"google-tunix==%s","qwix":"qwix==%s","flax":"flax==%s","tokenizers":"tokenizers==%s","built_at":"%s"}\n' \
+      "${JAX_VERSION}" "${JAX_VERSION}" "${JAX_VERSION}" "${TUNIX_VERSION}" "${QWIX_VERSION}" "${FLAX_VERSION}" "${TOKENIZERS_VERSION}" \
       "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
       > /opt/aeb/build-info.json
 

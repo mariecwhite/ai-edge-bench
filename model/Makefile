@@ -46,7 +46,7 @@ help:
 	@echo "  make MACHINE=<m> suite-accuracy accuracy gate for every suite config"
 	@echo "  make MACHINE=<m> suite-repro    output reproducibility (greedy + seeded)"
 	@echo "  make MACHINE=<m> report         reports/<date>-<suite>-<machine>/ + history + dashboard"
-	@echo "  make dashboard                  update dashboards/index.html from reports & results"
+	@echo "  make dashboard                  update dashboards/index.html, data.json & README.md"
 	@echo "  make test                       harness unit tests (no models needed)"
 	@echo "  make MACHINE=<m> diagnose-activations  PyTorch reference with/without activation quantization"
 	@echo
