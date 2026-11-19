@@ -532,10 +532,17 @@ def fmt(v, f="{:.2f}"):
   return "n/a" if v is None else f.format(v)
 
 
+def _valid_lifetime_rss(s: dict) -> float | None:
+  v = s.get("peak_rss_mb_lifetime")
+  if v is not None and 0 < v <= 4 * 1024 * 1024:
+    return v
+  return ((s.get("metrics") or {}).get("rss_max_mb") or {}).get("max")
+
+
 def describe_cfg(runs):
   return {m[0]: stats.describe(pooled(runs, m[0])) for m in HEADLINE} | {
       "load_ms": stats.describe([r["summary"].get("load_ms") for r in runs]),
-      "peak_rss_mb_lifetime": stats.describe([r["summary"].get("peak_rss_mb_lifetime") for r in runs]),
+      "peak_rss_mb_lifetime": stats.describe([_valid_lifetime_rss(r["summary"]) for r in runs]),
       "idle_rss_mb": stats.describe([(r["summary"].get("idle_after_load") or {}).get("rss_mb") for r in runs]),
       "idle_rss_anon_mb": stats.describe([(r["summary"].get("idle_after_load") or {}).get("rss_anon_mb") for r in runs]),
       "cgroup_peak_mb": stats.describe([

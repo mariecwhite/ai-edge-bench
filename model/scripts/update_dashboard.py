@@ -34,6 +34,8 @@ COLORS = {
     "onnxruntime": "#9c4d9f",
     "xla": "#2e8b57",
     "openvino": "#0095a8",
+    "mlx": "#2a9d4b",
+    "basert": "#c0392b",
 }
 
 HIST_STYLE = {  # config -> (color, marker, linestyle)
@@ -43,9 +45,12 @@ HIST_STYLE = {  # config -> (color, marker, linestyle)
     "llama.cpp/q8_0": ("#c46d1f", "diamond", "dashdot"),
     "llama.cpp/int8": ("#c46d1f", "diamond", "dashdot"),
     "llama.cpp/bf16": ("#8c4600", "inverted_triangle", "dotted"),
+    "llama.cpp/metal": ("#d9822b", "triangle", "solid"),
     "litert-lm/matched": ("#2b6cd9", "circle", "solid"),
     "litert-lm/fastest": ("#13408f", "square", "dashed"),
     "litert-lm/ynnpack": ("#5c9aff", "triangle", "dashdot"),
+    "litert-lm/ynnpack-fastest": ("#3d7be0", "inverted_triangle", "dotted"),
+    "litert-lm/gpu": ("#2b6cd9", "circle", "solid"),
     "xla/matched-ynnpack": ("#2e8b57", "circle", "solid"),
     "xla/matched-onednn": ("#1b5e20", "square", "dashed"),
     "xla/bf16-ynnpack": ("#43a047", "triangle", "solid"),
@@ -54,6 +59,8 @@ HIST_STYLE = {  # config -> (color, marker, linestyle)
     "xla/int8-onednn": ("#388e3c", "square", "dotted"),
     "xla/fp32-ynnpack": ("#81c784", "cross", "dotted"),
     "xla/fp32-onednn": ("#4caf50", "cross", "dashed"),
+    "openvino/matched": ("#0095a8", "circle", "solid"),
+    "openvino/fastest": ("#006978", "square", "dashed"),
     "openvino/int4": ("#0095a8", "square", "dashed"),
     "openvino/int8": ("#006064", "circle", "solid"),
     "openvino/bf16": ("#00acc1", "inverted_triangle", "dashdot"),
@@ -61,6 +68,8 @@ HIST_STYLE = {  # config -> (color, marker, linestyle)
     "openvino/fp32": ("#26c6da", "diamond", "dotted"),
     "onnxruntime/q4_k_m": ("#9c4d9f", "diamond", "solid"),
     "onnxruntime/fp16": ("#ba68c8", "inverted_triangle", "dotted"),
+    "mlx/metal": ("#2a9d4b", "square", "dashed"),
+    "basert/metal": ("#c0392b", "diamond", "dashdot"),
 }
 
 DTYPE_ORDER = {"int4": 0, "int8": 1, "fp16": 2, "bf16": 3, "fp32": 4}
@@ -128,7 +137,29 @@ def _infer_dtype_info(suite_cfg: dict | None, cid: str, meta: dict | None) -> di
         threads = t_val
   threads_str = str(threads) if threads is not None else "—"
 
-  if "qat-mobile" in mp or "litert-lm" in mp or fw == "litert-lm":
+  track = cfg_dict.get("track") or meta.get("track") or "reference"
+  if suite_cfg.get("execution") == "native":
+    report = cfg_dict.get("report") or {}
+    checkpoint = report.get("checkpoint", "not exposed")
+    precisions = [report.get(k, "not exposed") for k in ("weights", "activations", "kv_cache")]
+    if report.get("thread_usage"):
+      threads_str += f" ({report['thread_usage']})"
+    return {
+        "dtype": group,
+        "dtype_label": DTYPE_LABELS.get(group, group.upper()),
+        "checkpoint": checkpoint,
+        "weights_acts_kv": " / ".join(precisions),
+        "threads": threads_str,
+        "track": track,
+        "framework": fw,
+    }
+
+  is_31b = "31b" in mp.lower() or "31b" in (suite_cfg.get("name") or "").lower()
+  if "qat-mobile" in mp:
+    checkpoint = "qat-mobile"
+  elif "qat-q4_0" in mp or (fw == "litert-lm" and is_31b):
+    checkpoint = "qat-q4_0"
+  elif "litert-lm" in mp or fw == "litert-lm":
     checkpoint = "qat-mobile"
   elif fw == "llama.cpp" or mp.endswith(".gguf"):
     checkpoint = "it (GGUF)"
@@ -160,7 +191,7 @@ def _infer_dtype_info(suite_cfg: dict | None, cid: str, meta: dict | None) -> di
     else:
       wak = "int4_asym / bf16 / int8"
   elif fw == "litert-lm":
-    wak = "int2_int4_int8 / int8 / int8"
+    wak = "int4_int8 / fp32 / fp32" if is_31b else "int2_int4_int8 / int8 / int8"
   elif fw == "onnxruntime":
     wak = "fp16 / fp16 / fp16" if group == "fp16" else "q4_k_m / fp32 / fp32"
   elif fw == "llama.cpp":
@@ -176,16 +207,15 @@ def _infer_dtype_info(suite_cfg: dict | None, cid: str, meta: dict | None) -> di
       wak = f"bf16 / fp32 / {kv}"
     elif group == "int8":
       wak = f"q8_0 / q8_0 / {kv}"
-    elif "matched-q4" in mp or cid_lo.endswith("/fastest"):
+    elif "matched-q4" in mp or (not is_31b and cid_lo.endswith("/fastest")):
       wak = f"q4_0_q8_0 / q8_0 / {kv}"
-    elif "matched" in mp or cid_lo.endswith("/matched"):
+    elif "qat-mobile" in mp or (not is_31b and cid_lo.endswith("/matched")):
       wak = f"q2_k_q4_0_q8_0 / q8_0 / {kv}"
     else:
       wak = f"q4_0 / q8_0 / {kv}"
   else:
     wak = group
 
-  track = cfg_dict.get("track") or meta.get("track") or "reference"
   return {
       "dtype": group,
       "dtype_label": DTYPE_LABELS.get(group, group.upper()),
@@ -224,6 +254,8 @@ def collect_dashboard_data(
   records_by_suite: dict[tuple[str, str], dict[tuple[str, str], dict]] = collections.defaultdict(dict)
   config_meta_by_suite: dict[tuple[str, str], dict[str, dict]] = collections.defaultdict(dict)
   machine_notes_by_suite: dict[tuple[str, str], str] = {}
+  reported_run_dirs_by_suite: dict[tuple[str, str], set[str]] = collections.defaultdict(set)
+  reported_started_at_by_suite: dict[tuple[str, str], set[str]] = collections.defaultdict(set)
 
   # 1. Load reports/history/<suite>/<machine>.jsonl
   hist_root = reports_dir / "history"
@@ -282,10 +314,11 @@ def collect_dashboard_data(
       key = (suite_name, machine)
       configs_map = rep_data.get("configs") or {}
       acc_rows = rep_data.get("accuracy") or []
+      pc_configs = (rep_data.get("prefix_cache") or {}).get("configs") or {}
 
-      # Build accuracy lookup (including shared framework + model_sha256)
+      # Build accuracy lookup (scoped by framework + delegate + model_sha256)
       acc_by_id: dict[tuple[str, str], dict] = {}
-      acc_by_model: dict[tuple[str, str, str], dict] = {}
+      acc_by_model: dict[tuple[str, bool, str, str], dict] = {}
       for a in acc_rows:
         aid = a.get("id")
         task = a.get("task")
@@ -297,11 +330,19 @@ def collect_dashboard_data(
           m0 = c_runs[0].get("meta") or {}
           fw = m0.get("framework") or aid.split("/")[0]
           sha = m0.get("model_sha256")
+          is_ynn = "ynnpack" in aid.lower()
           if fw and sha:
-            acc_by_model[(fw, sha, task)] = {"acc": a.get("accuracy"), "n": a.get("n")}
+            acc_by_model[(fw, is_ynn, sha, task)] = {"acc": a.get("accuracy"), "n": a.get("n")}
 
       for cid, c_entry in configs_map.items():
         c_runs = c_entry.get("runs") or []
+        for r_obj in c_runs:
+          r_dir = r_obj.get("run_dir")
+          if r_dir:
+            reported_run_dirs_by_suite[key].add(Path(str(r_dir)).name)
+          r_started = (r_obj.get("meta") or {}).get("started_at")
+          if r_started:
+            reported_started_at_by_suite[key].add(str(r_started))
         agg = c_entry.get("aggregate") or {}
         m0 = (c_runs[0].get("meta") if c_runs else {}) or {}
         if m0.get("machine_notes") and key not in machine_notes_by_suite:
@@ -321,12 +362,26 @@ def collect_dashboard_data(
         # Resolve accuracy for cid
         fw = m0.get("framework") or cid.split("/")[0]
         sha = m0.get("model_sha256")
+        is_ynn = "ynnpack" in cid.lower()
         resolved_acc = {}
         for task in ("mmlu", "gsm8k"):
           if (cid, task) in acc_by_id:
             resolved_acc[task] = acc_by_id[(cid, task)]
-          elif fw and sha and (fw, sha, task) in acc_by_model:
-            resolved_acc[task] = acc_by_model[(fw, sha, task)]
+          elif fw and sha and (fw, is_ynn, sha, task) in acc_by_model:
+            resolved_acc[task] = acc_by_model[(fw, is_ynn, sha, task)]
+
+        pc_entry = pc_configs.get(cid) or {}
+        pc_summary = None
+        if pc_entry:
+          w_ttft = (pc_entry.get("warm_ttft_ms") or {}).get("median")
+          w_pref = (pc_entry.get("warm_effective_prefill_tps") or {}).get("median")
+          t_sp = pc_entry.get("ttft_speedup")
+          if w_ttft is not None or w_pref is not None:
+            pc_summary = {
+                "warm_ttft_ms": round(float(w_ttft), 1) if w_ttft is not None else None,
+                "warm_prefill_tps": round(float(w_pref), 1) if w_pref is not None else None,
+                "ttft_speedup": round(float(t_sp[0]), 2) if isinstance(t_sp, list) and t_sp else None,
+            }
 
         rec_key = (report_id, cid)
         if rec_key in records_by_suite[key]:
@@ -340,6 +395,8 @@ def collect_dashboard_data(
           rec["dtype"] = dtype_info["dtype"]
           rec["checkpoint"] = dtype_info["checkpoint"]
           rec["weights_acts_kv"] = dtype_info["weights_acts_kv"]
+          if pc_summary:
+            rec["prefix_cache"] = pc_summary
         else:
           build = m0.get("build") or {}
           e2e_d = agg.get("e2e_ms") or {}
@@ -372,6 +429,7 @@ def collect_dashboard_data(
                   )
                   if agg.get(k)
               },
+              "prefix_cache": pc_summary,
               "accuracy": resolved_acc,
               "reproducibility": None,
               "report_url": _find_report_link(reports_dir, report_id),
@@ -407,12 +465,22 @@ def collect_dashboard_data(
         continue
       suite_name = notes.split("=", 1)[1].strip()
       machine = meta.get("machine") or meta_p.parts[-5]
-      date_str = str(meta.get("started_at") or "")[:10]
+      started_at = str(meta.get("started_at") or "")
+      date_str = started_at[:10]
       if not suite_name or not machine or not date_str:
         continue
-      if date_str in existing_dates_by_suite[(suite_name, machine)]:
+      suite_key = (suite_name, machine)
+      if (
+          date_str in existing_dates_by_suite[suite_key]
+          or meta_p.parent.name in reported_run_dirs_by_suite[suite_key]
+          or (started_at and started_at in reported_started_at_by_suite[suite_key])
+      ):
         continue
       cid = f"{meta.get('framework')}/{meta.get('label')}"
+      suite_cfg_obj = suite_defs.get(suite_name) or {}
+      cfg_entry = next((c for c in suite_cfg_obj.get("configs", []) if c.get("id") == cid), None)
+      if cfg_entry and cfg_entry.get("disabled"):
+        continue
       raw_grouped[(suite_name, machine, date_str, cid)].append((meta, summ))
 
     for (suite_name, machine, date_str, cid), run_pairs in sorted(raw_grouped.items()):
@@ -492,21 +560,23 @@ def collect_dashboard_data(
     if not recs:
       continue
 
-    # Propagate accuracy across configs sharing (framework, model_sha256) within the same report_id
-    acc_by_rep_model: dict[tuple[str, str, str], dict] = {}
+    # Propagate accuracy across configs sharing (framework, delegate, model_sha256) within the same report_id
+    acc_by_rep_model: dict[tuple[str, str, bool, str, str], dict] = {}
     for r in recs:
       fw = r["config"].split("/")[0]
+      is_ynn = "ynnpack" in r["config"].lower()
       sha = r.get("model_sha256")
       if sha and r.get("accuracy"):
         for t_k, t_v in r["accuracy"].items():
-          acc_by_rep_model[(r["report_id"], fw, sha, t_k)] = t_v
+          acc_by_rep_model[(r["report_id"], fw, is_ynn, sha, t_k)] = t_v
     for r in recs:
       fw = r["config"].split("/")[0]
+      is_ynn = "ynnpack" in r["config"].lower()
       sha = r.get("model_sha256")
       if sha:
         for t_k in ("mmlu", "gsm8k"):
-          if t_k not in r["accuracy"] and (r["report_id"], fw, sha, t_k) in acc_by_rep_model:
-            r["accuracy"][t_k] = acc_by_rep_model[(r["report_id"], fw, sha, t_k)]
+          if t_k not in r["accuracy"] and (r["report_id"], fw, is_ynn, sha, t_k) in acc_by_rep_model:
+            r["accuracy"][t_k] = acc_by_rep_model[(r["report_id"], fw, is_ynn, sha, t_k)]
 
     reports_meta = {}
     for r in recs:
@@ -555,7 +625,8 @@ def collect_dashboard_data(
         rss = metrics.get("rss_max_mb") or {}
         itl = metrics.get("itl_p99_ms") or {}
         acc = pt.get("accuracy") or {}
-        points_out.append({
+        pc = pt.get("prefix_cache") or {}
+        pt_entry = {
             "report_id": pt["report_id"],
             "date": pt["date"],
             "prefill_tps": prefill_obj,
@@ -569,7 +640,12 @@ def collect_dashboard_data(
             "framework_ref": pt.get("framework_ref"),
             "framework_commit": pt.get("framework_commit"),
             "report_url": pt.get("report_url"),
-        })
+        }
+        if pc:
+          pt_entry["warm_ttft_ms"] = pc.get("warm_ttft_ms")
+          pt_entry["warm_prefill_tps"] = pc.get("warm_prefill_tps")
+          pt_entry["ttft_speedup"] = pc.get("ttft_speedup")
+        points_out.append(pt_entry)
 
       if not points_out:
         continue
@@ -1213,7 +1289,7 @@ def render_dashboard_html(dashboard_data: dict) -> str:
       <div class="kpi-card">
         <div class="kpi-label">Benchmark Suites</div>
         <div class="kpi-value">{n_suites}</div>
-        <div class="kpi-sub">Tracked across x86 AMX &amp; ARM CPUs ({n_reports} snapshots)</div>
+        <div class="kpi-sub">Tracked across x86 AMX CPUs, ARM CPUs &amp; Metal GPUs ({n_reports} snapshots)</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Configurations Tracked</div>
@@ -1460,6 +1536,9 @@ def render_dashboard_html(dashboard_data: dict) -> str:
       const otherStr = otherObj && otherObj.median != null ? `${{formatTps(otherObj.median, otherSpec.decimals)}} tok/s` : "—";
       const e2eStr = pt.e2e_ms && pt.e2e_ms.median != null ? `${{Math.round(pt.e2e_ms.median).toLocaleString()}} ms` : "—";
       const ttftStr = pt.ttft_ms != null ? `${{Math.round(pt.ttft_ms).toLocaleString()}} ms` : "—";
+      const warmTtftRow = pt.warm_ttft_ms != null
+        ? `<div class="tt-key">Warm Prefix TTFT</div><div class="tt-val">${{Math.round(pt.warm_ttft_ms).toLocaleString()}} ms${{pt.ttft_speedup != null ? " (" + pt.ttft_speedup.toFixed(2) + "×)" : ""}}</div>`
+        : "";
       const mmluStr = pt.mmlu != null ? `${{(pt.mmlu * 100).toFixed(2)}}%` : "—";
       const gsm8kStr = pt.gsm8k != null ? `${{(pt.gsm8k * 100).toFixed(2)}}%` : "—";
 
@@ -1477,6 +1556,7 @@ def render_dashboard_html(dashboard_data: dict) -> str:
           ${{deltaHtml}}
           <div class="tt-key">${{otherSpec.title.replace(" Over Time", "")}}</div><div class="tt-val">${{otherStr}}</div>
           <div class="tt-key">E2E / TTFT</div><div class="tt-val">${{e2eStr}} / ${{ttftStr}}</div>
+          ${{warmTtftRow}}
           <div class="tt-key">Peak RSS</div><div class="tt-val">${{pt.rss_max_mb != null ? Math.round(pt.rss_max_mb).toLocaleString() + " MB" : "—"}}</div>
           <div class="tt-key">Accuracy (MMLU / GSM8K)</div><div class="tt-val">${{mmluStr}} / ${{gsm8kStr}}</div>
           <div class="tt-key">Framework Ref</div><div class="tt-val">${{pt.framework_ref || "—"}}</div>
@@ -1974,8 +2054,10 @@ def render_dashboard_html(dashboard_data: dict) -> str:
       }}).join("");
 
       const hasHistory = reports.length >= 2;
+      const hasWarmPrefix = configs.some(c => (c.points || []).some(p => p.warm_ttft_ms != null));
       const prefillDeltaHeader = hasHistory ? `<th class="num">Δ Prefill</th>` : "";
       const decodeDeltaHeader = hasHistory ? `<th class="num">Δ Decode</th>` : "";
+      const warmTtftHeader = hasWarmPrefix ? `<th class="num">Warm TTFT (ms) ↓</th>` : "";
 
       let rowsHtml = "";
       for (const [dtypeKey, dtypeTitle] of dtypeOrder) {{
@@ -1985,7 +2067,7 @@ def render_dashboard_html(dashboard_data: dict) -> str:
         groupCfgs.sort((a, b) => (b.latest_decode_tps ?? -1) - (a.latest_decode_tps ?? -1));
         const winnerId = groupCfgs[0].id;
 
-        const totalCols = 4 + (reports.length * 2) + (hasHistory ? 2 : 0) + 4;
+        const totalCols = 4 + (reports.length * 2) + (hasHistory ? 2 : 0) + 4 + (hasWarmPrefix ? 1 : 0);
         rowsHtml += `<tr class="group-row"><td colspan="${{totalCols}}">${{dtypeTitle}}</td></tr>`;
 
         for (const cfg of groupCfgs) {{
@@ -2028,6 +2110,11 @@ def render_dashboard_html(dashboard_data: dict) -> str:
 
           const prefillDeltaCell = renderThroughputDelta(cfg.delta_prefill_tps, cfg.delta_prefill_pct, 1);
           const decodeDeltaCell = renderThroughputDelta(cfg.delta_decode_tps, cfg.delta_decode_pct, 2);
+          const warmTtftCell = hasWarmPrefix
+            ? (lastPt.warm_ttft_ms != null
+                ? `<td class="num">${{Math.round(lastPt.warm_ttft_ms).toLocaleString()}}${{lastPt.ttft_speedup != null ? `<span class="sub-range">${{lastPt.ttft_speedup.toFixed(2)}}×</span>` : ""}}</td>`
+                : `<td class="num" style="color:var(--muted)">—</td>`)
+            : "";
 
           const e2eStr = lastPt.e2e_ms && lastPt.e2e_ms.median != null ? Math.round(lastPt.e2e_ms.median).toLocaleString() : "—";
           const mmluStr = lastPt.mmlu != null ? `${{(lastPt.mmlu * 100).toFixed(2)}}%` : "—";
@@ -2047,6 +2134,7 @@ def render_dashboard_html(dashboard_data: dict) -> str:
               ${{decodeCells}}
               ${{decodeDeltaCell}}
               <td class="num">${{lastPt.ttft_ms != null ? Math.round(lastPt.ttft_ms).toLocaleString() : "—"}}</td>
+              ${{warmTtftCell}}
               <td class="num">${{e2eStr}}</td>
               <td class="num">${{lastPt.rss_max_mb != null ? Math.round(lastPt.rss_max_mb).toLocaleString() : "—"}}</td>
               <td class="num">${{mmluStr}} / ${{gsm8kStr}}</td>
@@ -2069,6 +2157,7 @@ def render_dashboard_html(dashboard_data: dict) -> str:
                 ${{decodeDateHeaders}}
                 ${{decodeDeltaHeader}}
                 <th class="num">Latest TTFT (ms) ↓</th>
+                ${{warmTtftHeader}}
                 <th class="num">Latest E2E (ms) ↓</th>
                 <th class="num">Peak RSS (MB) ↓</th>
                 <th class="num">MMLU / GSM8K ↑</th>
@@ -2296,6 +2385,239 @@ def render_dashboard_html(dashboard_data: dict) -> str:
 """
 
 
+def _md_report_url(report_url: str | None) -> str | None:
+  if not report_url:
+    return None
+  if report_url.endswith("/index.html"):
+    return report_url[: -len("index.html")] + "README.md"
+  if report_url.endswith("/README.html"):
+    return report_url[: -len("README.html")] + "README.md"
+  return report_url
+
+
+def render_dashboard_markdown(dashboard_data: dict) -> str:
+  suites = dashboard_data.get("suites") or []
+  gen_at = dashboard_data.get("generated_at", "")
+  lines = [
+      "# Level 3 Model Benchmark Suite Dashboard",
+      "",
+      "- **Interactive HTML Dashboard**: [`model/dashboards/index.html`](index.html)",
+      "- **Raw Time-Series JSON**: [`model/dashboards/data.json`](data.json)",
+      f"- **Last Updated**: `{gen_at}`",
+      "",
+      "## Tracked Model Benchmark Suites",
+      "",
+      "| Suite | Machine | Workload (`prompt -> decode`, `ctx`) | Configs | Snapshots | Latest Report |",
+      "| :--- | :--- | :--- | ---: | ---: | :--- |",
+  ]
+
+  for s in suites:
+    w = s.get("workload") or {}
+    reps = s.get("reports") or []
+    latest_rep = reps[-1] if reps else {}
+    latest_md = _md_report_url(latest_rep.get("report_url"))
+    latest_cell = (
+        f"[`{latest_rep.get('date')}`]({latest_md})"
+        if latest_md
+        else (f"`{latest_rep.get('date')}`" if latest_rep.get("date") else "—")
+    )
+    anchor = re.sub(r"[^a-z0-9-]+", "-", f"{s['suite']}-{s['machine']}".lower()).strip("-")
+    lines.append(
+        f"| [`{s['suite']}`](#{anchor}) | `{s['machine']}` | "
+        f"`{w.get('prompt_tokens', 1024)} -> {w.get('gen_tokens', 128)}` (`ctx={w.get('ctx', 4096)}`) | "
+        f"{len(s.get('configs') or [])} | {len(reps)} | {latest_cell} |"
+    )
+
+  dtype_groups = [
+      ("fp32", "FP32 Track"),
+      ("bf16", "BF16 Track"),
+      ("fp16", "FP16 Track"),
+      ("int8", "INT8 Track"),
+      ("int4", "INT4 / Mixed Track"),
+  ]
+
+  for s in suites:
+    w = s.get("workload") or {}
+    reps = s.get("reports") or []
+    configs = s.get("configs") or []
+    lines.extend([
+        "",
+        "---",
+        "",
+        f"## {s['suite']} ({s['machine']})",
+        "",
+    ])
+    if s.get("description"):
+      lines.extend([s["description"], ""])
+    if s.get("machine_notes"):
+      lines.extend([f"- **Hardware / OS**: `{s['machine_notes']}`"])
+    lines.append(
+        f"- **Headline Workload**: `{w.get('prompt_tokens', 1024)}` prompt -> `{w.get('gen_tokens', 128)}` decode tokens (`ctx={w.get('ctx', 4096)}`)"
+    )
+    rep_links = []
+    for r in reps:
+      md_u = _md_report_url(r.get("report_url"))
+      rep_links.append(f"[`{r['date']}`]({md_u})" if md_u else f"`{r['date']}`")
+    if rep_links:
+      lines.append(f"- **Reports**: {', '.join(rep_links)}")
+    lines.append("")
+
+    # Mermaid progression charts when >= 2 report snapshots exist
+    if len(reps) >= 2:
+      rep_ids = [r["report_id"] for r in reps]
+      x_labels = ", ".join(f'"{r["date"]}"' for r in reps)
+      for metric_key, title_str, y_label, decimals in (
+          ("prefill_tps", f"{s['suite']} Prefill Throughput Over Time (tok/s, Higher is Better)", "Prefill (tok/s)", 1),
+          ("decode_tps", f"{s['suite']} Decode Throughput Over Time (tok/s, Higher is Better)", "Decode (tok/s)", 2),
+      ):
+        complete_series = []
+        for c in configs:
+          pt_map = {p["report_id"]: p for p in c.get("points") or []}
+          vals = []
+          ok = True
+          for rid in rep_ids:
+            m_obj = (pt_map.get(rid) or {}).get(metric_key)
+            if not m_obj or m_obj.get("median") is None:
+              ok = False
+              break
+            vals.append(round(float(m_obj["median"]), decimals))
+          if ok and vals:
+            complete_series.append((c, vals))
+        complete_series.sort(key=lambda item: -item[1][-1])
+        top_series = complete_series[:6]
+        if top_series:
+          max_y = max(max(vals) for _, vals in top_series)
+          y_ceil = max(1, int(math.ceil(max_y * 1.15)))
+          palette = ", ".join(c["color"] for c, _ in top_series)
+          lines.extend([
+              "```mermaid",
+              f'%%{{init: {{"xyChart": {{"width": 1050, "height": 380}}, "themeVariables": {{"xyChart": {{"plotColorPalette": "{palette}"}}}}}}}}%%',
+              "xychart-beta",
+              f'    title "{title_str}"',
+              f"    x-axis [{x_labels}]",
+              f'    y-axis "{y_label}" 0 --> {y_ceil}',
+          ])
+          for c, vals in top_series:
+            vals_str = ", ".join(str(v) for v in vals)
+            lines.append(f'    line "{c["id"]}" [{vals_str}]')
+          lines.extend(["```", ""])
+
+    has_history = len(reps) >= 2
+    has_warm_prefix = any(
+        p.get("warm_ttft_ms") is not None
+        for c in configs
+        for p in (c.get("points") or [])
+    )
+
+    headers = ["Framework / Config", "Track", "Checkpoint", "Weights / Acts / KV", "Threads"]
+    aligns = [":---", ":---", ":---", ":---", "---:"]
+    for r in reps:
+      md_u = _md_report_url(r.get("report_url"))
+      lbl = f"[{r['date']}]({md_u})" if md_u else r["date"]
+      headers.append(f"Prefill {lbl} (tok/s) ↑")
+      aligns.append("---:")
+    if has_history:
+      headers.append("Δ Prefill")
+      aligns.append("---:")
+    for r in reps:
+      md_u = _md_report_url(r.get("report_url"))
+      lbl = f"[{r['date']}]({md_u})" if md_u else r["date"]
+      headers.append(f"Decode {lbl} (tok/s) ↑")
+      aligns.append("---:")
+    if has_history:
+      headers.append("Δ Decode")
+      aligns.append("---:")
+    headers.append("Latest TTFT (ms) ↓")
+    aligns.append("---:")
+    if has_warm_prefix:
+      headers.append("Warm TTFT (ms) ↓")
+      aligns.append("---:")
+    headers.extend(["Latest E2E (ms) ↓", "Peak RSS (MB) ↓", "MMLU / GSM8K ↑"])
+    aligns.extend(["---:", "---:", "---:"])
+
+    lines.append("| " + " | ".join(headers) + " |")
+    lines.append("| " + " | ".join(aligns) + " |")
+
+    by_dtype: dict[str, list[dict]] = collections.defaultdict(list)
+    for c in configs:
+      by_dtype[c["dtype"]].append(c)
+
+    for dt_key, dt_title in dtype_groups:
+      grp = by_dtype.get(dt_key)
+      if not grp:
+        continue
+      grp_sorted = sorted(
+          grp,
+          key=lambda c: -(c["latest_decode_tps"] if c["latest_decode_tps"] is not None else -1.0),
+      )
+      winner_id = grp_sorted[0]["id"]
+      lines.append("| **" + dt_title + "** |" + " |" * (len(headers) - 1))
+      for c in grp_sorted:
+        is_win = c["id"] == winner_id
+        pt_by_rep = {p["report_id"]: p for p in c.get("points") or []}
+        last_pt = (c.get("points") or [{}])[-1]
+
+        name_cell = f"🏆 **`{c['id']}`**" if is_win else f"`{c['id']}`"
+        row_cells = [
+            name_cell,
+            f"`{c['track']}`",
+            f"`{c['checkpoint']}`",
+            f"`{c['weights_acts_kv']}`",
+            str(c["threads"]),
+        ]
+        for r in reps:
+          p = pt_by_rep.get(r["report_id"])
+          if p and p.get("prefill_tps") and p["prefill_tps"].get("median") is not None:
+            row_cells.append(f"{p['prefill_tps']['median']:.1f}")
+          else:
+            row_cells.append("—")
+        if has_history:
+          dp = c.get("delta_prefill_pct")
+          da = c.get("delta_prefill_tps")
+          if dp is not None and da is not None:
+            s_chr = "+" if da > 0 else ""
+            row_cells.append(f"{s_chr}{da:.1f} ({s_chr}{dp:.1f}%)")
+          else:
+            row_cells.append("n/a")
+        for r in reps:
+          p = pt_by_rep.get(r["report_id"])
+          if p and p.get("decode_tps") and p["decode_tps"].get("median") is not None:
+            row_cells.append(f"{p['decode_tps']['median']:.2f}")
+          else:
+            row_cells.append("—")
+        if has_history:
+          dp = c.get("delta_decode_pct")
+          da = c.get("delta_decode_tps")
+          if dp is not None and da is not None:
+            s_chr = "+" if da > 0 else ""
+            row_cells.append(f"{s_chr}{da:.2f} ({s_chr}{dp:.1f}%)")
+          else:
+            row_cells.append("n/a")
+
+        ttft_v = last_pt.get("ttft_ms")
+        row_cells.append(f"{round(ttft_v):,}" if ttft_v is not None else "—")
+        if has_warm_prefix:
+          w_ttft = last_pt.get("warm_ttft_ms")
+          w_sp = last_pt.get("ttft_speedup")
+          if w_ttft is not None:
+            sp_str = f" ({w_sp:.2f}×)" if w_sp is not None else ""
+            row_cells.append(f"{round(w_ttft):,}{sp_str}")
+          else:
+            row_cells.append("—")
+        e2e_v = (last_pt.get("e2e_ms") or {}).get("median")
+        row_cells.append(f"{round(e2e_v):,}" if e2e_v is not None else "—")
+        rss_v = last_pt.get("rss_max_mb")
+        row_cells.append(f"{round(rss_v):,}" if rss_v is not None else "—")
+        mmlu_s = f"{last_pt['mmlu'] * 100:.2f}%" if last_pt.get("mmlu") is not None else "—"
+        gsm_s = f"{last_pt['gsm8k'] * 100:.2f}%" if last_pt.get("gsm8k") is not None else "—"
+        row_cells.append(f"{mmlu_s} / {gsm_s}")
+
+        lines.append("| " + " | ".join(row_cells) + " |")
+
+  lines.append("")
+  return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
   parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument("--suites", type=Path, default=ROOT / "suites", help="Directory containing suite JSON files")
@@ -2307,6 +2629,7 @@ def main(argv: list[str] | None = None) -> int:
   out_html = args.out.resolve()
   out_html.parent.mkdir(parents=True, exist_ok=True)
   out_json = out_html.parent / "data.json"
+  out_md = out_html.parent / "README.md"
 
   dashboard_data = collect_dashboard_data(
       suites_dir=args.suites.resolve(),
@@ -2318,10 +2641,14 @@ def main(argv: list[str] | None = None) -> int:
   html_doc = render_dashboard_html(dashboard_data)
   out_html.write_text(html_doc, encoding="utf-8")
 
+  md_doc = render_dashboard_markdown(dashboard_data)
+  out_md.write_text(md_doc, encoding="utf-8")
+
   n_suites = len(dashboard_data.get("suites", []))
   n_configs = sum(len(s.get("configs", [])) for s in dashboard_data.get("suites", []))
   print(f"Updated dashboard: {out_html} ({n_suites} suites, {n_configs} tracked configs)")
   print(f"Updated dashboard data: {out_json}")
+  print(f"Updated dashboard markdown: {out_md}")
   return 0
 
 

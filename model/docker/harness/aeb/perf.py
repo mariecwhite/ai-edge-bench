@@ -118,12 +118,24 @@ def _mb(kb):
   return kb / 1024 if kb is not None else None
 
 
-def _peak(end_sample, samples, col):
+def _peak(end_sample, samples, col, fallback_col=2):
   """Lifetime high-water mark column (VmHWM on Linux, max footprint on macOS)."""
-  if end_sample and end_sample[col] is not None:
+  # Guard against Linux kernel VmHWM unsigned wraparound bugs (> 4 TiB).
+  max_valid_kb = 4 * 1024 * 1024 * 1024
+  if end_sample and end_sample[col] is not None and 0 < end_sample[col] <= max_valid_kb:
     return end_sample[col] / 1024
-  vals = [s[col] for s in samples if s[col] is not None]
-  return max(vals) / 1024 if vals else None
+  vals = [s[col] for s in samples if s[col] is not None and 0 < s[col] <= max_valid_kb]
+  if vals:
+    return max(vals) / 1024
+  has_overflow = (
+      (end_sample and end_sample[col] is not None and end_sample[col] > max_valid_kb)
+      or any(s[col] is not None and s[col] > max_valid_kb for s in samples)
+  )
+  if has_overflow and fallback_col is not None:
+    fb = [s[fallback_col] for s in samples if s[fallback_col] is not None and 0 < s[fallback_col] <= max_valid_kb]
+    if fb:
+      return max(fb) / 1024
+  return None
 
 
 def _idle_gpu_util(samples, requests, t_ready) -> float | None:

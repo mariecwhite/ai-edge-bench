@@ -45,7 +45,7 @@ help:
 	@echo "    make MACHINE=<m> suite-accuracy MMLU / GSM8K model accuracy gate"
 	@echo "    make MACHINE=<m> suite-repro    output reproducibility suite"
 	@echo "    make MACHINE=<m> report         generate model report, charts & dashboard"
-	@echo "    make dashboard                  update model/dashboards/index.html"
+	@echo "    make dashboard                  update model/dashboards/index.html, data.json & README.md"
 	@echo "    make -C model help              show all model-tier targets"
 	@echo
 	@echo "  Testing:"
