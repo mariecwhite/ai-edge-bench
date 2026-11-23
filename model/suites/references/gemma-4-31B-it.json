@@ -16,6 +16,6 @@
   "notes": [
     "Google's Table 5 reports all Gemma 4 31B numbers with thinking mode enabled on bf16 weights; this harness evaluates with thinking disabled (`enable_thinking=False`) for deterministic zero-shot comparison across CPU runtimes.",
     "Original 5-shot MMLU is not in the Gemma 4 31B model card; MMLU-Pro (10 choices, reasoning-heavy) is 85.2% with thinking on, so zero-shot 4-choice MMLU on non-thinking 31B should comfortably exceed 75% on healthy checkpoints.",
-    "Unlike E2B and E4B, Gemma 4 31B has no Per-Layer Embeddings (`hidden_size_per_layer_input = 0`) and uses uniform 4-bit quantization (`dynamic_wi4_afp32` in LiteRT-LM, `Q4_0` in GGUF, `int4-ov` in OpenVINO) rather than mixed 2-bit/4-bit mobile QAT."
+    "Unlike E2B and E4B, Gemma 4 31B has no Per-Layer Embeddings (`hidden_size_per_layer_input = 0`) and uses uniform 4-bit blockwise quantization (`dynamic_wi4b32_afp32` blockwise-32 in LiteRT-LM, `Q4_0` blockwise-32 in GGUF, `int4-ov` in OpenVINO) rather than mixed 2-bit/4-bit mobile QAT."
   ]
 }

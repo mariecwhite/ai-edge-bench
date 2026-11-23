@@ -50,6 +50,7 @@ HIST_STYLE = {  # config -> (color, marker, linestyle)
     "litert-lm/fastest": ("#13408f", "square", "dashed"),
     "litert-lm/ynnpack": ("#5c9aff", "triangle", "dashdot"),
     "litert-lm/ynnpack-fastest": ("#3d7be0", "inverted_triangle", "dotted"),
+    "litert-lm/ynnpack-sdpa": ("#0b2c66", "diamond", "solid"),
     "litert-lm/gpu": ("#2b6cd9", "circle", "solid"),
     "xla/matched-ynnpack": ("#2e8b57", "circle", "solid"),
     "xla/matched-onednn": ("#1b5e20", "square", "dashed"),
