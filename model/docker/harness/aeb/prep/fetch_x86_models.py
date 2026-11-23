@@ -165,17 +165,33 @@ def _ensure_litert_lm_builder_compat() -> None:
     builder_cls.validate_metadata = lambda self: None
 
 
-def export_gemma4_31b_litertlm(source_dir: Path, output_dir: Path) -> Path:
+def export_gemma4_31b_litertlm(
+    source_dir: Path,
+    output_dir: Path,
+    *,
+    use_sdpa_composite: bool = False,
+) -> Path:
   """Export CPU/GPU tf_lite_prefill_decode .litertlm package for Gemma 4 31B.
 
   Upstream litert-community/gemma-4-31B-it-litert-lm (ad2ed603ed72) publishes only
   ML Drift GPU/Web artisan packages (model_type=tf_lite_artisan_text_decoder, ops=0).
   CPU execution via XNNPACK and YNNPACK requires a tf_lite_prefill_decode flatbuffer
   exported from the official Google QAT checkpoint via litert_torch.generative.export_hf
-  using the same dynamic_wi4_afp32 recipe used by litert-community/gemma-4-12B-it-litert-lm.
+  using the blockwise-32 dynamic_wi4b32_afp32 recipe (matching Q4_0 QAT granularity
+  and litert_torch's Gemma 4 default; channelwise dynamic_wi4_afp32 loses ~15 MMLU
+  points on 31B).
+
+  When ``use_sdpa_composite=True``, exports a separate ``gemma-4-31B-it-sdpa.litertlm``
+  with ``odml.sdpa_transposed`` composites and boolean attention masks for YNNPACK
+  dynamic KV slicing (leaving XNNPACK on the standard decomposed graph).
   """
   output_dir.mkdir(parents=True, exist_ok=True)
-  target = output_dir / "gemma-4-31B-it.litertlm"
+  filename = (
+      "gemma-4-31B-it-sdpa.litertlm"
+      if use_sdpa_composite
+      else "gemma-4-31B-it.litertlm"
+  )
+  target = output_dir / filename
   if target.is_file() and target.stat().st_size > 1_000_000_000:
     print(f"already exported: {target}", flush=True)
     return target
@@ -183,20 +199,31 @@ def export_gemma4_31b_litertlm(source_dir: Path, output_dir: Path) -> Path:
   _ensure_litert_lm_builder_compat()
   from litert_torch.generative.export_hf import export  # pylint: disable=g-import-not-at-top
 
-  export.export(
-      model=str(source_dir),
-      output_dir=str(output_dir),
-      bundle_litert_lm=True,
-      use_v2=True,
-      delete_in_memory_params=True,
-      quantization_recipe="dynamic_wi4_afp32",
-      prefill_lengths=[128, 1024],
-      cache_length=32771,
-      externalize_embedder=True,
-      single_token_embedder=True,
-      export_vision_encoder=False,
-      export_audio_encoder=False,
-  )
+  export_kwargs: dict[str, object] = {
+      "model": str(source_dir),
+      "output_dir": str(output_dir),
+      "bundle_litert_lm": True,
+      "use_v2": True,
+      "delete_in_memory_params": True,
+      "quantization_recipe": "dynamic_wi4b32_afp32",
+      "prefill_lengths": [128, 1024],
+      "cache_length": 32771,
+      "externalize_embedder": True,
+      "single_token_embedder": True,
+      "export_vision_encoder": False,
+      "export_audio_encoder": False,
+  }
+  if use_sdpa_composite:
+    # Keep apply_gpu_composites at its default (False) so GPU-only fusions
+    # (fuse_qkv, fuse_gate_up, use_rope_composite, use_qkv_norm_rope_composite,
+    # use_swiglu_composite, enable_gpu_dynamic_cache) stay off while
+    # use_sdpa_composite=True enables odml.sdpa_transposed + param_tensor.
+    export_kwargs.update(
+        use_sdpa_composite=True,
+        use_bool_mask=True,
+        prefill_logits=False,
+    )
+  export.export(**export_kwargs)
   generated = output_dir / "model.litertlm"
   if generated.is_file() and generated != target:
     generated.rename(target)
@@ -208,7 +235,14 @@ def main(argv: list[str] | None = None) -> None:
   ap = argparse.ArgumentParser(description=__doc__)
   ap.add_argument("--model", choices=["e2b", "31b", "all"], default="e2b")
   ap.add_argument("--models-dir", type=Path, default=Path("/models"))
+  ap.add_argument("--skip-download", action="store_true")
   ap.add_argument("--skip-litert-export", action="store_true")
+  ap.add_argument(
+      "--litert-variant",
+      choices=["default", "sdpa", "both"],
+      default="both",
+      help="31B .litertlm variant(s) to export (default: both).",
+  )
   args = ap.parse_args(argv)
 
   models: list[tuple[str, str, Path, list[str]]] = []
@@ -217,21 +251,32 @@ def main(argv: list[str] | None = None) -> None:
   if args.model in ("31b", "all"):
     models.extend(_31b_models(args.models_dir))
 
-  for repo, revision, directory, include in models:
-    snapshot_download(
-        repo_id=repo,
-        revision=revision,
-        local_dir=directory,
-        allow_patterns=include,
-        max_workers=4,
-    )
-    print(f"staged {repo}@{revision} in {directory}", flush=True)
+  if not args.skip_download:
+    for repo, revision, directory, include in models:
+      snapshot_download(
+          repo_id=repo,
+          revision=revision,
+          local_dir=directory,
+          allow_patterns=include,
+          max_workers=4,
+      )
+      print(f"staged {repo}@{revision} in {directory}", flush=True)
 
   if args.model in ("31b", "all") and not args.skip_litert_export:
-    export_gemma4_31b_litertlm(
-        source_dir=args.models_dir / "google/gemma-4-31B-it-qat-q4_0-unquantized",
-        output_dir=args.models_dir / "litert-community/gemma-4-31B-it-litert-lm",
-    )
+    source_dir = args.models_dir / "google/gemma-4-31B-it-qat-q4_0-unquantized"
+    output_dir = args.models_dir / "litert-community/gemma-4-31B-it-litert-lm"
+    if args.litert_variant in ("default", "both"):
+      export_gemma4_31b_litertlm(
+          source_dir=source_dir,
+          output_dir=output_dir,
+          use_sdpa_composite=False,
+      )
+    if args.litert_variant in ("sdpa", "both"):
+      export_gemma4_31b_litertlm(
+          source_dir=source_dir,
+          output_dir=output_dir,
+          use_sdpa_composite=True,
+      )
 
 
 if __name__ == "__main__":

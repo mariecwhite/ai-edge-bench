@@ -2,14 +2,14 @@
 
 - **Interactive HTML Dashboard**: [`model/dashboards/index.html`](index.html)
 - **Raw Time-Series JSON**: [`model/dashboards/data.json`](data.json)
-- **Last Updated**: `2026-11-18 16:29:29 UTC`
+- **Last Updated**: `2026-11-23 18:27:40 UTC`
 
 ## Tracked Model Benchmark Suites
 
 | Suite | Machine | Workload (`prompt -> decode`, `ctx`) | Configs | Snapshots | Latest Report |
 | :--- | :--- | :--- | ---: | ---: | :--- |
 | [`gemma4-e2b-cpu-sapphire-rapids`](#gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids) | `sapphire-rapids` | `1024 -> 128` (`ctx=4096`) | 16 | 5 | [`2026-11-03`](../reports/2026-11-03-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/README.md) |
-| [`gemma4-31b-cpu-sapphire-rapids`](#gemma4-31b-cpu-sapphire-rapids-sapphire-rapids) | `sapphire-rapids` | `1024 -> 128` (`ctx=4096`) | 12 | 2 | [`2026-11-18`](../reports/2026-11-18-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) |
+| [`gemma4-31b-cpu-sapphire-rapids`](#gemma4-31b-cpu-sapphire-rapids-sapphire-rapids) | `sapphire-rapids` | `1024 -> 128` (`ctx=4096`) | 13 | 3 | [`2026-11-23`](../reports/2026-11-23-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) |
 | [`gemma4-26b-a4b-gpu`](#gemma4-26b-a4b-gpu-apple-m5-max) | `apple-m5-max` | `1024 -> 256` (`ctx=4096`) | 4 | 1 | [`2026-10-22`](../reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/README.md) |
 | [`gemma4-e2b-cpu-arm-runtimes`](#gemma4-e2b-cpu-arm-runtimes-apple-m5-max) | `apple-m5-max` | `1024 -> 256` (`ctx=4096`) | 3 | 1 | [`2026-10-02`](../reports/2026-10-02-gemma4-e2b-cpu-arm-runtimes-apple-m5-max/README.md) |
 | [`gemma4-e2b-cpu`](#gemma4-e2b-cpu-apple-m5-max) | `apple-m5-max` | `1024 -> 256` (`ctx=4096`) | 5 | 1 | [`2026-10-01`](../reports/2026-10-01-gemma4-e2b-cpu-apple-m5-max/README.md) |
@@ -91,53 +91,54 @@ Gemma 4 31B (dense 60-layer, 50 sliding-window + 10 global attention layers) on 
 
 - **Hardware / OS**: `x86_64 server pinned to Socket 0 physical cores`
 - **Headline Workload**: `1024` prompt -> `128` decode tokens (`ctx=4096`)
-- **Reports**: [`2026-11-11`](../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md), [`2026-11-18`](../reports/2026-11-18-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md)
+- **Reports**: [`2026-11-11`](../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md), [`2026-11-18`](../reports/2026-11-18-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md), [`2026-11-23`](../reports/2026-11-23-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md)
 
 ```mermaid
-%%{init: {"xyChart": {"width": 1050, "height": 380}, "themeVariables": {"xyChart": {"plotColorPalette": "#006978, #006064, #0095a8, #13408f, #2b6cd9, #43a047"}}}}%%
+%%{init: {"xyChart": {"width": 1050, "height": 380}, "themeVariables": {"xyChart": {"plotColorPalette": "#006978, #006064, #0095a8, #43a047, #13408f, #d9822b"}}}}%%
 xychart-beta
     title "gemma4-31b-cpu-sapphire-rapids Prefill Throughput Over Time (tok/s, Higher is Better)"
-    x-axis ["2026-11-11", "2026-11-18"]
+    x-axis ["2026-11-11", "2026-11-18", "2026-11-23"]
     y-axis "Prefill (tok/s)" 0 --> 396
-    line "openvino/fastest" [344.2, 326.2]
-    line "openvino/int8" [299.3, 291.3]
-    line "openvino/matched" [279.4, 250.7]
-    line "litert-lm/fastest" [203.6, 157.0]
-    line "litert-lm/matched" [179.4, 125.2]
-    line "xla/bf16-ynnpack" [116.5, 118.3]
+    line "openvino/fastest" [344.2, 326.2, 326.2]
+    line "openvino/int8" [299.3, 291.3, 291.3]
+    line "openvino/matched" [279.4, 250.7, 250.7]
+    line "xla/bf16-ynnpack" [116.5, 118.3, 118.3]
+    line "litert-lm/fastest" [203.6, 157.0, 87.3]
+    line "llama.cpp/matched" [115.8, 83.7, 83.7]
 ```
 
 ```mermaid
-%%{init: {"xyChart": {"width": 1050, "height": 380}, "themeVariables": {"xyChart": {"plotColorPalette": "#d9822b, #a85a10, #006978, #0095a8, #2b6cd9, #13408f"}}}}%%
+%%{init: {"xyChart": {"width": 1050, "height": 380}, "themeVariables": {"xyChart": {"plotColorPalette": "#d9822b, #a85a10, #006978, #0095a8, #2b6cd9, #c46d1f"}}}}%%
 xychart-beta
     title "gemma4-31b-cpu-sapphire-rapids Decode Throughput Over Time (tok/s, Higher is Better)"
-    x-axis ["2026-11-11", "2026-11-18"]
+    x-axis ["2026-11-11", "2026-11-18", "2026-11-23"]
     y-axis "Decode (tok/s)" 0 --> 13
-    line "llama.cpp/matched" [10.55, 8.47]
-    line "llama.cpp/fastest" [10.44, 8.4]
-    line "openvino/fastest" [8.05, 6.65]
-    line "openvino/matched" [7.33, 5.77]
-    line "litert-lm/matched" [6.47, 5.56]
-    line "litert-lm/fastest" [6.17, 5.35]
+    line "llama.cpp/matched" [10.55, 8.47, 8.47]
+    line "llama.cpp/fastest" [10.44, 8.4, 8.4]
+    line "openvino/fastest" [8.05, 6.65, 6.65]
+    line "openvino/matched" [7.33, 5.77, 5.77]
+    line "litert-lm/matched" [6.47, 5.56, 5.35]
+    line "llama.cpp/q8_0" [6.08, 5.04, 5.04]
 ```
 
-| Framework / Config | Track | Checkpoint | Weights / Acts / KV | Threads | Prefill [2026-11-11](../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Prefill [2026-11-18](../reports/2026-11-18-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Δ Prefill | Decode [2026-11-11](../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Decode [2026-11-18](../reports/2026-11-18-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Δ Decode | Latest TTFT (ms) ↓ | Warm TTFT (ms) ↓ | Latest E2E (ms) ↓ | Peak RSS (MB) ↓ | MMLU / GSM8K ↑ |
-| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| **BF16 Track** | | | | | | | | | | | | | | | |
-| 🏆 **`llama.cpp/bf16`** | `reference` | `it (GGUF)` | `bf16 / fp32 / fp16` | 32 | 41.2 | 42.2 | +1.0 (+2.5%) | 2.84 | 3.19 | +0.35 (+12.3%) | 24,277 | — | 64,647 | 60,366 | 86.50% / — |
-| `xla/bf16-ynnpack` | `reference` | `it (HF)` | `bf16 / bf16 / bf16` | 56 | 116.5 | 118.3 | +1.8 (+1.5%) | 0.33 | 0.29 | -0.04 (-12.1%) | 8,655 | — | 440,027 | 182,500 | 86.50% / — |
-| **INT8 Track** | | | | | | | | | | | | | | | |
-| 🏆 **`llama.cpp/q8_0`** | `reference` | `it (GGUF)` | `q8_0 / q8_0 / fp16` | 32 | 108.3 | 78.3 | -30.0 (-27.7%) | 6.08 | 5.04 | -1.04 (-17.1%) | 13,069 | — | 38,238 | 52,403 | 85.00% / — |
-| `openvino/int8` | `reference` | `it (OV)` | `int8_asym / bf16 / int8` | 56 | 299.3 | 291.3 | -8.0 (-2.7%) | 5.72 | 4.78 | -0.94 (-16.4%) | 3,515 | — | 30,259 | 54,321 | 86.00% / — |
-| **INT4 / Mixed Track** | | | | | | | | | | | | | | | |
-| 🏆 **`llama.cpp/matched`** | `matched` | `qat-q4_0` | `q4_0 / q8_0 / fp16` | 32 | 115.8 | 83.7 | -32.0 (-27.7%) | 10.55 | 8.47 | -2.08 (-19.7%) | 12,230 | 2,035 (6.01×) | 27,216 | 35,443 | 85.50% / 100.00% |
-| `llama.cpp/fastest` | `fastest` | `it (GGUF)` | `q4_0 / q8_0 / fp16` | 32 | 114.4 | 78.9 | -35.5 (-31.0%) | 10.44 | 8.40 | -2.04 (-19.5%) | 12,977 | 2,004 (6.47×) | 28,097 | 36,266 | 85.50% / 100.00% |
-| `openvino/fastest` | `fastest` | `it (OV)` | `int4_asym / bf16 / int8` | 56 | 344.2 | 326.2 | -18.0 (-5.2%) | 8.05 | 6.65 | -1.40 (-17.4%) | 3,139 | 603 (5.21×) | 22,299 | 35,179 | 86.00% / 100.00% |
-| `openvino/matched` | `matched` | `it (OV)` | `int4_asym / bf16 / int8` | 32 | 279.4 | 250.7 | -28.6 (-10.2%) | 7.33 | 5.77 | -1.56 (-21.3%) | 4,084 | 1,161 (3.52×) | 26,334 | 35,096 | 86.00% / 100.00% |
-| `litert-lm/matched` | `matched` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 32 | 179.4 | 125.2 | -54.3 (-30.2%) | 6.47 | 5.56 | -0.91 (-14.1%) | 8,181 | 1,502 (5.45×) | 31,051 | 23,767 | 71.00% / 94.00% |
-| `litert-lm/fastest` | `fastest` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 56 | 203.6 | 157.0 | -46.6 (-22.9%) | 6.17 | 5.35 | -0.82 (-13.3%) | 6,523 | 1,378 (4.74×) | 30,272 | 23,768 | 71.00% / 94.00% |
-| `litert-lm/ynnpack-fastest` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 56 | 120.2 | 106.2 | -14.1 (-11.7%) | 4.44 | 3.97 | -0.47 (-10.6%) | 9,646 | 2,013 (4.79×) | 41,752 | 36,648 | 71.50% / 92.00% |
-| `litert-lm/ynnpack` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 32 | 102.8 | 76.9 | -25.8 (-25.1%) | 4.75 | 3.71 | -1.04 (-21.9%) | 13,308 | 2,616 (5.09×) | 47,466 | 37,342 | 71.50% / 92.00% |
+| Framework / Config | Track | Checkpoint | Weights / Acts / KV | Threads | Prefill [2026-11-11](../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Prefill [2026-11-18](../reports/2026-11-18-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Prefill [2026-11-23](../reports/2026-11-23-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Δ Prefill | Decode [2026-11-11](../reports/2026-11-11-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Decode [2026-11-18](../reports/2026-11-18-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Decode [2026-11-23](../reports/2026-11-23-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) (tok/s) ↑ | Δ Decode | Latest TTFT (ms) ↓ | Warm TTFT (ms) ↓ | Latest E2E (ms) ↓ | Peak RSS (MB) ↓ | MMLU / GSM8K ↑ |
+| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **BF16 Track** | | | | | | | | | | | | | | | | | |
+| 🏆 **`llama.cpp/bf16`** | `reference` | `it (GGUF)` | `bf16 / fp32 / fp16` | 32 | 41.2 | 42.2 | 42.2 | 0.0 (0.0%) | 2.84 | 3.19 | 3.19 | 0.00 (0.0%) | 24,277 | — | 64,647 | 60,366 | 86.50% / — |
+| `xla/bf16-ynnpack` | `reference` | `it (HF)` | `bf16 / bf16 / bf16` | 56 | 116.5 | 118.3 | 118.3 | 0.0 (0.0%) | 0.33 | 0.29 | 0.29 | 0.00 (0.0%) | 8,655 | — | 440,027 | 182,500 | 86.50% / — |
+| **INT8 Track** | | | | | | | | | | | | | | | | | |
+| 🏆 **`llama.cpp/q8_0`** | `reference` | `it (GGUF)` | `q8_0 / q8_0 / fp16` | 32 | 108.3 | 78.3 | 78.3 | 0.0 (0.0%) | 6.08 | 5.04 | 5.04 | 0.00 (0.0%) | 13,069 | — | 38,238 | 52,403 | 85.00% / — |
+| `openvino/int8` | `reference` | `it (OV)` | `int8_asym / bf16 / int8` | 56 | 299.3 | 291.3 | 291.3 | 0.0 (0.0%) | 5.72 | 4.78 | 4.78 | 0.00 (0.0%) | 3,515 | — | 30,259 | 54,321 | 86.00% / — |
+| **INT4 / Mixed Track** | | | | | | | | | | | | | | | | | |
+| 🏆 **`llama.cpp/matched`** | `matched` | `qat-q4_0` | `q4_0 / q8_0 / fp16` | 32 | 115.8 | 83.7 | 83.7 | 0.0 (0.0%) | 10.55 | 8.47 | 8.47 | 0.00 (0.0%) | 12,230 | 2,035 (6.01×) | 27,216 | 35,443 | 85.50% / 100.00% |
+| `llama.cpp/fastest` | `fastest` | `it (GGUF)` | `q4_0 / q8_0 / fp16` | 32 | 114.4 | 78.9 | 78.9 | 0.0 (0.0%) | 10.44 | 8.40 | 8.40 | 0.00 (0.0%) | 12,977 | 2,004 (6.47×) | 28,097 | 36,266 | 85.50% / 100.00% |
+| `litert-lm/ynnpack-sdpa` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 56 | — | — | 93.6 | n/a | — | — | 7.29 | n/a | 10,942 | 1,728 (6.33×) | 28,387 | 26,895 | 83.50% / 100.00% |
+| `openvino/fastest` | `fastest` | `it (OV)` | `int4_asym / bf16 / int8` | 56 | 344.2 | 326.2 | 326.2 | 0.0 (0.0%) | 8.05 | 6.65 | 6.65 | 0.00 (0.0%) | 3,139 | 603 (5.21×) | 22,299 | 35,179 | 86.00% / 100.00% |
+| `openvino/matched` | `matched` | `it (OV)` | `int4_asym / bf16 / int8` | 32 | 279.4 | 250.7 | 250.7 | 0.0 (0.0%) | 7.33 | 5.77 | 5.77 | 0.00 (0.0%) | 4,084 | 1,161 (3.52×) | 26,334 | 35,096 | 86.00% / 100.00% |
+| `litert-lm/matched` | `matched` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 32 | 179.4 | 125.2 | 61.5 | -63.7 (-50.9%) | 6.47 | 5.56 | 5.35 | -0.21 (-3.8%) | 16,656 | 2,690 (6.19×) | 40,470 | 27,277 | 81.00% / 100.00% |
+| `litert-lm/fastest` | `fastest` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 56 | 203.6 | 157.0 | 87.3 | -69.7 (-44.4%) | 6.17 | 5.35 | 4.70 | -0.65 (-12.2%) | 11,726 | 2,102 (5.58×) | 38,609 | 27,278 | 81.00% / 100.00% |
+| `litert-lm/ynnpack` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 32 | 102.8 | 76.9 | 54.4 | -22.6 (-29.3%) | 4.75 | 3.71 | 4.36 | +0.65 (+17.5%) | 18,828 | 3,029 (6.22×) | 47,857 | 27,260 | 83.00% / 100.00% |
+| `litert-lm/ynnpack-fastest` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 56 | 120.2 | 106.2 | 75.5 | -30.6 (-28.9%) | 4.44 | 3.97 | 4.15 | +0.18 (+4.5%) | 13,558 | 2,304 (5.88×) | 44,242 | 27,804 | 83.00% / 100.00% |
 
 ---
 

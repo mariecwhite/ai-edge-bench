@@ -989,6 +989,7 @@ HIST_STYLE = {  # config -> (color, marker, linestyle)
     "litert-lm/fastest": ("#13408f", "s", "--"),
     "litert-lm/ynnpack": ("#5c9aff", "^", "-."),
     "litert-lm/ynnpack-fastest": ("#3d7be0", "v", ":"),
+    "litert-lm/ynnpack-sdpa": ("#0b2c66", "D", "-"),
     "xla/matched-ynnpack": ("#2e8b57", "o", "-"),
     "xla/matched-onednn": ("#1b5e20", "s", "--"),
     "xla/bf16-ynnpack": ("#43a047", "^", "-"),

@@ -29,6 +29,7 @@
       "litert-lm/matched",
       "litert-lm/fastest",
       "litert-lm/ynnpack",
+      "litert-lm/ynnpack-sdpa",
       "openvino/matched",
       "openvino/fastest"
     ]
@@ -49,6 +50,7 @@
       "litert-lm/matched",
       "litert-lm/fastest",
       "litert-lm/ynnpack",
+      "litert-lm/ynnpack-sdpa",
       "openvino/matched",
       "openvino/fastest"
     ]
@@ -97,6 +99,7 @@
     "gguf_q8_0": "/models/ggml-org/gemma-4-31B-it-GGUF/gemma-4-31B-it-Q8_0.gguf",
     "gguf_bf16": "/models/ggml-org/gemma-4-31B-it-GGUF/gemma-4-31B-it-BF16.gguf",
     "litert": "/models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it.litertlm",
+    "litert_sdpa": "/models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it-sdpa.litertlm",
     "hf_bf16": "/models/google/gemma-4-31B-it",
     "hf_qat_q4_0": "/models/google/gemma-4-31B-it-qat-q4_0-unquantized",
     "ov_int4": "/models/OpenVINO/gemma-4-31B-it-int4-ov",
@@ -144,7 +147,7 @@
       "framework": "litert-lm",
       "dtype": "int4",
       "track": "matched",
-      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32 exported from google/gemma-4-31B-it-qat-q4_0-unquantized via litert-torch) with XNNPACK delegate (AVX-512 VNNI + AMX, 32 threads)",
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32 exported from google/gemma-4-31B-it-qat-q4_0-unquantized via litert-torch) with XNNPACK delegate (AVX-512 VNNI + AMX, 32 threads)",
       "args": ["--model", "{litert}", "--threads", "{threads}", "--ctx", "{ctx}", "--cache-dir", "/results/.cache/litert-lm-31b"],
       "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
     },
@@ -153,7 +156,7 @@
       "framework": "litert-lm",
       "dtype": "int4",
       "track": "fastest",
-      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32) with XNNPACK delegate (AVX-512 VNNI + AMX, 56 physical cores on Socket 0)",
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32) with XNNPACK delegate (AVX-512 VNNI + AMX, 56 physical cores on Socket 0)",
       "args": ["--model", "{litert}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--cache-dir", "/results/.cache/litert-lm-31b"],
       "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
     },
@@ -162,7 +165,7 @@
       "framework": "litert-lm",
       "dtype": "int4",
       "track": "reference",
-      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32) with experimental YNNPACK delegate (--ynnpack / --enable_ynnpack=true, AVX-512 + AMX, 32 threads)",
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32) with experimental YNNPACK delegate (--ynnpack / --enable_ynnpack=true, 32 threads; YNNPACK falls back to XNNPACK for blockwise-quantized FC ops)",
       "args": ["--model", "{litert}", "--threads", "{threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b-ynn"],
       "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
     },
@@ -171,8 +174,17 @@
       "framework": "litert-lm",
       "dtype": "int4",
       "track": "reference",
-      "quant_note": "LiteRT-LM (.litertlm, dynamic_wi4_afp32) with experimental YNNPACK delegate (--ynnpack / --enable_ynnpack=true, AVX-512 + AMX, 56 physical cores on Socket 0)",
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32) with experimental YNNPACK delegate (--ynnpack / --enable_ynnpack=true, 56 physical cores; YNNPACK falls back to XNNPACK for blockwise-quantized FC ops)",
       "args": ["--model", "{litert}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b-ynn"],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    },
+    {
+      "id": "litert-lm/ynnpack-sdpa",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32 with odml.sdpa_transposed composite + bool mask) with YNNPACK delegate (--ynnpack / --enable_ynnpack=true, 56 physical cores; YNNPACK executes SDPA/non-FC ops and falls back to XNNPACK for blockwise-quantized FC ops)",
+      "args": ["--model", "{litert_sdpa}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b-ynn-sdpa"],
       "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
     },
     {

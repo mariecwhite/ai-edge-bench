@@ -766,5 +766,77 @@ class LiteRtLmDriverTest(unittest.TestCase):
     self._run_driver_case(out_param_mode=False)
 
 
+class ExportGemma431bLitertlmTest(unittest.TestCase):
+
+  def _run_export(self, use_sdpa_composite: bool):
+    import types
+    calls = []
+
+    def fake_export(**kwargs):
+      calls.append(kwargs)
+      out = Path(kwargs["output_dir"]) / "model.litertlm"
+      out.write_bytes(b"fake-litertlm")
+
+    fake_hf_hub = types.ModuleType("huggingface_hub")
+    fake_hf_hub.snapshot_download = lambda **kwargs: None
+    fake_lt = types.ModuleType("litert_torch")
+    fake_gen = types.ModuleType("litert_torch.generative")
+    fake_ehf = types.ModuleType("litert_torch.generative.export_hf")
+    fake_exp = types.ModuleType("litert_torch.generative.export_hf.export")
+    fake_exp.export = fake_export
+    fake_ehf.export = fake_exp
+    fake_gen.export_hf = fake_ehf
+    fake_lt.generative = fake_gen
+
+    injected = {
+        "huggingface_hub": fake_hf_hub,
+        "litert_torch": fake_lt,
+        "litert_torch.generative": fake_gen,
+        "litert_torch.generative.export_hf": fake_ehf,
+        "litert_torch.generative.export_hf.export": fake_exp,
+    }
+    saved = {k: sys.modules.get(k) for k in injected}
+    saved_mod = sys.modules.pop("aeb.prep.fetch_x86_models", None)
+    sys.modules.update(injected)
+    try:
+      import aeb.prep.fetch_x86_models as mod
+      with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / "src"
+        out = Path(tmp) / "out"
+        src.mkdir()
+        target = mod.export_gemma4_31b_litertlm(
+            src, out, use_sdpa_composite=use_sdpa_composite
+        )
+        self.assertTrue(target.is_file())
+        return target.name, calls[0]
+    finally:
+      for k, v in saved.items():
+        if v is None:
+          sys.modules.pop(k, None)
+        else:
+          sys.modules[k] = v
+      if saved_mod is not None:
+        sys.modules["aeb.prep.fetch_x86_models"] = saved_mod
+      else:
+        sys.modules.pop("aeb.prep.fetch_x86_models", None)
+
+  def test_default_export_kwargs(self):
+    name, kwargs = self._run_export(use_sdpa_composite=False)
+    self.assertEqual(name, "gemma-4-31B-it.litertlm")
+    self.assertEqual(kwargs["quantization_recipe"], "dynamic_wi4b32_afp32")
+    self.assertNotIn("use_sdpa_composite", kwargs)
+    self.assertNotIn("apply_gpu_composites", kwargs)
+    self.assertNotIn("use_bool_mask", kwargs)
+
+  def test_sdpa_export_kwargs(self):
+    name, kwargs = self._run_export(use_sdpa_composite=True)
+    self.assertEqual(name, "gemma-4-31B-it-sdpa.litertlm")
+    self.assertEqual(kwargs["quantization_recipe"], "dynamic_wi4b32_afp32")
+    self.assertTrue(kwargs["use_sdpa_composite"])
+    self.assertTrue(kwargs["use_bool_mask"])
+    self.assertIs(kwargs["prefill_logits"], False)
+    self.assertNotIn("apply_gpu_composites", kwargs)
+
+
 if __name__ == "__main__":
   unittest.main()
