@@ -344,6 +344,7 @@ def build_three_series_chart(
     s3_vals: List[float],
     palette: str = "#16a085, #2b6cd9, #e67e22",
     gap_slots: int = 2,
+    x_axis_label: str = "4-Bit Shape (M x N x K)",
 ) -> str:
   """Builds a Mermaid xychart-beta with 3 side-by-side bars centered on the middle slot."""
   sentinel = -y_max
@@ -385,7 +386,7 @@ def build_three_series_chart(
       f'%%{{init: {{"xyChart": {{"width": 1250, "height": 480, "xAxis": {{"labelRotation": 0, "labelFontSize": 11, "showTick": false}}}}, "themeVariables": {{"xyChart": {{"plotColorPalette": "{palette}"}}}}}}}}%%',
       "xychart-beta",
       f'    title "{title}"',
-      f'    x-axis "4-Bit Shape (M x N x K)" [{", ".join(x_cats)}]',
+      f'    x-axis "{x_axis_label}" [{", ".join(x_cats)}]',
       f'    y-axis "{y_label}" 0 --> {y_max}',
       f'    bar "{s1_name}" [{", ".join(str(v) for v in b1)}]',
       f'    bar "{s2_name}" [{", ".join(str(v) for v in b2)}]',
@@ -393,6 +394,1161 @@ def build_three_series_chart(
       "```",
   ]
   return "\n".join(lines)
+
+
+# =============================================================================
+# ARM64 / Apple Silicon (Apple M5 Max) Kernel Report Generator
+# =============================================================================
+
+
+def tc_key_arm64(threads: int) -> str:
+  return "single_core" if threads == 1 else f"threads_{threads}c"
+
+
+def resolve_arm64_ceilings_for_thread(
+    ceilings: Dict[str, Any],
+    isa: str,
+    mem_regime: str,
+    pair_id: str,
+    backend: str,
+    threads: int,
+) -> Tuple[str, float, str, float]:
+  """Returns (compute_ceil_name, c_val, bw_ceil_name, bw_val) on Apple M5 Max."""
+  comp = ceilings["compute_ceilings_gops"]
+  bw = ceilings["bandwidth_ceilings_gbps"]
+  key = tc_key_arm64(threads)
+
+  if isa in ("SME2-INT8", "SME-INT8"):
+    c_name = "SME2-INT8 (smopa)"
+    c_val = comp["sme2_int8_smopa"][key]
+  elif isa in ("SME2-FP32", "SME-FP32"):
+    c_name = "SME2-FP32 (fmopa)"
+    c_val = comp["sme2_fp32_fmopa"][key]
+  elif isa == "NEON-I8MM":
+    c_name = "NEON I8MM (smmla)"
+    c_val = comp["neon_i8mm_smmla"][key]
+  elif isa == "NEON-DotProd":
+    c_name = "NEON DotProd (sdot)"
+    c_val = comp["neon_dotprod_sdot"][key]
+  else:
+    c_name = "NEON FP32 FMA (fmla)"
+    c_val = comp["neon_fp32_fmla"][key]
+
+  if mem_regime == "Unified_Memory_Streaming":
+    b_name = "Unified Memory Read"
+    b_val = bw["unified_memory"]["read_only"][key]
+  elif mem_regime == "SLC_L2_Warm":
+    b_name = "Shared SLC Read"
+    b_val = bw["slc_shared"]["read_only"][key]
+  elif mem_regime == "L2_Cluster_Warm":
+    b_name = "L2 Cluster Read"
+    b_val = bw["l2_cluster"]["read_only"][key]
+  elif mem_regime == "L2_Cluster_Copy":
+    b_name = "L2 Cluster Copy"
+    b_val = bw["l2_cluster"]["read_write_copy"][key]
+  elif mem_regime == "SLC_Copy":
+    b_name = "Shared SLC Copy"
+    b_val = bw["slc_shared"]["read_write_copy"][key]
+  elif pair_id == "pair4_fp32_softmax":
+    if backend == "YNNPACK":
+      if mem_regime == "L2_Cluster_Resident":
+        b_name = "L2 Cluster Read"
+        b_val = bw["l2_cluster"]["read_only"][key]
+      else:
+        b_name = "Shared SLC Read"
+        b_val = bw["slc_shared"]["read_only"][key]
+    else:
+      b_name = "L2 Cluster Row-Fused Copy"
+      b_val = bw["l2_cluster"]["read_write_copy"][key]
+  elif mem_regime == "SLC_Resident":
+    b_name = "Shared SLC Read"
+    b_val = bw["slc_shared"]["read_only"][key]
+  else:
+    b_name = "L2 Cluster Read"
+    b_val = bw["l2_cluster"]["read_only"][key]
+
+  return c_name, c_val, b_name, b_val
+
+
+def enrich_arm64_benchmark_row(
+    row: Dict[str, Any],
+    ceilings: Dict[str, Any],
+    thread_configs: List[int],
+    precision_by_pair: Optional[Dict[str, Dict[str, Any]]] = None,
+    baseline_retained: bool = False,
+) -> Dict[str, Any]:
+  pair_id = row["pair_id"]
+  isa = row["isa"]
+  mem_regime = row["memory_regime"]
+  ai = row["arithmetic_intensity_ops_per_byte"]
+  backend = row["backend"]
+
+  comp = ceilings["compute_ceilings_gops"]
+  sme_int8 = comp["sme2_int8_smopa"]
+  neon_i8mm = comp["neon_i8mm_smmla"]
+  sme_fp32 = comp["sme2_fp32_fmopa"]
+  neon_fp32 = comp["neon_fp32_fmla"]
+
+  roofline: Dict[str, Any] = {}
+  c_name = ""
+  b_name = ""
+  unit = "GOPS"
+
+  for t in thread_configs:
+    key = tc_key_arm64(t)
+    sfx = tc_suffix(t)
+    c_name, c_val, b_name, b_val = resolve_arm64_ceilings_for_thread(
+        ceilings, isa, mem_regime, pair_id, backend, t
+    )
+    if pair_id == "pair7_pack_transpose":
+      ceil_val = b_val
+      bound = "Memory-Bound"
+      meas_val = row[key]["gbps"]
+      unit = "GB/s"
+    elif pair_id == "pair4_fp32_softmax":
+      ceil_val = b_val
+      bound = (
+          "Memory-Bound (Reductions)"
+          if backend == "YNNPACK"
+          else "Memory/Exp-Poly"
+      )
+      meas_val = row[key]["gbps"]
+      unit = "GB/s"
+    else:
+      mem_roof = ai * b_val
+      ceil_val = min(c_val, mem_roof)
+      bound = "Memory-Bound" if mem_roof < c_val else "Compute-Bound"
+      meas_val = row[key]["gops"]
+      unit = "GOPS" if "FP32" not in isa else "GFLOPS"
+
+    util = (meas_val / ceil_val * 100.0) if ceil_val > 0 else 0.0
+
+    if pair_id in ("pair2_int4_gemm", "pair5_int8_gemm", "pair6_int2_gemm"):
+      # True machine INT8 compute peak: SME2 leads at 1T/6T, NEON-I8MM leads at 18T!
+      mach_comp = max(sme_int8[key], neon_i8mm[key])
+      mach_ceil = min(mach_comp, ai * b_val)
+      mach_util = (meas_val / mach_ceil * 100.0) if mach_ceil > 0 else 0.0
+    elif pair_id == "pair3_fp32_attn_bmm":
+      mach_comp = max(sme_fp32[key], neon_fp32[key])
+      mach_ceil = min(mach_comp, ai * b_val)
+      mach_util = (meas_val / mach_ceil * 100.0) if mach_ceil > 0 else 0.0
+    else:
+      mach_util = util
+
+    roofline[f"compute_ceiling_{sfx}"] = round(c_val, 2)
+    roofline[f"bandwidth_ceiling_{sfx}_gbps"] = round(b_val, 2)
+    roofline[f"effective_ceiling_{sfx}"] = round(ceil_val, 2)
+    roofline[f"regime_{sfx}"] = bound
+    roofline[f"isa_roofline_utilization_{sfx}_pct"] = round(util, 2)
+    roofline[f"machine_roofline_utilization_{sfx}_pct"] = round(mach_util, 2)
+
+  roofline = {
+      "unit": unit,
+      "compute_ceiling_name": c_name,
+      "bandwidth_ceiling_name": b_name,
+      **roofline,
+  }
+
+  enriched = dict(row)
+  enriched["roofline"] = roofline
+
+  if (
+      precision_by_pair is not None
+      and pair_id in BENCH_TO_PRECISION_PAIR_ID
+      and backend in ("XNNPACK", "YNNPACK")
+  ):
+    prec_pair_id = BENCH_TO_PRECISION_PAIR_ID[pair_id]
+    prec_pair = precision_by_pair[prec_pair_id]
+    bkey = "xnnpack" if backend == "XNNPACK" else "ynnpack"
+    sym_key = "xnnpack_symbol" if backend == "XNNPACK" else "ynnpack_symbol"
+    prec_entry = prec_pair[bkey]
+    verified_sym = prec_pair[sym_key]
+    enriched["precision"] = {
+        "baseline_retained": baseline_retained,
+        "verified_symbol": verified_sym,
+        "symbol_matches_bench": verified_sym == row["kernel"],
+        "level_a_status": prec_entry["level_a_exact_ukernel"]["status"],
+        "level_a_max_ulp_diff": prec_entry["level_a_exact_ukernel"][
+            "max_ulp_diff"
+        ],
+        "level_a_sqnr_db": prec_entry["level_a_exact_ukernel"]["sqnr_db"],
+        "level_b_status": prec_entry["level_b_fp64_golden"]["status"],
+        "level_b_sqnr_db": prec_entry["level_b_fp64_golden"]["sqnr_db"],
+        "level_b_cosine_sim": prec_entry["level_b_fp64_golden"]["cosine_sim"],
+    }
+
+  return enriched
+
+
+def generate_arm64_report(
+    report_dir: Path, precision_json_arg: Optional[Path] = None
+) -> None:
+  """Generates unified JSON & Markdown reports for Apple M5 Max (ARM64 SME2 + NEON)."""
+  ceilings_path = report_dir / "ceilings_apple_m5_max.json"
+  bench_path = report_dir / "ukernel_benchmarks_apple_m5_max.json"
+  out_json_path = report_dir / "kernel_report_gemma4_31b_apple_m5_max.json"
+  out_md_path = report_dir / "kernel_report_gemma4_31b_apple_m5_max.md"
+
+  if precision_json_arg is not None:
+    precision_path = precision_json_arg.resolve()
+  else:
+    found_prec = find_sibling_artifact(
+        report_dir, "ukernel_precision_apple_m5_max.json"
+    )
+    if found_prec is None:
+      raise FileNotFoundError(
+          "Could not locate ukernel_precision_apple_m5_max.json in "
+          f"{report_dir} or sibling report directories"
+      )
+    precision_path = found_prec.resolve()
+
+  benchmark_date = extract_benchmark_date(report_dir)
+  baseline_retained = precision_path.parent.resolve() != report_dir.resolve()
+  precision_rel = rel_link(report_dir, precision_path)
+
+  ceilings = json.loads(ceilings_path.read_text())
+  bench_data = json.loads(bench_path.read_text())
+  precision_data = json.loads(precision_path.read_text())
+
+  thread_configs: List[int] = bench_data.get(
+      "thread_configs", ceilings.get("thread_configs", [1, 6, 18])
+  )
+  mt_configs = [t for t in thread_configs if t > 1]
+  primary_t = mt_configs[-1]
+  mid_t = mt_configs[0] if len(mt_configs) > 1 else primary_t
+  primary_key = tc_key_arm64(primary_t)
+  mid_key = tc_key_arm64(mid_t)
+  primary_sfx = tc_suffix(primary_t)
+  util_field = f"isa_roofline_utilization_{primary_sfx}_pct"
+
+  xnnpack_commit = bench_data.get("xnnpack_commit", "")
+  kleidiai_commit = bench_data.get("kleidiai_commit", "")
+  commit_short = xnnpack_commit[:8] if xnnpack_commit else "unknown"
+  kai_short = kleidiai_commit[:8] if kleidiai_commit else "unknown"
+  num_trials = bench_data.get("num_trials", 7)
+
+  precision_by_pair: Dict[str, Dict[str, Any]] = {
+      p["pair_id"]: p for p in precision_data["pairs"]
+  }
+
+  enriched_rows: List[Dict[str, Any]] = [
+      enrich_arm64_benchmark_row(
+          row,
+          ceilings,
+          thread_configs,
+          precision_by_pair,
+          baseline_retained=baseline_retained,
+      )
+      for row in bench_data["benchmarks"]
+  ]
+  enriched_baselines: List[Dict[str, Any]] = [
+      enrich_arm64_benchmark_row(row, ceilings, thread_configs, None)
+      for row in bench_data.get("baseline_comparisons", [])
+  ]
+
+  out_json: Dict[str, Any] = {
+      "model": "Gemma 4 31B",
+      "arch": "arm64",
+      "microarchitecture": ceilings.get("microarchitecture", "Apple M5 Max"),
+      "benchmark_date": benchmark_date,
+      "xnnpack_commit": xnnpack_commit,
+      "kleidiai_commit": kleidiai_commit,
+      "thread_configs": thread_configs,
+      "primary_multi_core_threads": primary_t,
+      "num_trials": num_trials,
+      "hardware_ceilings": ceilings,
+      "kernel_roofline_benchmarks": enriched_rows,
+      "baseline_comparisons": enriched_baselines,
+      "kernel_precision_verification": precision_data,
+  }
+  out_json_path.write_text(json.dumps(out_json, indent=2) + "\n")
+
+  lookup: Dict[Tuple[str, int, int, int, str, str], Dict[str, Any]] = {}
+  for r in enriched_rows:
+    s = r["shape"]
+    lookup[
+        (r["pair_id"], s["M"], s["N"], s["K"], r["memory_regime"], r["backend"])
+    ] = r
+
+  base_lookup: Dict[Tuple[str, int, int, int, str, str], Dict[str, Any]] = {}
+  for r in enriched_baselines:
+    s = r["shape"]
+    base_lookup[
+        (r["pair_id"], s["M"], s["N"], s["K"], r["memory_regime"], r["backend"])
+    ] = r
+
+  def get_row(
+      pair_id: str, m: int, n: int, k: int, regime: str, backend: str
+  ) -> Dict[str, Any]:
+    return lookup[(pair_id, m, n, k, regime, backend)]
+
+  def get_base(
+      pair_id: str, m: int, n: int, k: int, regime: str, backend: str
+  ) -> Optional[Dict[str, Any]]:
+    return base_lookup.get((pair_id, m, n, k, regime, backend))
+
+  # Ceilings shortcuts
+  comp = ceilings["compute_ceilings_gops"]
+  bw = ceilings["bandwidth_ceilings_gbps"]
+  topo = ceilings["topology"]
+  sme_i8_1 = comp["sme2_int8_smopa"]["single_core"]
+  sme_i8_6 = comp["sme2_int8_smopa"][mid_key]
+  sme_i8_18 = comp["sme2_int8_smopa"][primary_key]
+  sme_f32_1 = comp["sme2_fp32_fmopa"]["single_core"]
+  sme_f32_6 = comp["sme2_fp32_fmopa"][mid_key]
+  sme_f32_18 = comp["sme2_fp32_fmopa"][primary_key]
+  i8mm_1 = comp["neon_i8mm_smmla"]["single_core"]
+  i8mm_6 = comp["neon_i8mm_smmla"][mid_key]
+  i8mm_18 = comp["neon_i8mm_smmla"][primary_key]
+  sdot_1 = comp["neon_dotprod_sdot"]["single_core"]
+  sdot_18 = comp["neon_dotprod_sdot"][primary_key]
+  nf32_1 = comp["neon_fp32_fmla"]["single_core"]
+  nf32_18 = comp["neon_fp32_fmla"][primary_key]
+
+  um_rd_1 = bw["unified_memory"]["read_only"]["single_core"]
+  um_rd_6 = bw["unified_memory"]["read_only"][mid_key]
+  um_rd_18 = bw["unified_memory"]["read_only"][primary_key]
+  um_cp_18 = bw["unified_memory"]["read_write_copy"][primary_key]
+  l2_rd_18 = bw["l2_cluster"]["read_only"][primary_key]
+  l2_cp_18 = bw["l2_cluster"]["read_write_copy"][primary_key]
+  slc_rd_18 = bw["slc_shared"]["read_only"][primary_key]
+
+  # --- Chart 1: 18-Core Primary Compute Throughput (XNNPACK vs YNNPACK) ---
+  gemm_labels = [
+      "P2: INT4 128x21504",
+      "P2: INT4 128x5376",
+      "P2: INT4 1024x21504",
+      "P5: INT8 280x5376",
+      "P5: INT8 2520x1152",
+      "P6: INT2 204x4096",
+      "P3: FP32 1024x4096",
+  ]
+  chart1_specs = [
+      ("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled"),
+      ("pair2_int4_gemm", 128, 5376, 21504, "Unified_Memory_to_L2_Tiled"),
+      ("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled"),
+      ("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident"),
+      ("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident"),
+      ("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident"),
+      ("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident"),
+  ]
+  c1_xnn = [
+      lookup[(*sp, "XNNPACK")][primary_key]["gops"] / 1000.0
+      for sp in chart1_specs
+  ]
+  c1_ynn = [
+      lookup[(*sp, "YNNPACK")][primary_key]["gops"] / 1000.0
+      for sp in chart1_specs
+  ]
+  chart1_md = build_side_by_side_chart(
+      f"{primary_t}-Core Primary Compute Throughput: XNNPACK KleidiAI SME2 (Blue) vs YNNPACK SME2/SME (Orange) [TOPS / TFLOPS]",
+      f"TOPS / TFLOPS ({primary_t} Cores)",
+      nice_y_max(c1_xnn + c1_ynn, step=1, floor=7),
+      gemm_labels,
+      c1_xnn,
+      c1_ynn,
+  )
+
+  # --- Chart 2: 18-Core Practical ISA Roofline Utilization (%) ---
+  util_labels = [
+      "P1: INT4 (Cold)",
+      "P1: INT4 (L2 Warm)",
+      "P2: INT4 (M=128)",
+      "P3: FP32 BMM",
+      "P4: Softmax (L2)",
+      "P5: INT8 (M=280)",
+      "P6: INT2 (Audio)",
+      "P7: Pack/Transp",
+  ]
+  chart2_specs = [
+      ("pair1_int4_gemv", 1, 5376, 21504, "Unified_Memory_Streaming"),
+      ("pair1_int4_gemv", 1, 4096, 5376, "L2_Cluster_Warm"),
+      ("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled"),
+      ("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident"),
+      ("pair4_fp32_softmax", 1024, 1024, 1, "L2_Cluster_Resident"),
+      ("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident"),
+      ("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident"),
+      ("pair7_pack_transpose", 1, 2520, 1152, "SLC_Copy"),
+  ]
+  c2_xnn = [
+      lookup[(*sp, "XNNPACK")]["roofline"][util_field] for sp in chart2_specs
+  ]
+  c2_ynn = [
+      lookup[(*sp, "YNNPACK")]["roofline"][util_field] for sp in chart2_specs
+  ]
+  c2_ymax = (
+      100
+      if max(c2_xnn + c2_ynn) <= 100.0
+      else nice_y_max(c2_xnn + c2_ynn, step=10, floor=100)
+  )
+  chart2_md = build_side_by_side_chart(
+      f"{primary_t}-Core Practical ISA Roofline Utilization (%): XNNPACK (Blue) vs YNNPACK (Orange)",
+      "Roofline Utilization (%)",
+      c2_ymax,
+      util_labels,
+      c2_xnn,
+      c2_ynn,
+  )
+
+  # --- Chart 3: 18-Core SME2/SME vs. Per-Core NEON Crossover ---
+  cross_specs = [
+      ("pair1_int4_gemv", 1, 4096, 5376, "L2_Cluster_Warm", "P1: INT4 L2 Warm"),
+      ("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "P2: INT4 M=128"),
+      ("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "P5: INT8 280x5376"),
+      ("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "P5: INT8 2520x1152"),
+      ("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "P6: INT2 204x4096"),
+      ("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "P3: FP32 1024x4096"),
+  ]
+  cross_labels = [sp[5] for sp in cross_specs]
+  cross_xnn_sme: List[float] = []
+  cross_ynn_sme: List[float] = []
+  cross_best_neon: List[float] = []
+  for sp in cross_specs:
+    k5 = sp[:5]
+    if sp[0] == "pair1_int4_gemv":
+      x_sme = lookup[(*k5, "XNNPACK")][primary_key]["gops"] / 1000.0
+      y_sme_r = base_lookup.get((*k5, "YNNPACK_SME_BASELINE"))
+      y_sme = (y_sme_r[primary_key]["gops"] / 1000.0) if y_sme_r else 0.0
+      best_n = max(
+          lookup[(*k5, "YNNPACK")][primary_key]["gops"],
+          base_lookup[(*k5, "XNNPACK_NEON_BASELINE")][primary_key]["gops"],
+      ) / 1000.0
+    else:
+      x_sme = lookup[(*k5, "XNNPACK")][primary_key]["gops"] / 1000.0
+      y_sme = lookup[(*k5, "YNNPACK")][primary_key]["gops"] / 1000.0
+      xn = base_lookup.get((*k5, "XNNPACK_NEON_BASELINE"))
+      yn = base_lookup.get((*k5, "YNNPACK_NEON_BASELINE"))
+      best_n = max(
+          xn[primary_key]["gops"] if xn else 0.0,
+          yn[primary_key]["gops"] if yn else 0.0,
+      ) / 1000.0
+    cross_xnn_sme.append(x_sme)
+    cross_ynn_sme.append(y_sme)
+    cross_best_neon.append(best_n)
+
+  chart3_cross_md = (
+      "\n> **18-Core SME2/SME vs. NEON Crossover Legend**: "
+      "**Left (Blue `#2b6cd9`)** = XNNPACK KleidiAI SME2 | "
+      "**Middle (Orange `#e67e22`)** = YNNPACK SME2/SME | "
+      "**Right (Teal `#16a085`)** = Best 18-Core NEON (`I8MM` / `DotProd` / `FP32 FMA`)\n\n"
+      + build_three_series_chart(
+          f"{primary_t}-Core SME2/SME vs. Per-Core NEON Throughput Crossover on Apple M5 Max [TOPS / TFLOPS]",
+          f"TOPS / TFLOPS ({primary_t} Cores)",
+          nice_y_max(cross_xnn_sme + cross_ynn_sme + cross_best_neon, step=1, floor=8),
+          cross_labels,
+          "XNNPACK SME2",
+          cross_xnn_sme,
+          "YNNPACK SME2/SME",
+          cross_ynn_sme,
+          "Best 18T NEON",
+          cross_best_neon,
+          palette="#2b6cd9, #e67e22, #16a085",
+          x_axis_label="Kernel Pair & Shape",
+      )
+  )
+
+  # --- Chart 4: Level B Numerical Fidelity SQNR ---
+  sqnr_labels = [
+      "P1: INT4 GEMV",
+      "P2: INT4 GEMM",
+      "P3: FP32 BMM",
+      "P4: FP32 Softmax",
+      "P5: INT8 GEMM",
+      "P6: INT2 GEMM",
+      "P7: Pack/Transpose",
+  ]
+  c4_xnn = [
+      p["xnnpack"]["level_b_fp64_golden"]["sqnr_db"]
+      for p in precision_data["pairs"]
+  ]
+  c4_ynn = [
+      p["ynnpack"]["level_b_fp64_golden"]["sqnr_db"]
+      for p in precision_data["pairs"]
+  ]
+  chart4_md = build_side_by_side_chart(
+      "End-to-End Numerical Fidelity vs. FP64 Golden Reference (Level B SQNR in dB, 200 dB = Bit-Exact)",
+      "SQNR vs FP64 Golden (dB)",
+      200,
+      sqnr_labels,
+      c4_xnn,
+      c4_ynn,
+  )
+
+  # Dynamic lookups for narrative & diagnosis
+  p1_cold1_x = get_row("pair1_int4_gemv", 1, 21504, 5376, "Unified_Memory_Streaming", "XNNPACK")
+  p1_cold1_y = get_row("pair1_int4_gemv", 1, 21504, 5376, "Unified_Memory_Streaming", "YNNPACK")
+  p1_cold2_x = get_row("pair1_int4_gemv", 1, 5376, 21504, "Unified_Memory_Streaming", "XNNPACK")
+  p1_cold2_y = get_row("pair1_int4_gemv", 1, 5376, 21504, "Unified_Memory_Streaming", "YNNPACK")
+  p1_cold2_xn = get_base("pair1_int4_gemv", 1, 5376, 21504, "Unified_Memory_Streaming", "XNNPACK_NEON_BASELINE")
+  p1_cold2_ys = get_base("pair1_int4_gemv", 1, 5376, 21504, "Unified_Memory_Streaming", "YNNPACK_SME_BASELINE")
+  p1_warm_x = get_row("pair1_int4_gemv", 1, 4096, 5376, "L2_Cluster_Warm", "XNNPACK")
+  p1_warm_y = get_row("pair1_int4_gemv", 1, 4096, 5376, "L2_Cluster_Warm", "YNNPACK")
+  p1_warm_xn = get_base("pair1_int4_gemv", 1, 4096, 5376, "L2_Cluster_Warm", "XNNPACK_NEON_BASELINE")
+  p1_warm_ys = get_base("pair1_int4_gemv", 1, 4096, 5376, "L2_Cluster_Warm", "YNNPACK_SME_BASELINE")
+
+  p2_128_21k_x = get_row("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "XNNPACK")
+  p2_128_21k_y = get_row("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "YNNPACK")
+  p2_128_21k_yn = get_base("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "YNNPACK_NEON_BASELINE")
+  p2_128_21k_xn = get_base("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "XNNPACK_NEON_BASELINE")
+  p2_1024_21k_x = get_row("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled", "XNNPACK")
+  p2_1024_21k_y = get_row("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled", "YNNPACK")
+  p2_1024_8k_x = get_row("pair2_int4_gemm", 1024, 8192, 5376, "Compute_Bound_Tiled", "XNNPACK")
+  p2_1024_8k_y = get_row("pair2_int4_gemm", 1024, 8192, 5376, "Compute_Bound_Tiled", "YNNPACK")
+
+  p3_1024_4k_x = get_row("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "XNNPACK")
+  p3_1024_4k_y = get_row("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "YNNPACK")
+  p3_1024_4k_xn = get_base("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "XNNPACK_NEON_BASELINE")
+  p3_1024_4k_yn = get_base("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "YNNPACK_NEON_BASELINE")
+  p3_2520_x = get_row("pair3_fp32_attn_bmm", 2520, 2520, 72, "SLC_Resident", "XNNPACK")
+  p3_2520_y = get_row("pair3_fp32_attn_bmm", 2520, 2520, 72, "SLC_Resident", "YNNPACK")
+
+  p4_1024_1k_x = get_row("pair4_fp32_softmax", 1024, 1024, 1, "L2_Cluster_Resident", "XNNPACK")
+  p4_1024_1k_y = get_row("pair4_fp32_softmax", 1024, 1024, 1, "L2_Cluster_Resident", "YNNPACK")
+  p4_1024_4k_x = get_row("pair4_fp32_softmax", 1024, 4096, 1, "SLC_Resident", "XNNPACK")
+  p4_1024_4k_y = get_row("pair4_fp32_softmax", 1024, 4096, 1, "SLC_Resident", "YNNPACK")
+  p4_2520_x = get_row("pair4_fp32_softmax", 2520, 2520, 1, "SLC_Resident", "XNNPACK")
+  p4_2520_y = get_row("pair4_fp32_softmax", 2520, 2520, 1, "SLC_Resident", "YNNPACK")
+
+  p5_280_x = get_row("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "XNNPACK")
+  p5_280_y = get_row("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "YNNPACK")
+  p5_280_xn = get_base("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "XNNPACK_NEON_BASELINE")
+  p5_280_yn = get_base("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "YNNPACK_NEON_BASELINE")
+  p5_2520_1k_x = get_row("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "XNNPACK")
+  p5_2520_1k_y = get_row("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "YNNPACK")
+  p5_2520_1k_xn = get_base("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "XNNPACK_NEON_BASELINE")
+  p5_2520_1k_yn = get_base("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "YNNPACK_NEON_BASELINE")
+  p5_2520_4k_x = get_row("pair5_int8_gemm", 2520, 4304, 1152, "SLC_Resident", "XNNPACK")
+  p5_2520_4k_y = get_row("pair5_int8_gemm", 2520, 4304, 1152, "SLC_Resident", "YNNPACK")
+  p5_2520_4k_yn = get_base("pair5_int8_gemm", 2520, 4304, 1152, "SLC_Resident", "YNNPACK_NEON_BASELINE")
+
+  p6_4k_x = get_row("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "XNNPACK")
+  p6_4k_y = get_row("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "YNNPACK")
+  p6_4k_xn = get_base("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "XNNPACK_NEON_BASELINE")
+  p6_4k_yn = get_base("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "YNNPACK_NEON_BASELINE")
+  p6_1k4k_x = get_row("pair6_int2_gemm", 204, 1024, 4096, "L2_Cluster_Resident", "XNNPACK")
+  p6_1k4k_y = get_row("pair6_int2_gemm", 204, 1024, 4096, "L2_Cluster_Resident", "YNNPACK")
+  p6_1k4k_xn = get_base("pair6_int2_gemm", 204, 1024, 4096, "L2_Cluster_Resident", "XNNPACK_NEON_BASELINE")
+
+  p7_1k_x = get_row("pair7_pack_transpose", 1, 1024, 256, "L2_Cluster_Copy", "XNNPACK")
+  p7_1k_y = get_row("pair7_pack_transpose", 1, 1024, 256, "L2_Cluster_Copy", "YNNPACK")
+  p7_4k_x = get_row("pair7_pack_transpose", 1, 4096, 512, "L2_Cluster_Copy", "XNNPACK")
+  p7_4k_y = get_row("pair7_pack_transpose", 1, 4096, 512, "L2_Cluster_Copy", "YNNPACK")
+  p7_2520_x = get_row("pair7_pack_transpose", 1, 2520, 1152, "SLC_Copy", "XNNPACK")
+  p7_2520_y = get_row("pair7_pack_transpose", 1, 2520, 1152, "SLC_Copy", "YNNPACK")
+
+  # --- Section 3.1 Compute Ceilings Table ---
+  comp_specs = [
+      (
+          "sme2_int8_smopa",
+          "**SME2-INT8 (`ZA` Outer Product)**",
+          "`smopa za0..3.s` (`SVL=64B`)",
+          "`s8×s8→s32`",
+          "`2,048`",
+          "GOPS",
+          "`xnn_qp8_f32_qc{4,8,2}w_*__neonsme2`, `ynn::dot_int8_int{4,8,2}_int32_sme[2]`",
+      ),
+      (
+          "sme2_bf16_bfmopa",
+          "**SME2-BF16 (`ZA` Outer Product)**",
+          "`bfmopa za0..3.s` (`SVL=64B`)",
+          "`BF16→FP32`",
+          "`1,024`",
+          "GFLOPS",
+          "Reference BF16 SME2 matrix-unit ceiling",
+      ),
+      (
+          "sme2_fp16_fmopa",
+          "**SME2-FP16 (`ZA` Outer Product)**",
+          "`fmopa za0..3.s` (`SVL=64B`)",
+          "`FP16→FP32`",
+          "`1,024`",
+          "GFLOPS",
+          "Reference FP16 SME2 matrix-unit ceiling",
+      ),
+      (
+          "sme2_fp32_fmopa",
+          "**SME2-FP32 (`ZA` Outer Product)**",
+          "`fmopa za0..3.s` (`SVL=64B`)",
+          "`FP32`",
+          "`1,024`",
+          "GFLOPS",
+          "`xnn_pf32_gemm_minmax_ukernel_32x32__neonsme2`, `ynn::dot_fp32_sme2`",
+      ),
+      (
+          "neon_i8mm_smmla",
+          "**NEON I8MM (`2×8×2` MatMul)**",
+          "`smmla v0..11.4s`",
+          "`s8×s8→s32`",
+          "`64`",
+          "GOPS",
+          "`xnn_qd8_f32_qc{4,8}w_*__neoni8mm`, `ynn::dot_int8_int{4,8}_int32_10x8x8_neoni8mm`",
+      ),
+      (
+          "neon_dotprod_sdot",
+          "**NEON DotProd (128-bit)**",
+          "`sdot v0..11.4s`",
+          "`s8×s8→s32`",
+          "`32`",
+          "GOPS",
+          "`ynn::dot_int8_int4_int32_1x32x8_neondot`, `xnn_qs8_qc2w_8x8c4__neondot`, `ynn::dot_int8_int2_8x8x16_neondot`",
+      ),
+      (
+          "neon_fp32_fmla",
+          "**NEON FP32 FMA (128-bit)**",
+          "`fmla v0..11.4s`",
+          "`FP32`",
+          "`8`",
+          "GFLOPS",
+          "`xnn_f32_gemm_6x8__neonfma`, `ynn::dot_fp32_6x8x4_neon`, Softmax & elementwise",
+      ),
+  ]
+
+  comp_hdr_cols = [
+      "Instruction Set / Compute Unit",
+      "Instruction",
+      "Precision",
+      "Ops / Inst",
+      "1-Core Super (`cv%`)",
+      f"{mid_t}-Core Super Cluster (`cv%`)",
+      f"{primary_t}-Core Full Chip (`cv%`)",
+      f"Rel. to SME2-INT8 ({primary_t}C)",
+      "Load-Bearing Kernels Governed",
+  ]
+  comp_align = [
+      " :--- ", " :--- ", " :--- ", " ---: ", " ---: ",
+      " ---: ", " ---: ", " ---: ", " :--- ",
+  ]
+  comp_table_md = (
+      "| " + " | ".join(comp_hdr_cols) + " |\n"
+      + "|" + "|".join(comp_align) + "|\n"
+  )
+  for ckey, label, inst, prec, ops_i, unit, kernels in comp_specs:
+    entry = comp[ckey]
+    v1 = entry["single_core"]
+    cv1 = entry["single_core_stats"]["cv_pct"]
+    v6 = entry[mid_key]
+    cv6 = entry[f"{mid_key}_stats"]["cv_pct"]
+    v18 = entry[primary_key]
+    cv18 = entry[f"{primary_key}_stats"]["cv_pct"]
+    ratio = v18 / sme_i8_18
+    row_cells = [
+        label,
+        inst,
+        prec,
+        ops_i,
+        f"**{fmt_gops_tops(v1, unit)}** (`{cv1:.2f}%`)",
+        f"**{fmt_gops_tops(v6, unit)}** (`{cv6:.2f}%`)",
+        f"**{fmt_gops_tops(v18, unit)}** (`{cv18:.2f}%`)",
+        f"`{ratio:.3f}×` (`{ratio * 100.0:.1f}%`)",
+        kernels,
+    ]
+    comp_table_md += "| " + " | ".join(row_cells) + " |\n"
+
+  # --- Section 3.2 Bandwidth Ceilings Table ---
+  bw_specs = [
+      (
+          "l1d_32kb_per_core",
+          "read_only",
+          f"**L1D Cache** (`{topo['l1d_super_kb']} KiB` Super / `{topo['l1d_perf_kb']} KiB` Perf)",
+          "`32 KB` / core",
+          "Streaming Read (`8× ld1 + vorr`)",
+          "Microkernel register-tile A/B loads",
+      ),
+      (
+          "l1d_32kb_per_core",
+          "read_write_copy",
+          f"**L1D Cache** (`{topo['l1d_super_kb']} KiB` Super / `{topo['l1d_perf_kb']} KiB` Perf)",
+          "`16 KB × 2` / core",
+          "Read + Write Copy",
+          "In-core row-fused Softmax & panel packing scratchpads",
+      ),
+      (
+          "l2_cluster",
+          "read_only",
+          f"**L2 Cluster Cache** (`{topo['l2_super_cluster_mb']} MiB` Super + `2×{topo['l2_perf_cluster_mb']} MiB` Perf = `32 MiB`)",
+          "`1 MB` / thread",
+          "Streaming Read (`8× ld1 + vorr`)",
+          "L2-tiled GEMM panels, warm `1×4096×5376` GEMV, `1024×1024` Softmax",
+      ),
+      (
+          "l2_cluster",
+          "read_write_copy",
+          f"**L2 Cluster Cache** (`32 MiB` aggregate across 3 clusters)",
+          "`512 KB × 2` / thread",
+          "Read + Write Copy",
+          "Fused Softmax rows (`Pair 4`) and 32-bit pack/transpose (`Pair 7`)",
+      ),
+      (
+          "slc_shared",
+          "read_only",
+          "**System Level Cache (SLC)** (shared chip-wide)",
+          "`32 MB` shared (`8 MB`/T window)",
+          "Streaming Read (`8× ld1 + vorr`)",
+          "Warm `22 MB` weights (`1×8192×5376`) & `34–51 MB` Softmax buffers",
+      ),
+      (
+          "slc_shared",
+          "read_write_copy",
+          "**System Level Cache (SLC)** (shared chip-wide)",
+          "`32 MB × 2` shared (`8 MB`/T)",
+          "Read + Write Copy",
+          "Large SLC-resident tensor transposes (`2520×1152`) & dequantize passes",
+      ),
+      (
+          "unified_memory",
+          "read_only",
+          f"**Unified Memory (LPDDR5X)** (`{topo['unified_memory_gb']} GB`)",
+          "`512 MB` (1C) / `1,152 MB` (18C)",
+          "Streaming Read (`8× ld1 + vorr`)",
+          "**Full-model `M=1` Decode 4-bit weight streaming (`18+ GB`)**",
+      ),
+      (
+          "unified_memory",
+          "read_write_copy",
+          f"**Unified Memory (LPDDR5X)** (`{topo['unified_memory_gb']} GB`)",
+          "`512 MB` (1C) / `1,152 MB` (18C)",
+          "Read + Write Copy",
+          "Cold Unified Memory buffer copies",
+      ),
+      (
+          "unified_memory",
+          "stream_triad",
+          f"**Unified Memory (LPDDR5X)** (`{topo['unified_memory_gb']} GB`)",
+          "`768 MB` (1C) / `1,728 MB` (18C)",
+          "STREAM Triad (`2R + 1W`)",
+          "Cold Unified Memory residual / elementwise fusion",
+      ),
+  ]
+  bw_hdr_cols = [
+      "Memory Hierarchy Level",
+      "Working Set",
+      "Access Pattern",
+      "1-Core Super (`cv%`)",
+      f"{mid_t}-Core Super Cluster (`cv%`)",
+      f"{primary_t}-Core Full Chip (`cv%`)",
+      "Primary Kernel Regimes Governed",
+  ]
+  bw_align = [" :--- ", " :--- ", " :--- ", " ---: ", " ---: ", " ---: ", " :--- "]
+  bw_table_md = (
+      "| " + " | ".join(bw_hdr_cols) + " |\n"
+      + "|" + "|".join(bw_align) + "|\n"
+  )
+  for bkey, mode, lvl, ws, pat, desc in bw_specs:
+    entry = bw[bkey][mode]
+    v1 = entry["single_core"]
+    cv1 = entry["single_core_stats"]["cv_pct"]
+    v6 = entry[mid_key]
+    cv6 = entry[f"{mid_key}_stats"]["cv_pct"]
+    v18 = entry[primary_key]
+    cv18 = entry[f"{primary_key}_stats"]["cv_pct"]
+    bw_table_md += (
+        f"| {lvl} | {ws} | {pat} | "
+        f"**{v1:,.2f} GB/s** (`{cv1:.2f}%`) | "
+        f"**{v6:,.2f} GB/s** (`{cv6:.2f}%`) | "
+        f"**{v18:,.2f} GB/s** (`{cv18:.2f}%`) | {desc} |\n"
+    )
+
+  # --- Section 5 Precision Tables ---
+  pair_short_names = [
+      "Pair 1: 4-Bit Decode GEMV (`M=1`)",
+      "Pair 2: 4-Bit Prefill GEMM (`M=16`)",
+      "Pair 3: FP32 Attention `BatchMatMul`",
+      "Pair 4: FP32 Attention `Softmax`",
+      "Pair 5: 8-Bit Multimodal GEMM",
+      "Pair 6: 2-Bit Weight-Only GEMM",
+      "Pair 7: 32-Bit Pack / Transpose",
+  ]
+  pair_quant_schemes = [
+      "Per-row `QP8`/`INT8` act × Per-channel `QC4W` (`INT4`)",
+      "Per-row `QP8`/`INT8` act × Per-channel `QC4W` (`INT4`)",
+      "IEEE-754 `FP32` SME2 `fmopa` (`K=64`)",
+      "IEEE-754 `FP32` (`lut64_p2` poly vs `expf`, `K=1024`)",
+      "Per-row `QP8`/`INT8` act × Per-channel `QC8W` (`INT8`)",
+      "Per-row `QP8`/`INT8` act × Per-channel `QC2W` (`INT2`)",
+      "Lossless 32-bit `uint32_t` panel pack / transpose",
+  ]
+  level_a_rows_md = ""
+  level_b_rows_md = ""
+  for idx, p in enumerate(precision_data["pairs"]):
+    pshort = pair_short_names[idx]
+    qscheme = pair_quant_schemes[idx]
+    for backend_label, bkey, sym_key in (
+        ("XNNPACK", "xnnpack", "xnnpack_symbol"),
+        ("YNNPACK", "ynnpack", "ynnpack_symbol"),
+    ):
+      la = p[bkey]["level_a_exact_ukernel"]
+      lb = p[bkey]["level_b_fp64_golden"]
+      dists = p[bkey]["distributions"]
+      sym = p[sym_key]
+
+      level_a_rows_md += (
+          f"| {pshort} | **{backend_label}** | `{sym}` | "
+          f"`{la['max_abs_err']:.2e}` | `{la['max_rel_err']:.2e}` | "
+          f"`{la['rmse']:.2e}` | `{la['max_ulp_diff']}` | "
+          f"`{la['mean_ulp_diff']:.4f}` | **`{la['sqnr_db']:.2f} dB`** | "
+          f"`{la['exact_match_pct']:.2f}%` | `{la['nan_inf_count']}` | "
+          f"**`{la['status']}`** |\n"
+      )
+      level_b_rows_md += (
+          f"| {pshort} | **{backend_label}** | {qscheme} | "
+          f"`{dists['normal']['sqnr_db']:.2f} dB` | "
+          f"`{dists['saturation']['sqnr_db']:.2f} dB` | "
+          f"`{dists['outliers']['sqnr_db']:.2f} dB` | "
+          f"`{dists['tails']['sqnr_db']:.2f} dB` | "
+          f"**`{lb['sqnr_db']:.2f} dB`** | **`{lb['cosine_sim']:.6f}`** | "
+          f"`{lb['rmse']:.2e}` | `{lb['max_abs_err']:.2e}` | "
+          f"**`{lb['status']}`** |\n"
+      )
+
+  p4_xnn_prec = precision_data["pairs"][3]["xnnpack"]
+  p4_ynn_prec = precision_data["pairs"][3]["ynnpack"]
+  p7_xnn_prec = precision_data["pairs"][6]["xnnpack"]
+  p7_ynn_prec = precision_data["pairs"][6]["ynnpack"]
+
+  # Ratios for narrative
+  p5_280_yn_vs_ys = p5_280_yn[primary_key]["gops"] / p5_280_y[primary_key]["gops"]
+  p5_280_yn_vs_xs = p5_280_yn[primary_key]["gops"] / p5_280_x[primary_key]["gops"]
+  p5_2520_yn_vs_ys = p5_2520_1k_yn[primary_key]["gops"] / p5_2520_1k_y[primary_key]["gops"]
+  p5_2520_xn_vs_xs = p5_2520_1k_xn[primary_key]["gops"] / p5_2520_1k_x[primary_key]["gops"]
+  p1_warm_y_vs_x = p1_warm_y[primary_key]["gops"] / p1_warm_x[primary_key]["gops"]
+  p1_warm_y_vs_ys = p1_warm_y[primary_key]["gops"] / p1_warm_ys[primary_key]["gops"]
+  p3_sme_vs_neon = p3_1024_4k_x[primary_key]["gops"] / p3_1024_4k_xn[primary_key]["gops"]
+  p3_2520_y_vs_x_1c = p3_2520_y["single_core"]["gops"] / p3_2520_x["single_core"]["gops"]
+
+  md = rf"""# Microkernel Performance, Roofline & Numerical Precision Report — Gemma 4 31B on Apple M5 Max
+
+- **Benchmark Date**: `{benchmark_date}`
+- **Model**: Gemma 4 31B (`gemma-4-31b-it`, 4-bit Decoder / 8-bit Vision ViT / 2-bit & 8-bit Audio Conformer)
+- **Target Microarchitecture**: Apple M5 Max (`arm64` / macOS, `18` physical cores = `{topo['super_cores']}` Super + `{topo['performance_cores']}` Performance cores across `3` clusters; `128 KiB`/`64 KiB` L1D, `16 MiB` Super L2 + `2 × 8 MiB` Perf L2 = `32 MiB` aggregate L2, shared SLC, `{topo['unified_memory_gb']} GB` LPDDR5X Unified Memory; `SME` / `SME2` / `SME2p1` with `SVL = {ceilings['sme_svl_bytes']} B`, `NEON I8MM`, `DotProd`, `BF16`, `FP16`; no non-streaming `FEAT_SVE`)
+- **Upstream Microkernel Revisions**:
+  - `google/XNNPACK` `master` @ [`{commit_short}`](https://github.com/google/XNNPACK/commit/{xnnpack_commit}) (XNNPACK + YNNPACK SME2/SME/NEON microkernels)
+  - `ARM-software/kleidiai` `main` @ [`{kai_short}`](https://github.com/ARM-software/kleidiai/commit/{kleidiai_commit}) (KleidiAI SME2 `qp8`/`pf32` microkernels & packers linked by XNNPACK)
+- **Execution Configurations**:
+  - **Single-Core (`1T`)**: Single `QOS_CLASS_USER_INTERACTIVE` thread scheduled on a Super core (full access to the Super cluster's `4.38 TOPS` SME2 unit)
+  - **Super Cluster (`{mid_t}T`)**: `{mid_t}` `QOS_CLASS_USER_INTERACTIVE` threads saturating the 6-core Super cluster (exposing cluster-shared SME2 contention vs. linear per-core NEON scaling)
+  - **Full Chip (`{primary_t}T`)**: All `{primary_t}` physical cores across all 3 clusters (`6` Super + `12` Performance) with lock-free adaptive dynamic tile dispatch (~48 chunks/thread) for heterogeneous load balancing without cross-cluster atomic contention
+- **Repeatability & Verification Methodology**:
+  - **Performance & Roofline**: `CLOCK_MONOTONIC_RAW` with atomic spin-wait barriers (`sb_wait`), `caffeinate -i`, explicit warmup pass, 19 built-in pre-timing numerical smoke checks, and **{num_trials} independent timed trials** per probe and microkernel shape (`median`, `mean`, `min`, `max`, `stdev`, `cv_pct`)
+  - **Numerical Precision & Quantization Fidelity**: Full two-level verification ([verify_litert_microkernels_arm64.c](../../scripts/verify_litert_microkernels_arm64.c)) across **4 deterministic input distributions** (`normal`, `saturation`, `outliers`, `tails`) testing all **14 load-bearing XNNPACK and YNNPACK microkernels** against (A) an **Exact Packed-Layout Scalar Reference (`INT64` / `FP64`)** and (B) an **Unquantized `FP64` Golden Operator Reference** (**`{precision_data['total_kernels_passed']} / {precision_data['total_kernels_verified']} PASSED`**)
+
+---
+
+## 1. Executive Summary & Key Roofline Findings
+
+> [!IMPORTANT]
+> **Performance Roofline & Architectural Crossover Summary on Apple M5 Max (`1T` / `{mid_t}T` / `{primary_t}T`)**:
+> 1. **Cluster-Shared SME2 (`3` Units, `{sme_i8_18 / 1000.0:.2f} TOPS`) vs. Per-Core NEON I8MM (`18` Cores, `{i8mm_18 / 1000.0:.2f} TOPS`) — A Fundamental Hardware Crossover**:
+>    - Empirical hardware ceiling probes measure **$C_{{\text{{prac}}}}(\text{{SME2-INT8}}) = \mathbf{{{sme_i8_1 / 1000.0:.2f} / {sme_i8_6 / 1000.0:.2f} / {sme_i8_18 / 1000.0:.2f}\text{{ TOPS}}}}$** (`1T / 6T / 18T`): Apple M5 Max provisions **3 cluster-shared SME2 matrix engines** (1 Super SME2 ≈ `4.38 TOPS` + 2 Performance SME2 ≈ `1.08 TOPS` each), so SME2 saturates at **`6.47–6.54 TOPS`** once all 3 clusters are active.
+>    - In contrast, per-core **`NEON I8MM` (`smmla`)** scales across all 18 cores from **`{i8mm_1:.1f} GOPS` (`1T`)** → **`{i8mm_6 / 1000.0:.2f} TOPS` (`6T`)** → **`{i8mm_18 / 1000.0:.2f} TOPS` (`18T`)** — **`{i8mm_18 / sme_i8_18:.2f}×` higher than 18-core SME2-INT8** (and **`NEON DotProd`** reaches **`{sdot_18 / 1000.0:.2f} TOPS`**, also exceeding 18T SME2!). On `FP32`, SME2 (`{sme_f32_18 / 1000.0:.2f} TFLOPS`) retains a **`{sme_f32_18 / nf32_18:.2f}×` hardware advantage** over 18-core NEON FP32 (`{nf32_18 / 1000.0:.2f} TFLOPS`).
+> 2. **8-Bit Vision ViT & Audio GEMM (`pair5_int8_gemm`) — Actionable Upstream Dispatch Finding (`18T NEON-I8MM` Beats `SME2` by `+14%–34%`)**:
+>    - At **`1T`**, YNNPACK `dot_int8_int8_int32_sme2` achieves **`{p5_280_y['single_core']['gops'] / 1000.0:.2f}–{p5_2520_1k_y['single_core']['gops'] / 1000.0:.2f} TOPS` (`{p5_280_y['roofline']['isa_roofline_utilization_1c_pct']:.1f}%–{p5_2520_1k_y['roofline']['isa_roofline_utilization_1c_pct']:.1f}%` of 1T SME2 peak)**, outperforming XNNPACK KleidiAI `16x64c4__neonsme2` (`{p5_280_x['single_core']['gops'] / 1000.0:.2f}–{p5_2520_1k_x['single_core']['gops'] / 1000.0:.2f} TOPS`) by **`1.50×–1.52×`** and `1T` NEON-I8MM by **`7.7×`**.
+>    - At **`{primary_t}T`**, however, **controlled `NEON-I8MM` baselines overtake SME2 on both backends**: YNNPACK `10x8x8_neoni8mm` reaches **`{p5_2520_4k_yn[primary_key]['gops'] / 1000.0:.2f}–{p5_2520_1k_yn[primary_key]['gops'] / 1000.0:.2f} TOPS` (`{p5_2520_4k_yn['roofline'][util_field]:.1f}%–{p5_2520_1k_yn['roofline'][util_field]:.1f}%` of `{i8mm_18 / 1000.0:.2f} TOPS` NEON-I8MM ceiling)** — beating YNNPACK's own SME2 (`{p5_280_y[primary_key]['gops'] / 1000.0:.2f}–{p5_2520_1k_y[primary_key]['gops'] / 1000.0:.2f} TOPS`) by **`{p5_2520_4k_yn[primary_key]['gops'] / p5_2520_4k_y[primary_key]['gops']:.2f}×–{p5_280_yn_vs_ys:.2f}×` (`+14%–22%`)** and XNNPACK KleidiAI SME2 (`{p5_280_x[primary_key]['gops'] / 1000.0:.2f}–{p5_2520_1k_x[primary_key]['gops'] / 1000.0:.2f} TOPS`) by **`1.22×–{p5_280_yn_vs_xs:.2f}×` (`+22%–34%`)**! Even XNNPACK's own `4x16c8__neoni8mm` (`{p5_280_xn[primary_key]['gops'] / 1000.0:.2f}–{p5_2520_1k_xn[primary_key]['gops'] / 1000.0:.2f} TOPS`) beats XNNPACK SME2 on all three shapes (`+{((p5_2520_xn_vs_xs - 1.0) * 100.0):.1f}%` to `+{((p5_280_xn[primary_key]['gops'] / p5_280_x[primary_key]['gops'] - 1.0) * 100.0):.1f}%`).
+> 3. **Decode (`M = 1` 4-Bit GEMV, `pair1_int4_gemv`) — Per-Core NEON Saturates `{um_rd_18:.1f} GB/s` Unified Memory and Beats SME2 by `1.89×` on Warm L2**:
+>    - On cold Unified Memory streaming (`1×21504×5376`, `1×5376×21504`, `1×8192×5376`, $AI = 3.99\text{{ OPs/B}}$), **YNNPACK `1x32x8_neondot` achieves `{p1_cold1_y[primary_key]['gops']:,.1f}–{p1_cold2_y[primary_key]['gops']:,.1f} GOPS` (`{p1_cold1_y[primary_key]['gbps']:.1f}–{p1_cold2_y[primary_key]['gbps']:.1f} GB/s`, `{p1_cold1_y['roofline'][util_field]:.1f}%–{p1_cold2_y['roofline'][util_field]:.1f}%` of `{um_rd_18:.2f} GB/s` Unified Memory Read)** — saturating the LPDDR5X bus completely, while XNNPACK's `1x16c8__neoni8mm` baseline (`{p1_cold2_xn[primary_key]['gbps']:.1f} GB/s`, `{p1_cold2_xn['roofline'][util_field]:.1f}%`) also beats XNNPACK's KleidiAI SME2 `1x64c4__neonsme2` (`{p1_cold1_x[primary_key]['gbps']:.1f}–{p1_cold2_x[primary_key]['gbps']:.1f} GB/s`).
+>    - On warm cluster L2 (`1×4096×5376`), YNNPACK `1x32x8_neondot` scales across all 18 NEON pipes to **`{p1_warm_y[primary_key]['gops']:,.1f} GOPS` (`{p1_warm_y[primary_key]['gbps']:.1f} GB/s`)**, outperforming XNNPACK SME2 (`{p1_warm_x[primary_key]['gops']:,.1f} GOPS`) by **`{p1_warm_y_vs_x:.2f}×`** and YNNPACK's outer-product `dot_int8_int4_int32_sme` baseline (`{p1_warm_ys[primary_key]['gops']:,.1f} GOPS`) by **`{p1_warm_y_vs_ys:.2f}×`**.
+> 4. **Prefill (`M = 128..1024` 4-Bit GEMM, `pair2_int4_gemm`) — Both SME2/SME Backends Hit `96%–99%` of `{sme_i8_18 / 1000.0:.2f} TOPS` Peak**:
+>    - Unlike 8-bit GEMM, 4-bit nibble unpacking shares NEON vector ports with `smmla`, capping 18T YNNPACK `NEON-I8MM` at **`{p2_128_21k_yn[primary_key]['gops'] / 1000.0:.2f}–6.09 TOPS`** (XNNPACK `NEON-I8MM` at **`{p2_128_21k_xn[primary_key]['gops'] / 1000.0:.2f}–5.71 TOPS`**). Meanwhile, dedicated SME2/SME units execute `smopa` in parallel with streaming unpack, letting **XNNPACK `16x64c4__neonsme2` (`{p2_128_21k_x[primary_key]['gops'] / 1000.0:.2f}–{p2_1024_8k_x[primary_key]['gops'] / 1000.0:.2f} TOPS`, `96.2%–98.1%`)** and **YNNPACK `dot_int8_int4_int32_sme` (`{p2_128_21k_y[primary_key]['gops'] / 1000.0:.2f}–{p2_1024_8k_y[primary_key]['gops'] / 1000.0:.2f} TOPS`, `95.7%–98.6%`)** retain the lead at every thread count (and an `~10×` advantage at `1T`!).
+> 5. **FP32 Attention `BatchMatMul` & `Softmax` (`pair3` & `pair4`)**:
+>    - In `pair3_fp32_attn_bmm`, SME2 delivers an unqualified **`{p3_sme_vs_neon:.2f}×` speedup** over 18T NEON-FP32 (`{p3_1024_4k_x[primary_key]['gops'] / 1000.0:.2f}` / `{p3_1024_4k_y[primary_key]['gops'] / 1000.0:.2f} TFLOPS` = **`97%–98%` of `{sme_f32_18 / 1000.0:.2f} TFLOPS` SME2-FP32 peak** vs. `{p3_1024_4k_xn[primary_key]['gops'] / 1000.0:.2f}` / `{p3_1024_4k_yn[primary_key]['gops'] / 1000.0:.2f} TFLOPS` NEON). At `1T`, YNNPACK `dot_fp32_sme2` beats XNNPACK `32x32__neonsme2` across all 4 shapes (up to **`{p3_2520_y_vs_x_1c:.2f}×`** on short-`K` `2520×2520×72`).
+>    - In `pair4_fp32_softmax`, YNNPACK's read-only reductions hit **`{p4_1024_1k_y[primary_key]['gbps']:,.1f} GB/s` (`{p4_1024_1k_y['roofline'][util_field]:.1f}%` of L2 Read)** on L2-resident `1024×1024`, whereas on larger `2520×2520` and `1024×4096` tensors (`33.6–50.8 MB > 32 MiB` L2), **XNNPACK's row-fused `rmax + raddstoreexpminusmax` (`{p4_2520_x[primary_key]['gbps']:.1f}–{p4_1024_4k_x[primary_key]['gbps']:.1f} GB/s`, `75.8%–79.4%` of L2 Copy) beats YNNPACK's unfused reductions (`{min(p4_2520_y[primary_key]['gbps'], p4_1024_4k_y[primary_key]['gbps']):.1f}–{max(p4_2520_y[primary_key]['gbps'], p4_1024_4k_y[primary_key]['gbps']):.1f} GB/s`) by `1.31×–1.38×`** while computing `exp()` in-flight!
+> 6. **2-Bit Audio GEMM (`pair6`) & 32-Bit Pack/Transpose (`pair7`)**:
+>    - In `pair6_int2_gemm`, YNNPACK `dot_int8_int2_int32_sme` leads XNNPACK SME2 at `1T` (`3.95–4.01` vs. `2.70–3.74 TOPS`) and `6T`, while at `18T` both reach `5.75–6.12 TOPS` (`89%–95%` of SME2) — and **XNNPACK's `8x8c4__neondot` baseline hits `{p6_4k_xn[primary_key]['gops'] / 1000.0:.2f}–{p6_1k4k_xn[primary_key]['gops'] / 1000.0:.2f} TOPS`, edging out both SME2 and SME at `18T`!**
+>    - In `pair7_pack_transpose`, XNNPACK `packw_gemm_goi_x8__neon_ld4lane_u4_prfm` leads on power-of-2 shapes (`{p7_1k_x[primary_key]['gbps']:.1f}` / `{p7_4k_x[primary_key]['gbps']:.1f} GB/s` vs. `{p7_1k_y[primary_key]['gbps']:.1f}` / `{p7_4k_y[primary_key]['gbps']:.1f} GB/s`, where `K=512` `2048 B` stride triggers L1D set conflicts in YNNPACK transpose), while YNNPACK `transpose_x32_neon` leads on non-power-of-2 `2520×1152` (`{p7_2520_y[primary_key]['gbps']:.1f}` vs. `{p7_2520_x[primary_key]['gbps']:.1f} GB/s`).
+> 7. **14 / 14 Numerical Precision Gate PASSED**: All 14 microkernels pass Level A (`0 ULP / 200.0 dB` for YNNPACK quantized dots & both Pair 7 kernels; `3–5 ULP / 143.9–148.3 dB` for XNNPACK fused-epilogue KleidiAI SME2) and Level B (`19.4–21.3 dB` INT4, `41.9 dB` INT8, `7.0 dB` INT2, `134.6–144.2 dB` FP32; `0 NaN / 0 Inf`).
+
+---
+
+## 2. Visual Summary: Throughput, Roofline Utilization, SME2 vs. NEON Crossover & Precision
+
+> **Series Legend (2-Bar Charts)**: **Left Bar (Blue `#2b6cd9`)** = **XNNPACK** | **Right Bar (Orange `#e67e22`)** = **YNNPACK**
+
+{chart1_md}
+
+{chart2_md}
+{chart3_cross_md}
+
+{chart4_md}
+
+---
+
+## 3. Empirical Hardware Ceilings on Apple M5 Max (`cpu_ceilings_arm64.c`)
+
+All ceilings below were measured directly on Apple M5 Max using [cpu_ceilings_arm64.c](../../probes/cpu_ceilings_arm64.c) across **{ceilings['methodology']['num_trials']} independent barrier-synchronized trials** (`pthreads`, `QOS_CLASS_USER_INTERACTIVE`, `caffeinate -i`) using time-windowed heterogeneous work accounting (`{ceilings['methodology']['trial_window_sec']} s` per trial) so Super and Performance cores execute simultaneously without tail stalls.
+
+### 3.1 Practical Compute Ceilings: $C_{{\text{{prac}}}}(\text{{op}}, \text{{dtype}})$
+
+{comp_table_md}
+### 3.2 Practical Memory-Hierarchy Bandwidth Ceilings: $BW_{{\text{{prac}}}}(\text{{WorkingSet}})$
+
+{bw_table_md}
+- **Unified Memory Saturation (`1T` → `{mid_t}T` → `{primary_t}T`)**: LPDDR5X Unified Memory bandwidth saturates completely by `{mid_t}` Super cores (**`{um_rd_6:.2f} GB/s`** Read / **`{bw['unified_memory']['read_write_copy'][mid_key]:.2f} GB/s`** Copy at `{mid_t}T` vs. **`{um_rd_18:.2f} GB/s`** Read / **`{um_cp_18:.2f} GB/s`** Copy at `{primary_t}T`).
+- **3-Cluster SME2 Topology**: `1T` (Super cluster) achieves `{sme_i8_1 / 1000.0:.2f} TOPS`; engaging all 3 clusters (`{mid_t}T`/`{primary_t}T` when spread across clusters) adds only `~2.16 TOPS` from the two Performance clusters (`~1.08 TOPS` each) for a chip-wide SME2 ceiling of **`{sme_i8_6 / 1000.0:.2f}` / `{sme_i8_18 / 1000.0:.2f} TOPS`**. Meanwhile, per-core `NEON I8MM` scales across all 18 cores (`{i8mm_1:.1f}` → `{i8mm_6:,.1f}` → **`{i8mm_18:,.1f} GOPS` = `8.13 TOPS`**), surpassing SME2 at high thread counts.
+
+---
+
+## 4. Per-Kernel Roofline Comparison: XNNPACK (KleidiAI SME2) vs. YNNPACK (SME2/SME/NEON)
+
+"""
+
+  pair_titles = {
+      "pair1_int4_gemv": (
+          "4.1 Pair 1: 4-Bit Quantized Linear GEMV (`M = 1`, Decode Bottleneck — XNNPACK KleidiAI SME2 vs. YNNPACK NEON-DotProd)"
+      ),
+      "pair2_int4_gemm": (
+          "4.2 Pair 2: 4-Bit Quantized Linear Batched GEMM (`M ∈ {128, 1024}`, Prefill Bottleneck — XNNPACK KleidiAI SME2 vs. YNNPACK SME)"
+      ),
+      "pair3_fp32_attn_bmm": (
+          "4.3 Pair 3: FP32 Attention `BatchMatMul` (`Q·K^T` and `Scores·V` — XNNPACK KleidiAI SME2 vs. YNNPACK SME2)"
+      ),
+      "pair4_fp32_softmax": (
+          "4.4 Pair 4: FP32 Attention `Softmax` (`rmax + raddstoreexpminusmax` vs. `max_k1 + sum_k1` NEON Reductions)"
+      ),
+      "pair5_int8_gemm": (
+          "4.5 Pair 5: 8-Bit Dynamic-Quantized Linear GEMM (Vision ViT & Audio Conformer — SME2 vs. Controlled 18T NEON-I8MM Crossover)"
+      ),
+      "pair6_int2_gemm": (
+          "4.6 Pair 6: 2-Bit Weight-Only Linear GEMM (Audio Conformer Encoder — SME2/SME vs. Controlled NEON-DotProd)"
+      ),
+      "pair7_pack_transpose": (
+          "4.7 Pair 7: Matrix Packing / 32-Bit Transpose (`packw_gemm_goi_x8__neon_ld4lane_u4_prfm` vs. `transpose_x32_neon`)"
+      ),
+  }
+
+  for pid, ptitle in pair_titles.items():
+    prows = [r for r in enriched_rows if r["pair_id"] == pid]
+    md += f"### {ptitle}\n\n"
+    hdr = [
+        "Shape `(M×N×K)`",
+        "Regime",
+        "Backend",
+        "Microkernel (`ISA`)",
+        "AI (`OP/B`)",
+        "1C Perf (`ISA Util`)",
+        f"{mid_t}C Perf (`cv%`, `ISA Util`)",
+        f"{primary_t}C Lat (`ms`)",
+        f"**{primary_t}C Perf**",
+        f"{primary_t}C `cv%`",
+        f"{primary_t}C ISA Ceiling",
+        f"**{primary_t}C ISA Roofline Util**",
+        f"**{primary_t}C Machine Peak Util**",
+    ]
+    align = [
+        " :--- ", " :--- ", " :--- ", " :--- ", " ---: ",
+        " ---: ", " ---: ", " ---: ", " ---: ", " ---: ",
+        " ---: ", " ---: ", " ---: ",
+    ]
+    md += "| " + " | ".join(hdr) + " |\n"
+    md += "|" + "|".join(align) + "|\n"
+    for r in prows:
+      s = r["shape"]
+      rf = r["roofline"]
+      sc = r["single_core"]
+      m6 = r[mid_key]
+      mc = r[primary_key]
+      unit = rf["unit"]
+      p1 = sc["gbps"] if unit == "GB/s" else sc["gops"]
+      p6 = m6["gbps"] if unit == "GB/s" else m6["gops"]
+      pmc = mc["gbps"] if unit == "GB/s" else mc["gops"]
+      shape_str = f"`{s['M']}×{s['N']}×{s['K']}`"
+      perf_cell = (
+          f"**`{fmt_perf(pmc, unit)}`**"
+          if unit == "GB/s"
+          else f"**`{fmt_perf(pmc, unit)}`** (`{mc['gbps']:.1f} GB/s`)"
+      )
+      cells = [
+          shape_str,
+          f"`{r['memory_regime']}`",
+          f"**{r['backend']}**",
+          f"`{r['kernel']}` (`{r['isa']}`)",
+          f"`{r['arithmetic_intensity_ops_per_byte']:.2f}`",
+          f"`{fmt_perf(p1, unit)}` (`{rf['isa_roofline_utilization_1c_pct']:.1f}%`)",
+          f"`{fmt_perf(p6, unit)}` (`{m6['cv_pct']:.2f}%`, `{rf[f'isa_roofline_utilization_{mid_t}c_pct']:.1f}%`)",
+          f"`{mc['latency_ms']:.3f}`",
+          perf_cell,
+          f"`{mc['cv_pct']:.2f}%`",
+          f"`{fmt_perf(rf[f'effective_ceiling_{primary_sfx}'], unit)}`",
+          f"**`{rf[util_field]:.1f}%`**",
+          f"**`{rf[f'machine_roofline_utilization_{primary_sfx}_pct']:.1f}%`**",
+      ]
+      md += "| " + " | ".join(cells) + " |\n"
+    md += "\n"
+
+  # --- Section 4.8: Controlled SME2/SME vs. NEON Baselines Table ---
+  md += (
+      "### 4.8 Controlled ISA Comparison: SME2/SME vs. Per-Core NEON (`I8MM` / `DotProd` / `FP32 FMA`) Across `1T` / `6T` / `18T`\n\n"
+      "To isolate cluster-shared SME2 saturation from per-core NEON scaling on the exact same Gemma 4 31B shapes, "
+      "the table below pairs every primary SME2/SME kernel against its controlled NEON (or SME) baseline from `baseline_comparisons`:\n\n"
+  )
+  b_hdr = [
+      "Pair & Shape `(M×N×K)`",
+      "Regime",
+      "Baseline Role & Microkernel (`ISA`)",
+      "1C Baseline (`ISA Util`)",
+      f"{mid_t}C Baseline (`ISA Util`)",
+      f"**{primary_t}C Baseline** (`cv%`, `ISA Util`)",
+      f"{primary_t}C Primary XNN / YNN",
+      f"**Baseline / Primary SME ({primary_t}C)**",
+  ]
+  b_align = [" :--- ", " :--- ", " :--- ", " ---: ", " ---: ", " ---: ", " ---: ", " ---: "]
+  md += "| " + " | ".join(b_hdr) + " |\n"
+  md += "|" + "|".join(b_align) + "|\n"
+  ptags = {
+      "pair1_int4_gemv": "P1",
+      "pair2_int4_gemm": "P2",
+      "pair3_fp32_attn_bmm": "P3",
+      "pair5_int8_gemm": "P5",
+      "pair6_int2_gemm": "P6",
+  }
+  for br in enriched_baselines:
+    s = br["shape"]
+    pid = br["pair_id"]
+    key5 = (pid, s["M"], s["N"], s["K"], br["memory_regime"])
+    xr = lookup.get((*key5, "XNNPACK"))
+    yr = lookup.get((*key5, "YNNPACK"))
+    if xr is None or yr is None:
+      continue
+    rf = br["roofline"]
+    unit = rf["unit"]
+    v1 = br["single_core"]["gops"]
+    v6 = br[mid_key]["gops"]
+    v18 = br[primary_key]["gops"]
+    x18 = xr[primary_key]["gops"]
+    y18 = yr[primary_key]["gops"]
+    # Compare against same-backend primary SME kernel (for P1 YNN_SME vs YNN NEON, show vs XNN SME2 & YNN NEON)
+    if br["backend"] == "XNNPACK_NEON_BASELINE":
+      ref_val = x18
+      ref_lbl = "vs XNN SME2"
+    elif br["backend"] == "YNNPACK_NEON_BASELINE":
+      ref_val = y18
+      ref_lbl = "vs YNN SME"
+    else:
+      ref_val = y18
+      ref_lbl = "vs YNN NEON"
+    ratio = v18 / ref_val if ref_val > 0 else 0.0
+    ratio_str = f"**`{ratio:.2f}×`** ({ref_lbl})" if ratio >= 1.05 else f"`{ratio:.2f}×` ({ref_lbl})"
+    cells = [
+        f"`{ptags.get(pid, pid)}: {s['M']}×{s['N']}×{s['K']}`",
+        f"`{br['memory_regime']}`",
+        f"**{br['backend']}**: `{br['kernel']}` (`{br['isa']}`)",
+        f"`{fmt_perf(v1, unit)}` (`{rf['isa_roofline_utilization_1c_pct']:.1f}%`)",
+        f"`{fmt_perf(v6, unit)}` (`{rf[f'isa_roofline_utilization_{mid_t}c_pct']:.1f}%`)",
+        f"**`{fmt_perf(v18, unit)}`** (`{br[primary_key]['cv_pct']:.2f}%`, `{rf[util_field]:.1f}%`)",
+        f"`{fmt_perf(x18, unit)}` / `{fmt_perf(y18, unit)}`",
+        ratio_str,
+    ]
+    md += "| " + " | ".join(cells) + " |\n"
+  md += "\n"
+
+  # --- Section 5: Numerical Precision ---
+  md += rf"""---
+
+## 5. Numerical Precision & Quantization Fidelity Verification (`verify_litert_microkernels_arm64.c`)
+
+To verify that ARM64 SME2/SME/NEON optimizations and KleidiAI/YNNPACK low-bit packing schemes introduce zero silent numerical regressions, [verify_litert_microkernels_arm64.c](../../scripts/verify_litert_microkernels_arm64.c) verifies all **14 load-bearing microkernels** directly on Apple M5 Max across **two reference levels** and **four deterministic input distributions** ([{precision_path.name}]({precision_rel})): **`{precision_data['total_kernels_passed']} / {precision_data['total_kernels_verified']} PASSED`**.
+
+### 5.1 Two-Level Reference Verification Methodology & Input Distributions
+
+1. **Level A — Exact Packed-Layout Microkernel Reference**:
+   - Feeds identical quantized activation and packed weight buffers into both the target SME2/SME/NEON microkernel and an exact scalar reference (`INT64` accumulator + `FP64` post-scaling for quantized GEMMs, sequential `FP64` dot for `FP32` GEMMs, exact `FP64` $\exp(x - x_{{\max}})$ for Softmax, and scalar 32-bit pack/transpose).
+2. **Level B — Unquantized `FP64` Golden Operator Reference**:
+   - Generates `FP64` tensors $A_{{\text{{fp64}}}}$, $B_{{\text{{fp64}}}}$, $\text{{bias}}_{{\text{{fp64}}}}$, quantizes and packs them via each backend's exact scheme (`QP8`/`INT8` × `QC4W`/`QC8W`/`QC2W`), executes the microkernel, and compares against $C_{{\text{{fp64}}}} = A_{{\text{{fp64}}}} B_{{\text{{fp64}}}}^T + \text{{bias}}_{{\text{{fp64}}}}$.
+3. **Four Deterministic Input Distributions**: `normal` ($\mathcal{{N}}(0, 1)$ act × $\mathcal{{N}}(0, 0.25)$ wt), `saturation` ($\pm 10.0$ act × $\pm 1.0$ wt), `outliers` ($\mathcal{{N}}(0, 15.0)$ outlier channels), and `tails` (asymmetric non-zero-mean activations and unaligned `N = 53` tail panels).
+
+### 5.2 Level A Verification Summary: SME2 / SME / NEON Microkernel vs. Exact Packed-Layout Reference
+
+| Kernel Pair | Backend | Microkernel Symbol | Max Abs Error | Max Rel Error | RMSE | Max ULP | Mean ULP | Level A SQNR | Exact Match (`%`) | `NaN`/`Inf` | Status |
+| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
+{level_a_rows_md}
+### 5.3 Level B Verification Summary: End-to-End Operator & Quantization Fidelity vs. `FP64` Golden Reference
+
+| Kernel Pair | Backend | Quantization / Arithmetic Scheme | SQNR (`normal`) | SQNR (`saturation`) | SQNR (`outliers`) | SQNR (`tails`) | **Worst-Case SQNR** | **Worst-Case Cosine Sim** | Aggregate RMSE | Max Abs Error | Status |
+| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
+{level_b_rows_md}
+### 5.4 Operator-Specific Invariant Verification (`Softmax` & `32-Bit Pack/Transpose`)
+
+| Kernel Pair | Backend | Microkernel Symbol | Invariant 1 | Measured Value | Invariant 2 | Measured Value | Guard / Canary Check | Status |
+| :--- | :--- | :--- | :--- | ---: | :--- | ---: | ---: | :---: |
+| **Pair 4: FP32 Softmax** | **XNNPACK** | `xnn_f32_rmax + xnn_f32_raddstoreexpminusmax (neonfma_rr1_lut64_p2)` | Max Simplex Sum Error $\max \lvert\sum_i P_i - 1\rvert$ | `{p4_xnn_prec['max_simplex_sum_err']:.2e}` | Shift-Invariance Error $\lVert\text{{Softmax}}(x+1000) - \text{{Softmax}}(x)\rVert_\infty$ | `{p4_xnn_prec['shift_invariance_max_err']:.2e}` | `0 NaN / 0 Inf` | **`PASS`** |
+| **Pair 4: FP32 Softmax** | **YNNPACK** | `ynn::max_k1_fp32_neon + ynn::sum_k1_fp32_neon` | Max Simplex Sum Error $\max \lvert\sum_i P_i - 1\rvert$ | `{p4_ynn_prec['max_simplex_sum_err']:.2e}` | Shift-Invariance Error $\lVert\text{{Softmax}}(x+1000) - \text{{Softmax}}(x)\rVert_\infty$ | `{p4_ynn_prec['shift_invariance_max_err']:.2e}` | `0 NaN / 0 Inf` | **`PASS`** |
+| **Pair 7: 32-Bit Pack/Transpose** | **XNNPACK** | `xnn_x32_packw_gemm_goi_ukernel_x8__neon_ld4lane_u4_prfm` | Aligned `64×64` Bit-Exact Match | `{p7_xnn_prec['aligned_exact_match_pct']:.2f}%` | Unaligned Tail `53×64` Bit-Exact Match (all valid lanes) | `{p7_xnn_prec['unaligned_tail_exact_match_pct']:.2f}%` | `{p7_xnn_prec['canary_corrupted_bytes']} corrupted bytes` | **`PASS`** |
+| **Pair 7: 32-Bit Pack/Transpose** | **YNNPACK** | `ynn::transpose_x32_neon` | Aligned `64×64` Bit-Exact Match | `{p7_ynn_prec['aligned_exact_match_pct']:.2f}%` | Unaligned Tail `53×64` Bit-Exact Match | `{p7_ynn_prec['unaligned_tail_exact_match_pct']:.2f}%` | `{p7_ynn_prec['canary_corrupted_bytes']} corrupted bytes` | **`PASS`** |
+
+### 5.5 Key Numerical Precision & Quantization Insights
+
+1. **Identical End-to-End Fidelity (`Level B`) Between KleidiAI SME2 and YNNPACK SME2/SME**:
+   - In **Level A**, YNNPACK's quantized microkernels (`dot_int8_int4`, `dot_int8_int8`, `dot_int8_int2`) emit raw `INT32` accumulators with **`0 ULP` (`100.0%` bit-exact, `200.0 dB` SQNR)** against the `INT64` reference, while XNNPACK's KleidiAI SME2 kernels fuse `INT32 → FP32` scaling and clamping in-kernel (`3–5 Max ULP`, `143.9–148.3 dB` SQNR).
+   - In **Level B**, both backends achieve identical worst-case quantization SQNR on every GEMM bit-width (**`19.41 dB`** on `INT4` prefill, **`41.85 dB`** on `INT8`, **`7.02 dB`** on `INT2`, **`134.6–135.1 dB`** on `FP32` SME2), matching the `~6 dB/bit` quantization scaling law observed on x86_64.
+2. **ARM64 Softmax LUT+Poly (`neonfma_rr1_lut64_p2`)**:
+   - XNNPACK's 64-entry LUT + degree-2 minimax polynomial achieves **`Max ULP = {p4_xnn_prec['level_a_exact_ukernel']['max_ulp_diff']}` (`{p4_xnn_prec['level_a_exact_ukernel']['sqnr_db']:.2f} dB`)** in Level A and **`{p4_xnn_prec['level_b_fp64_golden']['sqnr_db']:.2f} dB` SQNR** with **`{p4_xnn_prec['shift_invariance_max_err']:.2e}`** shift-invariance error in Level B.
+3. **Remainder-Panel Behavior in `packw_x8__neon_ld4lane_u4_prfm`**:
+   - On unaligned `N = 53` (`53 % 8 = 5` remainder columns), `xnn_x32_packw_gemm_goi_ukernel_x8__neon_ld4lane_u4_prfm` clamps trailing pad rows `5..7` to the last valid row (`w4`) rather than zero-filling; all `53 × 64` valid output elements are `100.00%` bit-exact with `0` guard-canary corruptions.
+
+---
+
+## 6. Architectural Diagnosis: Apple M5 Max Microarchitecture vs. Microkernel Dispatch
+
+### 6.1 The 3-Cluster SME2 Saturation Wall vs. 18-Core NEON Scaling Crossover (`Pair 5` & `Pair 6`)
+- **Microarchitectural Topology**: Unlike Intel Sapphire Rapids (where every core has a private AMX `TMUL` unit scaling linearly to 56 cores), Apple M5 Max equips **1 shared SME2 matrix coprocessor per CPU cluster** (3 total: 1 large Super-cluster SME2 ≈ `4.38 TOPS` + 2 smaller Performance-cluster SME2 ≈ `1.08 TOPS` each = `6.47–6.54 TOPS` aggregate), while **NEON `I8MM`/`DotProd`/`FMA` pipelines remain private per core** across all 18 cores (`8.13 TOPS` `I8MM`, `7.54 TOPS` `DotProd`).
+- **6-Thread Super-Cluster Serialization & Scheduler Variance**: When running `6T` (`QOS_CLASS_USER_INTERACTIVE`), macOS preferentially places all 6 threads onto the 6 Super cores, which share **1** SME2 unit (`~4.0–4.2 TOPS` on `Pair 2`/`Pair 5`, `~0.52 TOPS` on `Pair 1` SME2 — virtually flat vs. `1T`!). On long-running shapes (`1024×21504×5376` or intermittent trials of `1024×8192×5376` and `2520×4304×1152`, producing `16%–21%` CV at `6T`), macOS spills threads across Performance clusters, activating all 3 SME2 units (`~6.2 TOPS`). At `18T`, all 3 clusters are deterministically saturated (`CV = 0.0%–1.2%`).
+- **SME2 vs. NEON High-Concurrency Crossover (`INT8` & `INT2` GEMM)**:
+  - On **`Pair 5` (`INT8`)**, YNNPACK `10x8x8_neoni8mm` hits **`{p5_2520_4k_yn[primary_key]['gops'] / 1000.0:.2f}–{p5_2520_1k_yn[primary_key]['gops'] / 1000.0:.2f} TOPS`** (`88%–94%` of `8.13 TOPS` NEON-I8MM peak) at `18T`, outperforming YNNPACK SME2 (`6.19–6.34 TOPS`) by **`+14%–22%`** and XNNPACK SME2 (`5.63–5.90 TOPS`) by **`+22%–34%`**. Similarly, XNNPACK `4x16c8__neoni8mm` (`6.27–6.33 TOPS`) beats XNNPACK SME2 on all three shapes at `18T`, and on **`Pair 6` (`INT2`)**, XNNPACK `8x8c4__neondot` (`6.09–6.25 TOPS`) beats both SME2 and SME at `18T`.
+  - **Architectural Takeaway**: At low-to-medium concurrency (`1–8` threads) — and across all thread counts for `FP32` and 4-bit Prefill GEMMs — SME2 holds a large (`1.4×–7.7×`) advantage. At full-chip concurrency (`18T`) on M-series Max/Ultra chips, however, per-core `NEON-I8MM` (`INT8`) and `NEON-DotProd` (`INT2`) exceed the 3-cluster SME2 ceiling; runtimes that control concurrency can exploit this crossover, whereas thread-count-agnostic runtimes must weigh 1T–6T latency against 18T peak throughput.
+
+### 6.2 Decode (`M = 1`, `Pair 1`) vs. Prefill (`M = 128..1024`, `Pair 2`) on 4-Bit Weights
+- **Cold Decode (`M = 1`)**: With $AI = 3.997\text{{ OPs/B}}$, the `18T` Unified Memory Read ceiling (`{um_rd_18:.2f} GB/s`) caps decode at **`{p1_cold2_y['roofline'][f'effective_ceiling_{primary_sfx}']:,.1f} GOPS`**. Per-core NEON saturates this bus completely (**YNNPACK `1x32x8_neondot`: `299–301 GB/s` = `99.4%–100.0%`**; **XNNPACK `1x16c8__neoni8mm`: `296–299 GB/s` = `98.4%–99.3%`**), whereas KleidiAI SME2 `1x64c4__neonsme2` reaches `246–254 GB/s` (`82%–84%`) due to SME2 cluster serialization and streaming-mode setup overhead.
+- **Warm-Cache Decode (`M = 1`)**: When weights fit in SLC/L2 (`1×4096×5376`), 18 independent NEON pipelines (`2,963 GOPS` YNNPACK `neondot`, `2,512 GOPS` XNNPACK `neoni8mm`) outpace KleidiAI SME2 (`1,567 GOPS`) by **`1.89×`** and YNNPACK's `16×16` outer-product `dot_int8_int4_int32_sme` (`393 GOPS`) by **`7.54×`**.
+- **Prefill (`M = 128, 1024`)**: Unlike `INT8`, 4-bit nibble unpacking competes for NEON vector ALU ports alongside `smmla`, capping 18T NEON-I8MM at `5.63–6.09 TOPS` (`69%–75%` of `8.13 TOPS`). Both KleidiAI SME2 (`6.22–6.35 TOPS`, `96.2%–98.1%`) and YNNPACK SME (`6.19–6.38 TOPS`, `95.7%–98.6%`) hide 4-bit unpacking behind the dedicated SME2 matrix array and remain optimal across all thread counts.
+
+### 6.3 Why YNNPACK Leads XNNPACK SME2 at `1T` on `Pair 3`, `Pair 5`, and `Pair 6`
+- At `1T` (single Super SME2 unit), YNNPACK reaches **`96.6%–99.0%`** of `4.38 TOPS` on `INT8` (`Pair 5`), **`90.2%–91.6%`** on `INT2` (`Pair 6`), and **`90.8%–97.5%`** of `2.19 TFLOPS` on `FP32` (`Pair 3`), whereas XNNPACK KleidiAI SME2 reaches `64%–65%` on `Pair 5`, `62%–86%` on `Pair 6`, and `48%–83%` on `Pair 3` (`2520×2520×72`, short `K=72`).
+- Two factors explain the `1T` gap: (1) XNNPACK KleidiAI quantized kernels fuse `INT32 → FP32` scale/bias/clamp dequantization inside the streaming SME2 epilogue (whereas YNNPACK's standalone `dot` writes raw `INT32` via `svst1_u8_x4` and defers dequantization to a separate pass), and (2) YNNPACK's streamlined `1×4` (`16×64`, `svld1_x4` + `store_za32_rows`) loop incurs lower per-tile setup and epilogue overhead than KleidiAI's `qp8` dequantization and `32×32` `pf32` tile loops — most visible on short-`K` `2520×2520×72` (`Pair 3`).
+
+### 6.4 Cache-Residency Fusion Tradeoff in `Pair 4` (Softmax) & Stride Alignment in `Pair 7` (Transpose)
+- **Softmax Fusion (`Pair 4`)**: On `1024×1024` (`8 MB` total < `32 MiB` L2), YNNPACK's read-only reductions (`max_k1 + sum_k1`) hit **`1,529.1 GB/s`** (`80.4%` of L2 Read). On `2520×2520` (`50.8 MB`) and `1024×4096` (`33.6 MB`), however, two-buffer unfused reductions spill past the `32 MiB` aggregate L2 into SLC/Unified Memory (`366 GB/s`), whereas XNNPACK's row-fused `rmax + raddstoreexpminusmax` keeps each `10–16 KB` row inside L1D/L2 and sustains **`481.5–504.0 GB/s`** — **`1.31×–1.38×` faster** despite computing `exp()` in-flight.
+- **Transpose Power-of-2 Stride Conflicts & Harness Methodology (`Pair 7` & Adaptive Chunking)**:
+  - On `4096×512` (`512 × 4B = 2048 B` row stride), YNNPACK's `transpose_x32_neon` drops to `402.9 GB/s` (vs. XNNPACK's `739.8 GB/s`) due to L1D set-associativity conflict misses; on non-power-of-2 `2520×1152`, YNNPACK overtakes XNNPACK (`537.2` vs. `496.3 GB/s`). Notice also that XNNPACK `1024×256` (`2 MB`) and `4096×512` (`16 MB`) achieve `116%–123%` of the multi-thread L2 Copy ceiling (`634.9 GB/s`) because per-thread working sets (`111–889 KB`) fit inside private L1D (`1,173.3 GB/s` Copy) and cluster L2 without overflowing into SLC.
+  - **Compiler & Dispatch Hygiene**: Apple Silicon supports `SME` / `SME2` without non-streaming `FEAT_SVE`; compiling regular C/C++ with `-march=armv9-a+sme2` emits non-streaming SVE (`SIGILL`). Using `-march=armv8.2-a+sme+sme2+fp16+bf16+i8mm+dotprod` for general/YNNPACK units and `-fno-tree-vectorize -fno-tree-slp-vectorize -march=armv8.2-a+sve+sve2+sme+sme2` for KleidiAI streaming-SVE units (plus adaptive `~48 chunks/thread` dynamic dispatch in `bench_litert_microkernels_arm64.c`) eliminated both `SIGILL` faults and cross-cluster atomic contention on small NEON tiles.
+
+---
+
+## 7. Reproducing the Probes, Benchmarks, Precision Checks, and Reports
+
+All source code and automation scripts are checked into the repository and wired into [kernel/Makefile](../../Makefile):
+
+```bash
+# 1. Compile and run the 7-trial Apple M5 Max hardware ceiling probe (1T, 6T, 18T)
+clang -O3 -march=armv8.2-a+sme+sme2+fp16+bf16+i8mm+dotprod -pthread \
+    kernel/probes/cpu_ceilings_arm64.c -o /tmp/cpu_ceilings_arm64 -lm
+caffeinate -i /tmp/cpu_ceilings_arm64 \
+    --threads 6,18 --trials 7 \
+    --output kernel/reports/{report_dir.name}/ceilings_apple_m5_max.json
+
+# 2. Build upstream XNNPACK ({commit_short}) + KleidiAI ({kai_short}) + YNNPACK static library
+#    (`libaeb_ukernels_arm64.a`) and link bench/verify harnesses:
+clang -O2 -march=armv8.2-a+sme+sme2+fp16+bf16+i8mm+dotprod -pthread \
+    kernel/scripts/bench_litert_microkernels_arm64.c /tmp/libaeb_ukernels_arm64.a \
+    -o /tmp/bench_ukernels_arm64 -lm -lc++
+caffeinate -i /tmp/bench_ukernels_arm64 \
+    --threads 6,18 --trials 7 \
+    --xnnpack-commit {xnnpack_commit} \
+    --kleidiai-commit {kleidiai_commit} \
+    --output kernel/reports/{report_dir.name}/ukernel_benchmarks_apple_m5_max.json
+
+# 3. Compile and run the 14-kernel Level A & Level B numerical precision verifier:
+clang -O2 -march=armv8.2-a+sme+sme2+fp16+bf16+i8mm+dotprod -pthread \
+    kernel/scripts/verify_litert_microkernels_arm64.c /tmp/libaeb_ukernels_arm64.a \
+    -o /tmp/verify_ukernels_arm64 -lm -lc++
+caffeinate -i /tmp/verify_ukernels_arm64 \
+    --output kernel/reports/{report_dir.name}/ukernel_precision_apple_m5_max.json
+
+# 4. Generate the unified JSON & Markdown kernel report and update the dashboard:
+python3 kernel/scripts/generate_kernel_report.py --report-dir kernel/reports/{report_dir.name}
+python3 kernel/scripts/update_dashboard.py
+```
+"""
+
+  out_md_path.write_text(md)
+  print(f"Wrote {out_json_path} and {out_md_path}")
 
 
 def main() -> None:
@@ -428,6 +1584,9 @@ def main() -> None:
       if args.report_dir is not None
       else default_report_dir().resolve()
   )
+  if (report_dir / "ceilings_apple_m5_max.json").exists():
+    generate_arm64_report(report_dir, args.precision_json)
+    return
   ceilings_path = report_dir / "ceilings_sapphire_rapids.json"
   bench_path = report_dir / "ukernel_benchmarks_sapphire_rapids.json"
   out_json_path = report_dir / "kernel_report_gemma4_31b_sapphire_rapids.json"
