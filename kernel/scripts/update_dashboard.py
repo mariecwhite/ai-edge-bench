@@ -87,6 +87,7 @@ PAIR_META = {
 
 # Headline representative shapes featured by default in the overview charts
 HEADLINE_SHAPES = {
+    # Intel Sapphire Rapids regimes
     ("pair1_int4_gemv", 1, 21504, 5376, "DDR5_DRAM_Streaming"),
     ("pair1_int4_gemv", 1, 8192, 5376, "L3_LLC_Warm"),
     ("pair2_int4_gemm", 128, 21504, 5376, "DDR5_DRAM_to_L2_Tiled"),
@@ -99,27 +100,95 @@ HEADLINE_SHAPES = {
     ("pair5_int8_gemm", 2520, 1152, 1152, "L3_LLC_Resident"),
     ("pair6_int2_gemm", 204, 4096, 1024, "L2_L3_Resident"),
     ("pair7_pack_transpose", 1, 2520, 1152, "L3_LLC_Copy"),
+    # Apple M5 Max regimes
+    ("pair1_int4_gemv", 1, 21504, 5376, "Unified_Memory_Streaming"),
+    ("pair1_int4_gemv", 1, 4096, 5376, "L2_Cluster_Warm"),
+    ("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled"),
+    ("pair2_int4_gemm", 128, 8192, 5376, "SLC_to_L2_Tiled"),
+    ("pair3_fp32_attn_bmm", 1024, 1024, 256, "L2_Cluster_Resident"),
+    ("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident"),
+    ("pair4_fp32_softmax", 1024, 1024, 1, "L2_Cluster_Resident"),
+    ("pair4_fp32_softmax", 1024, 4096, 1, "SLC_Resident"),
+    ("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident"),
+    ("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident"),
+    ("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident"),
+    ("pair7_pack_transpose", 1, 2520, 1152, "SLC_Copy"),
 }
 
 PAIR_COLORS = {
-    "pair1_int4_gemv": {"YNNPACK": "#d97706", "XNNPACK": "#2563eb", "YNNPACK_VNNI_BASELINE": "#0d9488"},
-    "pair2_int4_gemm": {"YNNPACK": "#ea580c", "XNNPACK": "#1d4ed8", "YNNPACK_VNNI_BASELINE": "#0f766e"},
-    "pair3_fp32_attn_bmm": {"YNNPACK": "#16a34a", "XNNPACK": "#0284c7", "YNNPACK_VNNI_BASELINE": "#0d9488"},
-    "pair4_fp32_softmax": {"YNNPACK": "#9333ea", "XNNPACK": "#4f46e5", "YNNPACK_VNNI_BASELINE": "#0d9488"},
-    "pair5_int8_gemm": {"YNNPACK": "#dc2626", "XNNPACK": "#0369a1", "YNNPACK_VNNI_BASELINE": "#0d9488"},
-    "pair6_int2_gemm": {"YNNPACK": "#ca8a04", "XNNPACK": "#4338ca", "YNNPACK_VNNI_BASELINE": "#0d9488"},
-    "pair7_pack_transpose": {"YNNPACK": "#db2777", "XNNPACK": "#0f766e", "YNNPACK_VNNI_BASELINE": "#0d9488"},
+    "pair1_int4_gemv": {
+        "YNNPACK": "#d97706",
+        "XNNPACK": "#2563eb",
+        "YNNPACK_VNNI_BASELINE": "#0d9488",
+        "YNNPACK_SME_BASELINE": "#9a3412",
+        "XNNPACK_NEON_BASELINE": "#0d9488",
+    },
+    "pair2_int4_gemm": {
+        "YNNPACK": "#ea580c",
+        "XNNPACK": "#1d4ed8",
+        "YNNPACK_VNNI_BASELINE": "#0f766e",
+        "YNNPACK_NEON_BASELINE": "#0f766e",
+        "XNNPACK_NEON_BASELINE": "#0284c7",
+    },
+    "pair3_fp32_attn_bmm": {
+        "YNNPACK": "#16a34a",
+        "XNNPACK": "#0284c7",
+        "YNNPACK_VNNI_BASELINE": "#0d9488",
+        "YNNPACK_NEON_BASELINE": "#15803d",
+        "XNNPACK_NEON_BASELINE": "#0369a1",
+    },
+    "pair4_fp32_softmax": {
+        "YNNPACK": "#9333ea",
+        "XNNPACK": "#4f46e5",
+        "YNNPACK_VNNI_BASELINE": "#0d9488",
+    },
+    "pair5_int8_gemm": {
+        "YNNPACK": "#dc2626",
+        "XNNPACK": "#0369a1",
+        "YNNPACK_VNNI_BASELINE": "#0d9488",
+        "YNNPACK_NEON_BASELINE": "#059669",
+        "XNNPACK_NEON_BASELINE": "#0d9488",
+    },
+    "pair6_int2_gemm": {
+        "YNNPACK": "#ca8a04",
+        "XNNPACK": "#4338ca",
+        "YNNPACK_VNNI_BASELINE": "#0d9488",
+        "YNNPACK_NEON_BASELINE": "#b45309",
+        "XNNPACK_NEON_BASELINE": "#0d9488",
+    },
+    "pair7_pack_transpose": {
+        "YNNPACK": "#db2777",
+        "XNNPACK": "#0f766e",
+        "YNNPACK_VNNI_BASELINE": "#0d9488",
+    },
 }
 
 BACKEND_STYLE = {
     "YNNPACK": ("circle", "solid"),
     "XNNPACK": ("square", "dashed"),
     "YNNPACK_VNNI_BASELINE": ("triangle", "dotted"),
+    "YNNPACK_NEON_BASELINE": ("triangle", "solid"),
+    "XNNPACK_NEON_BASELINE": ("triangle", "dotted"),
+    "YNNPACK_SME_BASELINE": ("triangle", "dotted"),
+}
+
+BACKEND_LABELS = {
+    "YNNPACK": "YNNPACK",
+    "XNNPACK": "XNNPACK",
+    "YNNPACK_VNNI_BASELINE": "YNN VNNI Baseline",
+    "YNNPACK_NEON_BASELINE": "YNN NEON Baseline",
+    "XNNPACK_NEON_BASELINE": "XNN NEON Baseline",
+    "YNNPACK_SME_BASELINE": "YNN SME Baseline",
 }
 
 
-def _tc_key(t: int) -> str:
-  return "single_core" if t == 1 else f"numa_node0_{t}c"
+def _resolve_tc_key(row: dict[str, Any], t: int) -> str | None:
+  if t == 1:
+    return "single_core" if "single_core" in row else None
+  for cand in (f"numa_node0_{t}c", f"threads_{t}c"):
+    if cand in row:
+      return cand
+  return None
 
 
 def _tc_sfx(t: int) -> str:
@@ -130,14 +199,21 @@ def _shape_str(s: dict[str, int]) -> str:
   return f"{s['M']}×{s['N']}×{s['K']}"
 
 
-def _extract_point(row: dict[str, Any], report_id: str, date_str: str, commit: str, report_rel_url: str) -> dict[str, Any]:
+def _extract_point(
+    row: dict[str, Any],
+    report_id: str,
+    date_str: str,
+    commit: str,
+    report_rel_url: str,
+    thread_configs: list[int],
+) -> dict[str, Any]:
   roof = row.get("roofline", {})
   by_threads: dict[str, Any] = {}
-  for t in (1, 28, 56):
-    k = _tc_key(t)
-    sfx = _tc_sfx(t)
-    if k not in row:
+  for t in thread_configs:
+    k = _resolve_tc_key(row, t)
+    if k is None:
       continue
+    sfx = _tc_sfx(t)
     m = row[k]
     gops = m.get("gops", 0.0)
     gbps = m.get("gbps", 0.0)
@@ -187,6 +263,9 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
   for suite_id, dated_dirs in sorted(suites_map.items()):
     reports_meta: list[dict[str, Any]] = []
     series_map: dict[tuple[str, int, int, int, str, str], dict[str, Any]] = {}
+    all_threads_set: set[int] = set()
+    backends_seen: list[str] = []
+    suite_microarch = ""
 
     for date_str, rdir in dated_dirs:
       report_files = sorted(rdir.glob("kernel_report_*.json"))
@@ -200,7 +279,10 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
       commit = rdata.get("xnnpack_commit") or "28d1fc6d (LiteRT-LM v0.19.1)"
       commit_short = commit[:8] if len(commit) >= 8 else commit
       t_cfgs = rdata.get("thread_configs", [1, 28])
+      all_threads_set.update(t_cfgs)
       ceilings = rdata.get("hardware_ceilings", {})
+      if rdata.get("microarchitecture"):
+        suite_microarch = rdata["microarchitecture"]
 
       reports_meta.append({
           "report_id": rdir.name,
@@ -219,6 +301,8 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
         s = row["shape"]
         pair_id = row["pair_id"]
         backend = row["backend"]
+        if backend not in backends_seen:
+          backends_seen.append(backend)
         reg = row["memory_regime"]
         key = (pair_id, s["M"], s["N"], s["K"], reg, backend)
         pmeta = PAIR_META.get(pair_id, {})
@@ -227,9 +311,21 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
           is_headline = (pair_id, s["M"], s["N"], s["K"], reg) in HEADLINE_SHAPES
           color = PAIR_COLORS.get(pair_id, {}).get(backend, "#2563eb")
           marker, linestyle = BACKEND_STYLE.get(backend, ("circle", "solid"))
-          reg_short = "Warm L3" if "Warm" in reg else ("Cold DRAM" if "DRAM_Streaming" in reg else reg.replace("_", " "))
+          reg_short = (
+              "Warm L2"
+              if "L2_Cluster_Warm" in reg
+              else (
+                  "Warm SLC/L3"
+                  if "Warm" in reg
+                  else (
+                      "Cold Mem"
+                      if ("DRAM_Streaming" in reg or "Unified_Memory_Streaming" in reg)
+                      else reg.replace("_", " ")
+                  )
+              )
+          )
           series_id = f"{pmeta.get('short', pair_id)} · {backend} · {shape_label}"
-          if pair_id == "pair1_int4_gemv" and s["N"] == 8192:
+          if pair_id == "pair1_int4_gemv" and s["N"] in (8192, 4096):
             series_id += f" ({reg_short})"
           series_map[key] = {
               "id": series_id,
@@ -251,8 +347,13 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
               "linestyle": linestyle,
               "points": [],
           }
-        pt = _extract_point(row, rdir.name, date_str, commit_short, rmd_rel)
+        pt = _extract_point(row, rdir.name, date_str, commit_short, rmd_rel, t_cfgs)
         series_map[key]["points"].append(pt)
+
+    if not reports_meta:
+      continue
+
+    all_threads = sorted(all_threads_set)
 
     # Enrich each series with per-thread baseline ratios and deltas
     series_list = list(series_map.values())
@@ -270,7 +371,8 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
     for s in series_list:
       pts = s["points"]
       summary_by_thread: dict[str, Any] = {}
-      for t_str in ("1", "28", "56"):
+      for t_int in all_threads:
+        t_str = str(t_int)
         t_pts = [p for p in pts if t_str in p["threads"]]
         if not t_pts:
           continue
@@ -316,13 +418,32 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
         }
       s["summary_by_thread"] = summary_by_thread
 
+    if "apple-m5-max" in suite_id:
+      microarch_badge = "Apple M5 Max (18 Cores: 6 Super + 12 Perf, SME2 / NEON I8MM / DotProd)"
+      default_thread = str(all_threads[-1])
+    elif "sapphire-rapids" in suite_id:
+      microarch_badge = "Intel Sapphire Rapids (Socket 0, AMX-INT8 / AVX-512 VNNI / GFNI)"
+      default_thread = "28" if 28 in all_threads else str(all_threads[-1])
+    else:
+      microarch_badge = suite_microarch or suite_id
+      default_thread = str(all_threads[-1])
+
     suites_out.append({
         "id": suite_id,
         "model": "Gemma 4 31B (gemma-4-31B-it)",
-        "microarchitecture": "Intel Sapphire Rapids (Socket 0, AMX-INT8 / AVX-512 VNNI / GFNI)",
+        "microarchitecture": microarch_badge,
+        "thread_configs": all_threads,
+        "default_thread": default_thread,
+        "backends": backends_seen,
         "reports": reports_meta,
         "series": series_list,
     })
+
+  # Present newest-dated hardware suites first (Apple M5 Max, Sapphire Rapids)
+  suites_out.sort(
+      key=lambda s: (s["reports"][-1]["date"] if s["reports"] else "", s["id"]),
+      reverse=True,
+  )
 
   return {
       "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
@@ -331,61 +452,178 @@ def collect_kernel_dashboard_data(reports_dir: Path) -> dict[str, Any]:
 
 
 def generate_markdown_dashboard(data: dict[str, Any]) -> str:
-  suite = data["suites"][0]
-  reports = suite["reports"]
-  series = suite["series"]
+  suites_by_id = {s["id"]: s for s in data["suites"]}
+  spr_suite = suites_by_id.get("gemma4-31b-sapphire-rapids")
+  m5_suite = suites_by_id.get("gemma4-31b-apple-m5-max")
 
-  by_key: dict[tuple[str, int, int, int, str, str], dict[str, Any]] = {}
-  for s in series:
-    sh = s["shape"]
-    by_key[(s["pair_id"], sh["M"], sh["N"], sh["K"], s["memory_regime"], s["backend"])] = s
+  def fmt_v(val: float | None, unit: str) -> str:
+    if val is None:
+      return "—"
+    if unit in ("GOPS", "GFLOPS") and val >= 10000.0:
+      tu = "TOPS" if unit == "GOPS" else "TFLOPS"
+      return f"{val / 1000.0:.2f} {tu}"
+    return f"{val:,.2f} {unit}"
 
-  def get_pt(s: dict[str, Any], date_str: str, t_str: str = "28") -> dict[str, Any] | None:
+  def get_pt(s: dict[str, Any], date_str: str, t_str: str) -> dict[str, Any] | None:
     for p in s["points"]:
       if p["date"] == date_str and t_str in p["threads"]:
         return p["threads"][t_str]
     return None
 
-  # Build Mermaid progression charts across 2026-11-10 -> 2026-11-13 -> 2026-11-17 (28C)
-  dates = [r["date"] for r in reports]
-  p2_128_21k_y = by_key[("pair2_int4_gemm", 128, 21504, 5376, "DDR5_DRAM_to_L2_Tiled", "YNNPACK")]
-  p2_128_21k_x = by_key[("pair2_int4_gemm", 128, 21504, 5376, "DDR5_DRAM_to_L2_Tiled", "XNNPACK")]
-  p2_128_8k_y = by_key[("pair2_int4_gemm", 128, 8192, 5376, "L3_LLC_to_L2_Tiled", "YNNPACK")]
-  p2_1024_21k_y = by_key[("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled", "YNNPACK")]
-  p5_2520_1k_y = by_key[("pair5_int8_gemm", 2520, 1152, 1152, "L3_LLC_Resident", "YNNPACK")]
-  p3_1024_1k_y = by_key[("pair3_fp32_attn_bmm", 1024, 1024, 256, "L3_LLC_Resident", "YNNPACK")]
-  p4_1024_4k_y = by_key[("pair4_fp32_softmax", 1024, 4096, 1, "L3_LLC_Resident", "YNNPACK")]
-
-  def vals_tops(s: dict[str, Any], t_str: str = "28") -> list[float]:
-    out = []
-    for d in dates:
-      pt = get_pt(s, d, t_str)
-      out.append(round((pt["value"] / 1000.0) if pt else 0.0, 2))
-    return out
-
-  def vals_speedup(s: dict[str, Any], t_str: str = "28") -> list[float]:
-    out = []
-    for d in dates:
-      pt = get_pt(s, d, t_str)
-      out.append(round(pt["speedup_vs_first"] if pt else 1.0, 2))
-    return out
-
-  date_axis = ", ".join(f'"{d}"' for d in dates)
-
-  md = f"""# Level 1 Kernel Benchmark Suite Dashboard — Gemma 4 31B on Intel Sapphire Rapids
+  md = f"""# Level 1 Kernel Benchmark Suite Dashboard — Gemma 4 31B
 
 - **Interactive HTML Dashboard**: [`kernel/dashboards/index.html`](index.html)
 - **Raw Time-Series JSON**: [`kernel/dashboards/data.json`](data.json)
 - **Last Updated**: `{data['generated_at']}`
-- **Tracked Reports**:
+- **Tracked Hardware Suites**:
 """
-  for r in reports:
-    md += f"  - **`{r['date']}`** (`google/XNNPACK` @ `{r['commit_short']}`, threads `{r['thread_configs']}`): [{r['report_id']}/kernel_report_gemma4_31b_sapphire_rapids.md]({r['report_url']})\n"
+  for suite in data["suites"]:
+    md += f"  - **{suite['microarchitecture']}** (`{suite['id']}`):\n"
+    for r in suite["reports"]:
+      report_name = Path(r["report_url"]).name
+      md += f"    - **`{r['date']}`** (`google/XNNPACK` @ `{r['commit_short']}`, threads `{r['thread_configs']}`): [{r['report_id']}/{report_name}]({r['report_url']})\n"
 
-  md += f"""
+  # --- Apple M5 Max Section ---
+  if m5_suite is not None:
+    m5_reports = m5_suite["reports"]
+    m5_date = m5_reports[-1]["date"]
+    m5_commit = m5_reports[-1]["commit_short"]
+    m5_by_key: dict[tuple[str, int, int, int, str, str], dict[str, Any]] = {}
+    for s in m5_suite["series"]:
+      sh = s["shape"]
+      m5_by_key[(s["pair_id"], sh["M"], sh["N"], sh["K"], s["memory_regime"], s["backend"])] = s
+
+    def m5_val_tops(key6: tuple[str, int, int, int, str, str], t_str: str = "18") -> float:
+      s = m5_by_key.get(key6)
+      if not s:
+        return 0.0
+      pt = get_pt(s, m5_date, t_str)
+      return round((pt["value"] / 1000.0) if pt else 0.0, 2)
+
+    m5_xnn_bars = [
+        m5_val_tops(("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "XNNPACK")),
+        m5_val_tops(("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled", "XNNPACK")),
+        m5_val_tops(("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "XNNPACK")),
+        m5_val_tops(("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "XNNPACK")),
+        m5_val_tops(("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "XNNPACK")),
+        m5_val_tops(("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "XNNPACK")),
+    ]
+    m5_ynn_bars = [
+        m5_val_tops(("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "YNNPACK")),
+        m5_val_tops(("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled", "YNNPACK")),
+        m5_val_tops(("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "YNNPACK")),
+        m5_val_tops(("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "YNNPACK")),
+        m5_val_tops(("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "YNNPACK")),
+        m5_val_tops(("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "YNNPACK")),
+    ]
+    m5_neon_bars = [
+        m5_val_tops(("pair2_int4_gemm", 128, 21504, 5376, "Unified_Memory_to_L2_Tiled", "YNNPACK_NEON_BASELINE")),
+        m5_val_tops(("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled", "YNNPACK_NEON_BASELINE")),
+        m5_val_tops(("pair5_int8_gemm", 280, 5376, 1152, "L2_Cluster_Resident", "YNNPACK_NEON_BASELINE")),
+        m5_val_tops(("pair5_int8_gemm", 2520, 1152, 1152, "SLC_Resident", "YNNPACK_NEON_BASELINE")),
+        m5_val_tops(("pair6_int2_gemm", 204, 4096, 1024, "L2_Cluster_Resident", "XNNPACK_NEON_BASELINE")),
+        m5_val_tops(("pair3_fp32_attn_bmm", 1024, 4096, 512, "SLC_Resident", "XNNPACK_NEON_BASELINE")),
+    ]
+
+    md += f"""
 ---
 
-## 1. Key Kernel Improvements Over Time (`2026-11-10` → `2026-11-13` → `2026-11-17`)
+## 1. Apple M5 Max (`arm64` SME2 + NEON, `{m5_date}`, `XNNPACK @ {m5_commit}`)
+
+> [!IMPORTANT]
+> **Key Apple M5 Max Microarchitectural Findings (`1T` / `6T` / `18T`, `14/14` Numerical Precision PASS)**:
+> 1. **3-Cluster SME2 Saturation (`6.47 TOPS`) vs. 18-Core NEON I8MM Crossover (`8.13 TOPS`)**:
+>    - On **8-bit Vision/Audio GEMM (`Pair 5`)**, `18T` **YNNPACK `NEON-I8MM` (`10x8x8_neoni8mm`) reaches `7.16–7.63 TOPS` (`88%–94%` of `8.13 TOPS`)**, overtaking both YNNPACK `SME2` (`6.19–6.34 TOPS`, **`+14%–22%`**) and XNNPACK KleidiAI `SME2` (`5.63–5.90 TOPS`, **`+22%–34%`**). XNNPACK's `NEON-I8MM` (`6.27–6.33 TOPS`) also beats XNNPACK `SME2` at `18T`, and on **2-bit Audio (`Pair 6`)**, XNNPACK `NEON-DotProd` (`6.09–6.25 TOPS`) edges out both `SME2` and `SME`.
+> 2. **Decode (`M = 1` 4-Bit GEMV, `Pair 1`)**:
+>    - YNNPACK `1x32x8_neondot` saturates **99.5%–100.0%** of the `301.1 GB/s` LPDDR5X Unified Memory Read ceiling (`1,196–1,203 GOPS` / `300–301 GB/s` at `18T`) and outperforms XNNPACK KleidiAI SME2 by **`1.89×`** on warm cluster L2 (`2,963` vs. `1,567 GOPS`).
+> 3. **Prefill (`Pair 2`, 4-Bit GEMM) & FP32 Attention (`Pair 3`)**:
+>    - Both SME2/SME backends saturate **96%–99%** of `6.47 TOPS` on 4-bit Prefill (`6.19–6.38 TOPS`) and **92%–98%** of `3.23 TFLOPS` on FP32 Attention BMM (`2.99–3.17 TFLOPS`, **`1.96×` faster** than `18T` NEON-FP32).
+> 4. **Softmax Fusion (`Pair 4`)**:
+>    - YNNPACK read-only reductions hit **`1,529 GB/s`** on L2-resident `1024×1024`, whereas on SLC-resident `2520×2520` / `1024×4096` (`34–51 MB > 32 MiB` L2), XNNPACK's row-fused `rmax + raddstoreexpminusmax` (`482–504 GB/s`) beats unfused reductions (`366 GB/s`) by **`1.31×–1.38×`** while computing `exp()`.
+
+```mermaid
+%%{{init: {{"xyChart": {{"width": 1100, "height": 420}}, "themeVariables": {{"xyChart": {{"plotColorPalette": "#2563eb, #ea580c, #0d9488"}}}}}}}}%%
+xychart-beta
+    title "Apple M5 Max 18-Core Compute Throughput: XNN SME2 vs YNN SME2/SME vs Best NEON (TOPS / TFLOPS)"
+    x-axis "Kernel & Shape" ["P2 INT4 128", "P2 INT4 1024", "P5 INT8 280", "P5 INT8 2520", "P6 INT2 4096", "P3 FP32 4096"]
+    y-axis "Throughput (TOPS / TFLOPS, 18 Cores)" 0 --> 9
+    line "XNNPACK SME2" {m5_xnn_bars}
+    line "YNNPACK SME2/SME" {m5_ynn_bars}
+    line "Best 18T NEON" {m5_neon_bars}
+```
+
+### 1.1 Apple M5 Max (`1C` / `6C` / `18C`) Summary Table Across All 7 Kernel Pairs
+
+| Kernel Pair | Shape `(M×N×K)` | Regime | Backend (`ISA`) | `1C` | `6C` | **`18C`** | **`18C` ISA Util** | **`18C` Machine Peak Util** |
+| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: |
+"""
+    for s in m5_suite["series"]:
+      # Show all primary XNNPACK/YNNPACK rows plus the headline Pair 5/6 NEON crossover rows
+      is_crossover_highlight = (
+          s["pair_id"] in ("pair5_int8_gemm", "pair6_int2_gemm")
+          and s["backend"] in ("YNNPACK_NEON_BASELINE", "XNNPACK_NEON_BASELINE")
+          and s["is_headline"]
+      )
+      if s["backend"] not in ("XNNPACK", "YNNPACK") and not is_crossover_highlight:
+        continue
+      unit = s["unit"]
+      p1 = get_pt(s, m5_date, "1")
+      p6 = get_pt(s, m5_date, "6")
+      p18 = get_pt(s, m5_date, "18")
+      v1 = p1["value"] if p1 else None
+      v6 = p6["value"] if p6 else None
+      v18 = p18["value"] if p18 else None
+      u18 = p18["isa_util_pct"] if p18 else None
+      m18 = p18["machine_util_pct"] if p18 else None
+      isa = s["points"][-1]["isa"] if s["points"] else ""
+      md += (
+          f"| `{s['pair_short']}` | `{s['shape_str']}` | `{s['memory_regime']}` | "
+          f"**{s['backend']}** (`{isa}`) | `{fmt_v(v1, unit)}` | `{fmt_v(v6, unit)}` | "
+          f"**`{fmt_v(v18, unit)}`** | `{u18:.1f}%` | `{m18:.1f}%` |\n"
+          if u18 is not None and m18 is not None
+          else f"| `{s['pair_short']}` | `{s['shape_str']}` | `{s['memory_regime']}` | "
+          f"**{s['backend']}** (`{isa}`) | `{fmt_v(v1, unit)}` | `{fmt_v(v6, unit)}` | "
+          f"**`{fmt_v(v18, unit)}`** | — | — |\n"
+      )
+
+  # --- Intel Sapphire Rapids Section ---
+  if spr_suite is not None:
+    reports = spr_suite["reports"]
+    series = spr_suite["series"]
+    by_key: dict[tuple[str, int, int, int, str, str], dict[str, Any]] = {}
+    for s in series:
+      sh = s["shape"]
+      by_key[(s["pair_id"], sh["M"], sh["N"], sh["K"], s["memory_regime"], s["backend"])] = s
+
+    dates = [r["date"] for r in reports]
+    p2_128_21k_y = by_key[("pair2_int4_gemm", 128, 21504, 5376, "DDR5_DRAM_to_L2_Tiled", "YNNPACK")]
+    p2_128_21k_x = by_key[("pair2_int4_gemm", 128, 21504, 5376, "DDR5_DRAM_to_L2_Tiled", "XNNPACK")]
+    p2_128_8k_y = by_key[("pair2_int4_gemm", 128, 8192, 5376, "L3_LLC_to_L2_Tiled", "YNNPACK")]
+    p2_1024_21k_y = by_key[("pair2_int4_gemm", 1024, 21504, 5376, "Compute_Bound_Tiled", "YNNPACK")]
+    p5_2520_1k_y = by_key[("pair5_int8_gemm", 2520, 1152, 1152, "L3_LLC_Resident", "YNNPACK")]
+    p3_1024_1k_y = by_key[("pair3_fp32_attn_bmm", 1024, 1024, 256, "L3_LLC_Resident", "YNNPACK")]
+    p4_1024_4k_y = by_key[("pair4_fp32_softmax", 1024, 4096, 1, "L3_LLC_Resident", "YNNPACK")]
+
+    def vals_tops(s: dict[str, Any], t_str: str = "28") -> list[float]:
+      out = []
+      for d in dates:
+        pt = get_pt(s, d, t_str)
+        out.append(round((pt["value"] / 1000.0) if pt else 0.0, 2))
+      return out
+
+    def vals_speedup(s: dict[str, Any], t_str: str = "28") -> list[float]:
+      out = []
+      for d in dates:
+        pt = get_pt(s, d, t_str)
+        out.append(round(pt["speedup_vs_first"] if pt else 1.0, 2))
+      return out
+
+    date_axis = ", ".join(f'"{d}"' for d in dates)
+
+    md += f"""
+---
+
+## 2. Intel Sapphire Rapids (`x86_64` AMX + AVX-512, `2026-11-10` → `2026-11-13` → `2026-11-17`)
 
 > [!IMPORTANT]
 > **Summary of Major Kernel & Harness Advances Across Tracked Snapshots**:
@@ -401,9 +639,9 @@ def generate_markdown_dashboard(data: dict[str, Any]) -> str:
 >    - **28-Core Throughput**: Improved **`1.48×` (`+48.1%`)** on YNNPACK `32x32x64_amxint8` (`21.80` → `32.30 TOPS` on `2520×1152×1152`, **`67.05 TOPS`** at 56C) and **`1.18×` (`+17.7%`)** on XNNPACK `16x64c4__avx512amx` (`20.24` → `23.83 TOPS` on 28C, **`81.20 TOPS`** at 56C).
 
 ```mermaid
-%%{{init: {{"xyChart": {{"width": 1100, "height": 420}}, "themeVariables": {{"xyChart": {{"plotColorPalette": "#ea580c, #d97706, #dc2626, #2563eb"}}}}}}%%
+%%{{init: {{"xyChart": {{"width": 1100, "height": 420}}, "themeVariables": {{"xyChart": {{"plotColorPalette": "#ea580c, #d97706, #dc2626, #2563eb"}}}}}}}}%%
 xychart-beta
-    title "28-Core GEMM Throughput Progression Over Time (TOPS, Higher is Better)"
+    title "Sapphire Rapids 28-Core GEMM Throughput Progression Over Time (TOPS, Higher is Better)"
     x-axis "Benchmark Date" [{date_axis}]
     y-axis "Throughput (TOPS, 28 Cores)" 0 --> 42
     line "YNN P2: INT4 128x21504x5376" {vals_tops(p2_128_21k_y)}
@@ -413,9 +651,9 @@ xychart-beta
 ```
 
 ```mermaid
-%%{{init: {{"xyChart": {{"width": 1100, "height": 420}}, "themeVariables": {{"xyChart": {{"plotColorPalette": "#9333ea, #ea580c, #dc2626, #16a34a"}}}}}}%%
+%%{{init: {{"xyChart": {{"width": 1100, "height": 420}}, "themeVariables": {{"xyChart": {{"plotColorPalette": "#9333ea, #ea580c, #dc2626, #16a34a"}}}}}}}}%%
 xychart-beta
-    title "Cumulative Kernel Speedup Ratio vs. 2026-11-10 Baseline (28 Cores, x)"
+    title "Sapphire Rapids Cumulative Kernel Speedup Ratio vs. 2026-11-10 Baseline (28 Cores, x)"
     x-axis "Benchmark Date" [{date_axis}]
     y-axis "Speedup Ratio vs. 2026-11-10 (x)" 0 --> 5
     line "YNN P4: Softmax 1024x4096 (4.45x)" {vals_speedup(p4_1024_4k_y)}
@@ -424,60 +662,50 @@ xychart-beta
     line "YNN P3: FP32 BMM 1024x1024x256 (1.34x)" {vals_speedup(p3_1024_1k_y)}
 ```
 
----
-
-## 2. Complete Multi-Core (`28C` & `56C`) Progression Table Across All 7 Kernel Pairs
+### 2.1 Sapphire Rapids Multi-Core (`28C` & `56C`) Progression Table Across All 7 Kernel Pairs
 
 | Kernel Pair | Shape `(M×N×K)` | Regime | Backend | `2026-11-10` (`28C`) | `2026-11-13` (`28C`) | `2026-11-17` (`28C`) | **28C Speedup (`Nov 10 → Nov 17`)** | `2026-11-13` (`56C`) | `2026-11-17` (`56C`) | **Latest `56C` ISA Util** |
 | :--- | :--- | :--- | :--- | ---: | ---: | ---: | :---: | ---: | ---: | ---: |
 """
 
-  def fmt_v(val: float | None, unit: str) -> str:
-    if val is None:
-      return "—"
-    if unit in ("GOPS", "GFLOPS") and val >= 10000.0:
-      tu = "TOPS" if unit == "GOPS" else "TFLOPS"
-      return f"{val / 1000.0:.2f} {tu}"
-    return f"{val:,.2f} {unit}"
+    for s in series:
+      if s["backend"] == "YNNPACK_VNNI_BASELINE":
+        continue
+      unit = s["unit"]
+      pt10_28 = get_pt(s, "2026-11-10", "28")
+      pt13_28 = get_pt(s, "2026-11-13", "28")
+      pt17_28 = get_pt(s, "2026-11-17", "28")
+      pt13_56 = get_pt(s, "2026-11-13", "56")
+      pt17_56 = get_pt(s, "2026-11-17", "56")
 
-  for s in series:
-    if s["backend"] == "YNNPACK_VNNI_BASELINE":
-      continue
-    unit = s["unit"]
-    pt10_28 = get_pt(s, "2026-11-10", "28")
-    pt13_28 = get_pt(s, "2026-11-13", "28")
-    pt17_28 = get_pt(s, "2026-11-17", "28")
-    pt13_56 = get_pt(s, "2026-11-13", "56")
-    pt17_56 = get_pt(s, "2026-11-17", "56")
+      v10_28 = pt10_28["value"] if pt10_28 else None
+      v13_28 = pt13_28["value"] if pt13_28 else None
+      v17_28 = pt17_28["value"] if pt17_28 else None
+      v13_56 = pt13_56["value"] if pt13_56 else None
+      v17_56 = pt17_56["value"] if pt17_56 else None
+      u17_56 = pt17_56["isa_util_pct"] if pt17_56 else None
 
-    v10_28 = pt10_28["value"] if pt10_28 else None
-    v13_28 = pt13_28["value"] if pt13_28 else None
-    v17_28 = pt17_28["value"] if pt17_28 else None
-    v13_56 = pt13_56["value"] if pt13_56 else None
-    v17_56 = pt17_56["value"] if pt17_56 else None
-    u17_56 = pt17_56["isa_util_pct"] if pt17_56 else None
+      if v10_28 and v17_28:
+        ratio = v17_28 / v10_28
+        pct = (ratio - 1.0) * 100.0
+        sign = "+" if pct >= 0 else ""
+        sp_str = f"**`{ratio:.2f}×` (`{sign}{pct:.1f}%`)**" if abs(pct) >= 15.0 else f"`{ratio:.2f}×` (`{sign}{pct:.1f}%`)"
+      else:
+        sp_str = "—"
 
-    if v10_28 and v17_28:
-      ratio = v17_28 / v10_28
-      pct = (ratio - 1.0) * 100.0
-      sign = "+" if pct >= 0 else ""
-      sp_str = f"**`{ratio:.2f}×` (`{sign}{pct:.1f}%`)**" if abs(pct) >= 15.0 else f"`{ratio:.2f}×` (`{sign}{pct:.1f}%`)"
-    else:
-      sp_str = "—"
-
-    util_str = f"`{u17_56:.1f}%`" if u17_56 is not None else "—"
-    md += (
-        f"| `{s['pair_short']}` | `{s['shape_str']}` | `{s['memory_regime']}` | **{s['backend']}** | "
-        f"`{fmt_v(v10_28, unit)}` | `{fmt_v(v13_28, unit)}` | `{fmt_v(v17_28, unit)}` | {sp_str} | "
-        f"`{fmt_v(v13_56, unit)}` | **`{fmt_v(v17_56, unit)}`** | {util_str} |\n"
-    )
+      util_str = f"`{u17_56:.1f}%`" if u17_56 is not None else "—"
+      md += (
+          f"| `{s['pair_short']}` | `{s['shape_str']}` | `{s['memory_regime']}` | **{s['backend']}** | "
+          f"`{fmt_v(v10_28, unit)}` | `{fmt_v(v13_28, unit)}` | `{fmt_v(v17_28, unit)}` | {sp_str} | "
+          f"`{fmt_v(v13_56, unit)}` | **`{fmt_v(v17_56, unit)}`** | {util_str} |\n"
+      )
 
   md += """
 ---
 
 ## 3. Updating This Dashboard
 
-Whenever a new dated report directory (`kernel/reports/YYYY-MM-DD-gemma4-31b-sapphire-rapids/`) is added or updated, regenerate both the interactive HTML dashboard and this Markdown summary via:
+Whenever a new dated report directory (`kernel/reports/YYYY-MM-DD-<suite>/`) is added or updated, regenerate both the interactive HTML dashboard and this Markdown summary via:
 
 ```bash
 python3 kernel/scripts/update_dashboard.py
@@ -490,10 +718,15 @@ make -C kernel dashboard
 
 def render_html_dashboard(data: dict[str, Any]) -> str:
   generated_at = data.get("generated_at", "")
-  suite = data["suites"][0]
-  n_reports = len(suite["reports"])
-  n_series = len([s for s in suite["series"] if s["backend"] != "YNNPACK_VNNI_BASELINE"])
+  suites = data.get("suites", [])
+  n_suites = len(suites)
+  total_reports = sum(len(s["reports"]) for s in suites)
+  total_primary_series = sum(
+      len([x for x in s["series"] if x["backend"] in ("XNNPACK", "YNNPACK")])
+      for s in suites
+  )
   data_json = json.dumps(data).replace("</", "<\\/")
+  backend_labels_json = json.dumps(BACKEND_LABELS)
 
   return f"""<!DOCTYPE html>
 <html lang="en">
@@ -924,9 +1157,9 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
   <header class="top-bar">
     <div class="top-bar-inner">
       <div class="brand-title">
-        <h1>AI Edge Bench — Level 1 Kernel Benchmark Suite Dashboard Over Time</h1>
+        <h1>AI Edge Bench — Level 1 Kernel Benchmark Suite Dashboard</h1>
         <div class="brand-subtitle">
-          XNNPACK vs. YNNPACK microkernel throughput, practical ISA roofline utilization (%), and cumulative speedups over time on Intel Sapphire Rapids
+          XNNPACK vs. YNNPACK microkernel throughput, practical ISA roofline utilization (%), and architecture scaling across Apple M5 Max (ARM64 SME2 + NEON) and Intel Sapphire Rapids (x86_64 AMX + AVX-512)
         </div>
       </div>
       <div class="header-meta">
@@ -939,24 +1172,24 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
   <main>
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">Kernel Suite Coverage</div>
-        <div class="kpi-value">7 Pairs · {n_series} Series</div>
-        <div class="kpi-sub">{n_reports} dated report snapshots (2026-11-10 → 2026-11-17)</div>
+        <div class="kpi-label">Multi-Arch Suite Coverage</div>
+        <div class="kpi-value">{n_suites} Platforms · 7 Pairs</div>
+        <div class="kpi-sub">{total_reports} dated reports · {total_primary_series} primary XNN/YNN series tracked</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">4-Bit Prefill GEMM Gain (Pair 2)</div>
+        <div class="kpi-label">Apple M5 Max 18T NEON &gt; SME2</div>
+        <div class="kpi-value" style="color:var(--success)">7.63 TOPS (+22%)</div>
+        <div class="kpi-sub">Pair 5 INT8 NEON-I8MM overtakes 3-cluster SME2 (6.34 TOPS); 100% Unified Mem Decode</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Sapphire Rapids 4-Bit Prefill Gain</div>
         <div class="kpi-value" style="color:var(--success)">+159% (2.59×)</div>
         <div class="kpi-sub">YNNPACK VNNI → AMX+GFNI (13.9 → 35.9 TOPS @ 28C, 73.8 TOPS @ 56C)</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">FP32 Softmax Reduction Gain (Pair 4)</div>
-        <div class="kpi-value" style="color:var(--success)">+345% (4.45×)</div>
-        <div class="kpi-sub">YNNPACK AVX-512 (522 → 2,325 GB/s @ 28C, 4,011 GB/s @ 56C)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">8-Bit &amp; FP32 Attention Gains (Pairs 3 &amp; 5)</div>
-        <div class="kpi-value" style="color:var(--success)">+48% ViT · +34% BMM</div>
-        <div class="kpi-sub">YNNPACK INT8 ViT (21.8 → 32.3 TOPS @ 28C) &amp; FP32 BMM (90%+ Roofline)</div>
+        <div class="kpi-label">Sapphire Rapids Softmax &amp; ViT Gains</div>
+        <div class="kpi-value" style="color:var(--success)">4.45× Softmax · +48% ViT</div>
+        <div class="kpi-sub">YNNPACK AVX-512 Softmax (4,011 GB/s @ 56C) &amp; FP32 BMM (90%+ Roofline)</div>
       </div>
     </div>
 
@@ -983,22 +1216,10 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
   <script>
   (() => {{
     const rawData = JSON.parse(document.getElementById("dashboard-data").textContent);
-    const suite = (rawData.suites || [])[0];
+    const BACKEND_LABELS = {backend_labels_json};
     const tooltip = document.getElementById("chart-tooltip");
-    if (!suite) return;
-
-    const st = {{
-      threads: "28",          // "1" | "28" | "56"
-      pairFilter: "all",      // "all" | pair_id
-      backendFilter: "all",   // "all" | "YNNPACK" | "XNNPACK" | "YNNPACK_VNNI_BASELINE"
-      scopeFilter: "headline",// "headline" | "all"
-      xSpacing: "ordinal",    // "time" | "ordinal"
-      yScale: "linear",       // "linear" | "log"
-      layout: "side-by-side", // "side-by-side" | "stacked"
-      showWhiskers: true,
-      hiddenSeries: new Set(),
-      hoveredSeries: null,
-    }};
+    const suites = rawData.suites || [];
+    if (suites.length === 0) return;
 
     function dashArrayFor(ls) {{
       if (ls === "dashed") return "7,4";
@@ -1050,51 +1271,6 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
       return el;
     }}
 
-    function visibleSeriesForChart(chartFilterFn) {{
-      return (suite.series || []).filter(s => {{
-        if (st.pairFilter !== "all" && s.pair_id !== st.pairFilter) return false;
-        if (st.backendFilter !== "all" && s.backend !== st.backendFilter) return false;
-        if (st.scopeFilter === "headline" && st.pairFilter === "all" && !s.is_headline) return false;
-        if (chartFilterFn && !chartFilterFn(s)) return false;
-        return s.points.some(p => p.threads && p.threads[st.threads]);
-      }});
-    }}
-
-    function showTooltip(evt, s, pt, prevPt, mode) {{
-      const tObj = pt.threads[st.threads];
-      if (!tObj) return;
-      let deltaHtml = "";
-      if (prevPt && prevPt.threads && prevPt.threads[st.threads]) {{
-        const prevVal = prevPt.threads[st.threads].value;
-        const diff = tObj.value - prevVal;
-        const pct = prevVal > 0 ? (diff / prevVal) * 100 : 0;
-        const ratio = prevVal > 0 ? (tObj.value / prevVal) : 1;
-        const sign = diff >= 0 ? "+" : "";
-        const col = pct > 1.0 ? "#4ade80" : (pct < -1.0 ? "#f87171" : "#9ca3af");
-        deltaHtml = `<div class="tt-key">Δ vs ${{prevPt.date}}</div><div class="tt-val" style="color:${{col}}">${{ratio.toFixed(2)}}× (${{sign}}${{pct.toFixed(1)}}%)</div>`;
-      }}
-      tooltip.innerHTML = `
-        <div class="tt-title">
-          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${{s.color}}"></span>
-          <span>${{s.id}}</span>
-        </div>
-        <div class="tt-grid">
-          <div class="tt-key">Report Date / Commit</div><div class="tt-val">${{pt.date}} (${{pt.xnnpack_commit}})</div>
-          <div class="tt-key">Threads</div><div class="tt-val">${{st.threads}}C</div>
-          <div class="tt-key">Microkernel (${{pt.isa}})</div><div class="tt-val"><code>${{pt.kernel}}</code></div>
-          <div class="tt-key">Median Throughput</div><div class="tt-val">${{fmtVal(tObj.value, s.unit)}}</div>
-          <div class="tt-key">7-Trial Range (CV)</div><div class="tt-val">${{fmtVal(tObj.min, s.unit)}} – ${{fmtVal(tObj.max, s.unit)}} (${{tObj.cv_pct.toFixed(2)}}%)</div>
-          <div class="tt-key">Speedup vs First Run</div><div class="tt-val">${{(tObj.speedup_vs_first || 1).toFixed(2)}}×</div>
-          ${{deltaHtml}}
-          <div class="tt-key">ISA Roofline Util</div><div class="tt-val">${{tObj.isa_util_pct != null ? tObj.isa_util_pct.toFixed(1) + "%" : "—"}}</div>
-          <div class="tt-key">Machine Peak Util</div><div class="tt-val">${{tObj.machine_util_pct != null ? tObj.machine_util_pct.toFixed(1) + "%" : "—"}}</div>
-          <div class="tt-key">Regime / Latency</div><div class="tt-val">${{tObj.regime || s.memory_regime}} · ${{tObj.latency_ms != null ? tObj.latency_ms.toFixed(4) + " ms" : "—"}}</div>
-        </div>
-      `;
-      tooltip.style.display = "block";
-      positionTooltip(evt);
-    }}
-
     function positionTooltip(evt) {{
       const pad = 14;
       const rect = tooltip.getBoundingClientRect();
@@ -1108,277 +1284,473 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
 
     function hideTooltip() {{ tooltip.style.display = "none"; }}
 
-    function renderChart(svgEl, spec, seriesList, onHoverChange) {{
-      const ns = "http://www.w3.org/2000/svg";
-      svgEl.innerHTML = "";
-      const W = 1180, H = 430;
-      const padL = 78, padR = 265, padT = 24, padB = 56;
-      const plotW = W - padL - padR;
-      const plotH = H - padT - padB;
-      svgEl.setAttribute("viewBox", `0 0 ${{W}} ${{H}}`);
+    function renderSuiteCard(suite, root) {{
+      const st = {{
+        threads: String(suite.default_thread || (suite.thread_configs || ["1"])[0]),
+        pairFilter: "all",
+        backendFilter: "all",
+        scopeFilter: "headline",
+        xSpacing: "ordinal",
+        yScale: "linear",
+        layout: "side-by-side",
+        hiddenSeries: new Set(),
+        hoveredSeries: null,
+      }};
 
-      const reports = (suite.reports || []).filter(r => (r.thread_configs || []).includes(Number(st.threads)));
-      const activeSeries = seriesList.filter(s => !st.hiddenSeries.has(s.id));
+      const isSingleDate = (suite.reports || []).length === 1;
+      const allThreads = (suite.thread_configs || []).map(String);
 
-      const xByReport = {{}};
-      const parsedTs = reports.map(r => Date.parse(r.date + "T00:00:00Z"));
-      const minTs = Math.min(...parsedTs);
-      const maxTs = Math.max(...parsedTs);
-
-      if (reports.length === 1) {{
-        xByReport[reports[0].report_id] = padL + plotW / 2;
-      }} else if (st.xSpacing === "time" && maxTs > minTs) {{
-        const innerPad = 36;
-        reports.forEach((r, idx) => {{
-          const frac = (parsedTs[idx] - minTs) / (maxTs - minTs);
-          xByReport[r.report_id] = padL + innerPad + frac * (plotW - 2 * innerPad);
-        }});
-      }} else {{
-        const innerPad = 36;
-        reports.forEach((r, idx) => {{
-          const frac = idx / (reports.length - 1);
-          xByReport[r.report_id] = padL + innerPad + frac * (plotW - 2 * innerPad);
+      function visibleSeriesForChart(chartFilterFn) {{
+        return (suite.series || []).filter(s => {{
+          if (st.pairFilter !== "all" && s.pair_id !== st.pairFilter) return false;
+          if (st.backendFilter !== "all" && s.backend !== st.backendFilter) return false;
+          if (st.scopeFilter === "headline" && st.pairFilter === "all" && !s.is_headline) return false;
+          if (chartFilterFn && !chartFilterFn(s)) return false;
+          return s.points.some(p => p.threads && p.threads[st.threads]);
         }});
       }}
 
-      function extractVal(s, pt) {{
-        const tObj = pt.threads[st.threads];
-        if (!tObj) return null;
-        if (spec.mode === "tops") return tObj.value / 1000.0;
-        if (spec.mode === "raw") return tObj.value;
-        if (spec.mode === "util") return tObj.isa_util_pct;
-        if (spec.mode === "speedup") return tObj.speedup_vs_first;
-        return tObj.value;
+      function showTooltip(evt, s, pt, prevPt, threadKey) {{
+        const tk = threadKey || st.threads;
+        const tObj = pt.threads[tk];
+        if (!tObj) return;
+        let deltaHtml = "";
+        if (prevPt && prevPt.threads && prevPt.threads[tk]) {{
+          const prevVal = prevPt.threads[tk].value;
+          const diff = tObj.value - prevVal;
+          const pct = prevVal > 0 ? (diff / prevVal) * 100 : 0;
+          const ratio = prevVal > 0 ? (tObj.value / prevVal) : 1;
+          const sign = diff >= 0 ? "+" : "";
+          const col = pct > 1.0 ? "#4ade80" : (pct < -1.0 ? "#f87171" : "#9ca3af");
+          deltaHtml = `<div class="tt-key">Δ vs ${{prevPt.date}}</div><div class="tt-val" style="color:${{col}}">${{ratio.toFixed(2)}}× (${{sign}}${{pct.toFixed(1)}}%)</div>`;
+        }}
+        tooltip.innerHTML = `
+          <div class="tt-title">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${{s.color}}"></span>
+            <span>${{s.id}}</span>
+          </div>
+          <div class="tt-grid">
+            <div class="tt-key">Report Date / Commit</div><div class="tt-val">${{pt.date}} (${{pt.xnnpack_commit}})</div>
+            <div class="tt-key">Threads</div><div class="tt-val">${{tk}}C</div>
+            <div class="tt-key">Microkernel (${{pt.isa}})</div><div class="tt-val"><code>${{pt.kernel}}</code></div>
+            <div class="tt-key">Median Throughput</div><div class="tt-val">${{fmtVal(tObj.value, s.unit)}}</div>
+            <div class="tt-key">7-Trial Range (CV)</div><div class="tt-val">${{fmtVal(tObj.min, s.unit)}} – ${{fmtVal(tObj.max, s.unit)}} (${{tObj.cv_pct.toFixed(2)}}%)</div>
+            <div class="tt-key">Speedup vs First Run</div><div class="tt-val">${{(tObj.speedup_vs_first || 1).toFixed(2)}}×</div>
+            ${{deltaHtml}}
+            <div class="tt-key">ISA Roofline Util</div><div class="tt-val">${{tObj.isa_util_pct != null ? tObj.isa_util_pct.toFixed(1) + "%" : "—"}}</div>
+            <div class="tt-key">Machine Peak Util</div><div class="tt-val">${{tObj.machine_util_pct != null ? tObj.machine_util_pct.toFixed(1) + "%" : "—"}}</div>
+            <div class="tt-key">Regime / Latency</div><div class="tt-val">${{tObj.regime || s.memory_regime}} · ${{tObj.latency_ms != null ? tObj.latency_ms.toFixed(4) + " ms" : "—"}}</div>
+          </div>
+        `;
+        tooltip.style.display = "block";
+        positionTooltip(evt);
       }}
 
-      let minVal = Infinity, maxVal = -Infinity;
-      for (const s of activeSeries) {{
-        for (const p of s.points || []) {{
-          if (!(p.report_id in xByReport)) continue;
-          const v = extractVal(s, p);
-          if (v == null || !isFinite(v)) continue;
-          if (v < minVal) minVal = v;
-          if (v > maxVal) maxVal = v;
+      function renderThreadScalingChart(svgEl, spec, seriesList, onHoverChange) {{
+        const ns = "http://www.w3.org/2000/svg";
+        svgEl.innerHTML = "";
+        const W = 1180, H = 430;
+        const padL = 78, padR = 265, padT = 24, padB = 56;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+        svgEl.setAttribute("viewBox", `0 0 ${{W}} ${{H}}`);
+
+        const activeSeries = seriesList.filter(s => !st.hiddenSeries.has(s.id));
+        const xByT = {{}};
+        const innerPad = 36;
+        allThreads.forEach((tk, idx) => {{
+          const frac = allThreads.length > 1 ? idx / (allThreads.length - 1) : 0.5;
+          xByT[tk] = padL + innerPad + frac * (plotW - 2 * innerPad);
+        }});
+
+        function valFor(s, pt, tk) {{
+          const tObj = pt.threads[tk];
+          if (!tObj) return null;
+          return tObj.value / 1000.0;
+        }}
+
+        let minVal = Infinity, maxVal = -Infinity;
+        for (const s of activeSeries) {{
+          const pt = (s.points || [])[s.points.length - 1];
+          if (!pt) continue;
+          for (const tk of allThreads) {{
+            const v = valFor(s, pt, tk);
+            if (v == null || !isFinite(v)) continue;
+            if (v < minVal) minVal = v;
+            if (v > maxVal) maxVal = v;
+          }}
+        }}
+        if (!isFinite(minVal) || !isFinite(maxVal)) {{ minVal = 0.5; maxVal = 10; }}
+        const isLog = st.yScale === "log";
+        const yMin = isLog ? Math.max(0.05, minVal * 0.85) : 0;
+        const yMax = maxVal * 1.14;
+
+        function yPos(val) {{
+          const c = Math.max(isLog ? yMin : 0, val);
+          if (isLog) {{
+            const frac = (Math.log10(c) - Math.log10(yMin)) / (Math.log10(yMax) - Math.log10(yMin) || 1);
+            return padT + plotH * (1 - frac);
+          }}
+          return padT + plotH * (1 - (c - yMin) / (yMax - yMin || 1));
+        }}
+
+        const rawStep = (yMax - yMin) / 6;
+        const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
+        const res = rawStep / mag;
+        const niceStep = res > 5 ? 10 * mag : res > 2 ? 5 * mag : res > 1 ? 2 * mag : mag;
+        const yTicks = [];
+        if (isLog) {{
+          for (const cand of [0.1, 0.2, 0.5, 1, 2, 5, 10]) {{
+            if (cand >= yMin * 0.9 && cand <= yMax * 1.05) yTicks.push(cand);
+          }}
+        }} else {{
+          for (let v = 0; v <= yMax + niceStep * 0.1; v += niceStep) yTicks.push(v);
+        }}
+        for (const tv of yTicks) {{
+          const y = yPos(tv);
+          if (y < padT - 2 || y > padT + plotH + 2) continue;
+          const line = document.createElementNS(ns, "line");
+          line.setAttribute("x1", padL); line.setAttribute("y1", y);
+          line.setAttribute("x2", padL + plotW); line.setAttribute("y2", y);
+          line.setAttribute("stroke", "#e6ebf1");
+          svgEl.appendChild(line);
+          const txt = document.createElementNS(ns, "text");
+          txt.setAttribute("x", padL - 8); txt.setAttribute("y", y + 4);
+          txt.setAttribute("text-anchor", "end"); txt.setAttribute("font-size", "11");
+          txt.setAttribute("fill", "#59636e");
+          txt.textContent = tv >= 10 ? Math.round(tv).toLocaleString() : tv.toFixed(1);
+          svgEl.appendChild(txt);
+        }}
+
+        for (const tk of allThreads) {{
+          const x = xByT[tk];
+          const vline = document.createElementNS(ns, "line");
+          vline.setAttribute("x1", x); vline.setAttribute("y1", padT);
+          vline.setAttribute("x2", x); vline.setAttribute("y2", padT + plotH);
+          vline.setAttribute("stroke", "#eef2f6"); vline.setAttribute("stroke-dasharray", "3,3");
+          svgEl.appendChild(vline);
+          const dTxt = document.createElementNS(ns, "text");
+          dTxt.setAttribute("x", x); dTxt.setAttribute("y", padT + plotH + 20);
+          dTxt.setAttribute("text-anchor", "middle"); dTxt.setAttribute("font-size", "11.5");
+          dTxt.setAttribute("font-weight", "600"); dTxt.setAttribute("fill", "#1f2328");
+          dTxt.textContent = `${{tk}}C`;
+          svgEl.appendChild(dTxt);
+        }}
+
+        const xAxis = document.createElementNS(ns, "line");
+        xAxis.setAttribute("x1", padL); xAxis.setAttribute("y1", padT + plotH);
+        xAxis.setAttribute("x2", padL + plotW); xAxis.setAttribute("y2", padT + plotH);
+        xAxis.setAttribute("stroke", "#8c959f"); svgEl.appendChild(xAxis);
+        const yAxis = document.createElementNS(ns, "line");
+        yAxis.setAttribute("x1", padL); yAxis.setAttribute("y1", padT);
+        yAxis.setAttribute("x2", padL); yAxis.setAttribute("y2", padT + plotH);
+        yAxis.setAttribute("stroke", "#8c959f"); svgEl.appendChild(yAxis);
+        const yTitle = document.createElementNS(ns, "text");
+        yTitle.setAttribute("transform", `translate(18, ${{padT + plotH / 2}}) rotate(-90)`);
+        yTitle.setAttribute("text-anchor", "middle"); yTitle.setAttribute("font-size", "12");
+        yTitle.setAttribute("font-weight", "600"); yTitle.setAttribute("fill", "#1f2328");
+        yTitle.textContent = spec.yLabel; svgEl.appendChild(yTitle);
+
+        const endLabels = [];
+        for (const s of activeSeries) {{
+          const pt = (s.points || [])[s.points.length - 1];
+          if (!pt) continue;
+          const tPts = allThreads.filter(tk => valFor(s, pt, tk) != null);
+          if (tPts.length === 0) continue;
+          const isHovered = st.hoveredSeries === s.id;
+          const isDimmed = st.hoveredSeries && st.hoveredSeries !== s.id;
+          const g = document.createElementNS(ns, "g");
+          g.setAttribute("opacity", isDimmed ? "0.2" : "0.95");
+          if (tPts.length > 1) {{
+            const coords = tPts.map(tk => `${{xByT[tk]}},${{yPos(valFor(s, pt, tk))}}`).join(" ");
+            const poly = document.createElementNS(ns, "polyline");
+            poly.setAttribute("fill", "none"); poly.setAttribute("stroke", s.color);
+            poly.setAttribute("stroke-width", isHovered ? "3.2" : "2.1");
+            const dash = dashArrayFor(s.linestyle);
+            if (dash) poly.setAttribute("stroke-dasharray", dash);
+            poly.setAttribute("points", coords);
+            g.appendChild(poly);
+          }}
+          for (const tk of tPts) {{
+            const val = valFor(s, pt, tk);
+            const cx = xByT[tk], cy = yPos(val);
+            g.appendChild(createMarkerSVG(s.marker, cx, cy, isHovered ? 5.6 : 4.3, s.color, isHovered));
+            const hit = document.createElementNS(ns, "circle");
+            hit.setAttribute("cx", cx); hit.setAttribute("cy", cy);
+            hit.setAttribute("r", 10); hit.setAttribute("fill", "transparent");
+            hit.style.cursor = "pointer";
+            hit.addEventListener("mouseenter", (e) => {{
+              st.hoveredSeries = s.id; onHoverChange(); showTooltip(e, s, pt, null, tk);
+            }});
+            hit.addEventListener("mousemove", (e) => positionTooltip(e));
+            hit.addEventListener("mouseleave", () => {{
+              st.hoveredSeries = null; onHoverChange(); hideTooltip();
+            }});
+            g.appendChild(hit);
+          }}
+          const lastTk = tPts[tPts.length - 1];
+          const lastVal = valFor(s, pt, lastTk);
+          endLabels.push({{ s, x: xByT[lastTk], rawY: yPos(lastVal), y: yPos(lastVal), val: lastVal, isHovered, isDimmed }});
+          svgEl.appendChild(g);
+        }}
+
+        endLabels.sort((a, b) => a.rawY - b.rawY);
+        for (let i = 1; i < endLabels.length; i++) {{
+          if (endLabels[i].y - endLabels[i - 1].y < 14) endLabels[i].y = endLabels[i - 1].y + 14;
+        }}
+        for (const item of endLabels) {{
+          const lg = document.createElementNS(ns, "g");
+          lg.setAttribute("opacity", item.isDimmed ? "0.25" : "1.0");
+          const labelX = padL + plotW + 10;
+          const midX = (item.x + labelX) / 2;
+          const leader = document.createElementNS(ns, "path");
+          leader.setAttribute("d", `M ${{item.x + 5}} ${{item.rawY}} C ${{midX}} ${{item.rawY}}, ${{midX}} ${{item.y}}, ${{labelX - 3}} ${{item.y}}`);
+          leader.setAttribute("fill", "none"); leader.setAttribute("stroke", item.s.color);
+          leader.setAttribute("stroke-width", "0.9"); leader.setAttribute("opacity", "0.55");
+          lg.appendChild(leader);
+          const lbl = document.createElementNS(ns, "text");
+          lbl.setAttribute("x", labelX); lbl.setAttribute("y", item.y + 3.5);
+          lbl.setAttribute("font-size", "10.6"); lbl.setAttribute("font-weight", item.isHovered ? "700" : "500");
+          lbl.setAttribute("fill", item.s.color);
+          lbl.textContent = `${{item.s.id}} (${{item.val.toFixed(2)}})`;
+          lg.appendChild(lbl);
+          svgEl.appendChild(lg);
         }}
       }}
-      if (!isFinite(minVal) || !isFinite(maxVal)) {{ minVal = 0.5; maxVal = 10; }}
 
-      const isLog = st.yScale === "log" && spec.mode !== "util";
-      const yMin = isLog ? Math.max(0.05, minVal * 0.85) : 0;
-      const yMax = maxVal * 1.14;
+      function renderChart(svgEl, spec, seriesList, onHoverChange) {{
+        const ns = "http://www.w3.org/2000/svg";
+        svgEl.innerHTML = "";
+        const W = 1180, H = 430;
+        const padL = 78, padR = 265, padT = 24, padB = 56;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+        svgEl.setAttribute("viewBox", `0 0 ${{W}} ${{H}}`);
 
-      function yPos(val) {{
-        const c = Math.max(isLog ? yMin : 0, val);
-        if (isLog) {{
-          const frac = (Math.log10(c) - Math.log10(yMin)) / (Math.log10(yMax) - Math.log10(yMin) || 1);
+        const reports = (suite.reports || []).filter(r => (r.thread_configs || []).includes(Number(st.threads)));
+        const activeSeries = seriesList.filter(s => !st.hiddenSeries.has(s.id));
+
+        const xByReport = {{}};
+        const parsedTs = reports.map(r => Date.parse(r.date + "T00:00:00Z"));
+        const minTs = Math.min(...parsedTs);
+        const maxTs = Math.max(...parsedTs);
+
+        if (reports.length === 1) {{
+          xByReport[reports[0].report_id] = padL + plotW / 2;
+        }} else if (st.xSpacing === "time" && maxTs > minTs) {{
+          const innerPad = 36;
+          reports.forEach((r, idx) => {{
+            const frac = (parsedTs[idx] - minTs) / (maxTs - minTs);
+            xByReport[r.report_id] = padL + innerPad + frac * (plotW - 2 * innerPad);
+          }});
+        }} else {{
+          const innerPad = 36;
+          reports.forEach((r, idx) => {{
+            const frac = idx / (reports.length - 1);
+            xByReport[r.report_id] = padL + innerPad + frac * (plotW - 2 * innerPad);
+          }});
+        }}
+
+        function extractVal(s, pt) {{
+          const tObj = pt.threads[st.threads];
+          if (!tObj) return null;
+          if (spec.mode === "tops") return tObj.value / 1000.0;
+          if (spec.mode === "raw") return tObj.value;
+          if (spec.mode === "util") return tObj.isa_util_pct;
+          if (spec.mode === "speedup") return tObj.speedup_vs_first;
+          return tObj.value;
+        }}
+
+        let minVal = Infinity, maxVal = -Infinity;
+        for (const s of activeSeries) {{
+          for (const p of s.points || []) {{
+            if (!(p.report_id in xByReport)) continue;
+            const v = extractVal(s, p);
+            if (v == null || !isFinite(v)) continue;
+            if (v < minVal) minVal = v;
+            if (v > maxVal) maxVal = v;
+          }}
+        }}
+        if (!isFinite(minVal) || !isFinite(maxVal)) {{ minVal = 0.5; maxVal = 10; }}
+
+        const isLog = st.yScale === "log" && spec.mode !== "util";
+        const yMin = isLog ? Math.max(0.05, minVal * 0.85) : 0;
+        const yMax = maxVal * 1.14;
+
+        function yPos(val) {{
+          const c = Math.max(isLog ? yMin : 0, val);
+          if (isLog) {{
+            const frac = (Math.log10(c) - Math.log10(yMin)) / (Math.log10(yMax) - Math.log10(yMin) || 1);
+            return padT + plotH * (1 - frac);
+          }}
+          const frac = (c - yMin) / (yMax - yMin || 1);
           return padT + plotH * (1 - frac);
         }}
-        const frac = (c - yMin) / (yMax - yMin || 1);
-        return padT + plotH * (1 - frac);
-      }}
 
-      const nTicks = 6;
-      const rawStep = (yMax - yMin) / nTicks;
-      const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
-      const res = rawStep / mag;
-      const niceStep = res > 5 ? 10 * mag : res > 2 ? 5 * mag : res > 1 ? 2 * mag : mag;
-      const yTicks = [];
-      if (isLog) {{
-        for (const cand of [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 4000]) {{
-          if (cand >= yMin * 0.9 && cand <= yMax * 1.05) yTicks.push(cand);
-        }}
-      }} else {{
-        for (let v = 0; v <= yMax + niceStep * 0.1; v += niceStep) yTicks.push(v);
-      }}
-
-      for (const tv of yTicks) {{
-        const y = yPos(tv);
-        if (y < padT - 2 || y > padT + plotH + 2) continue;
-        const line = document.createElementNS(ns, "line");
-        line.setAttribute("x1", padL);
-        line.setAttribute("y1", y);
-        line.setAttribute("x2", padL + plotW);
-        line.setAttribute("y2", y);
-        line.setAttribute("stroke", "#e6ebf1");
-        svgEl.appendChild(line);
-
-        const txt = document.createElementNS(ns, "text");
-        txt.setAttribute("x", padL - 8);
-        txt.setAttribute("y", y + 4);
-        txt.setAttribute("text-anchor", "end");
-        txt.setAttribute("font-size", "11");
-        txt.setAttribute("fill", "#59636e");
-        txt.textContent = spec.mode === "speedup" ? `${{tv.toFixed(1)}}×` : (tv >= 10 ? Math.round(tv).toLocaleString() : tv.toFixed(1));
-        svgEl.appendChild(txt);
-      }}
-
-      // Reference 1.0x line on speedup chart
-      if (spec.mode === "speedup" && yPos(1.0) >= padT && yPos(1.0) <= padT + plotH) {{
-        const refLine = document.createElementNS(ns, "line");
-        refLine.setAttribute("x1", padL);
-        refLine.setAttribute("y1", yPos(1.0));
-        refLine.setAttribute("x2", padL + plotW);
-        refLine.setAttribute("y2", yPos(1.0));
-        refLine.setAttribute("stroke", "#8c959f");
-        refLine.setAttribute("stroke-dasharray", "4,4");
-        svgEl.appendChild(refLine);
-      }}
-
-      for (const r of reports) {{
-        const x = xByReport[r.report_id];
-        const vline = document.createElementNS(ns, "line");
-        vline.setAttribute("x1", x);
-        vline.setAttribute("y1", padT);
-        vline.setAttribute("x2", x);
-        vline.setAttribute("y2", padT + plotH);
-        vline.setAttribute("stroke", "#eef2f6");
-        vline.setAttribute("stroke-dasharray", "3,3");
-        svgEl.appendChild(vline);
-
-        const dTxt = document.createElementNS(ns, "text");
-        dTxt.setAttribute("x", x);
-        dTxt.setAttribute("y", padT + plotH + 20);
-        dTxt.setAttribute("text-anchor", "middle");
-        dTxt.setAttribute("font-size", "11.5");
-        dTxt.setAttribute("font-weight", "600");
-        dTxt.setAttribute("fill", "#1f2328");
-        dTxt.textContent = `${{r.date}} (${{r.commit_short}})`;
-        svgEl.appendChild(dTxt);
-      }}
-
-      const xAxis = document.createElementNS(ns, "line");
-      xAxis.setAttribute("x1", padL);
-      xAxis.setAttribute("y1", padT + plotH);
-      xAxis.setAttribute("x2", padL + plotW);
-      xAxis.setAttribute("y2", padT + plotH);
-      xAxis.setAttribute("stroke", "#8c959f");
-      svgEl.appendChild(xAxis);
-
-      const yAxis = document.createElementNS(ns, "line");
-      yAxis.setAttribute("x1", padL);
-      yAxis.setAttribute("y1", padT);
-      yAxis.setAttribute("x2", padL);
-      yAxis.setAttribute("y2", padT + plotH);
-      yAxis.setAttribute("stroke", "#8c959f");
-      svgEl.appendChild(yAxis);
-
-      const yTitle = document.createElementNS(ns, "text");
-      yTitle.setAttribute("transform", `translate(18, ${{padT + plotH / 2}}) rotate(-90)`);
-      yTitle.setAttribute("text-anchor", "middle");
-      yTitle.setAttribute("font-size", "12");
-      yTitle.setAttribute("font-weight", "600");
-      yTitle.setAttribute("fill", "#1f2328");
-      yTitle.textContent = spec.yLabel;
-      svgEl.appendChild(yTitle);
-
-      const endLabels = [];
-      for (const s of activeSeries) {{
-        const isHovered = st.hoveredSeries === s.id;
-        const isDimmed = st.hoveredSeries && st.hoveredSeries !== s.id;
-        const pts = (s.points || []).filter(p => (p.report_id in xByReport) && extractVal(s, p) != null);
-        if (pts.length === 0) continue;
-
-        const g = document.createElementNS(ns, "g");
-        g.setAttribute("opacity", isDimmed ? "0.2" : "0.95");
-
-        if (pts.length > 1) {{
-          const coords = pts.map(p => `${{xByReport[p.report_id]}},${{yPos(extractVal(s, p))}}`).join(" ");
-          const poly = document.createElementNS(ns, "polyline");
-          poly.setAttribute("fill", "none");
-          poly.setAttribute("stroke", s.color);
-          poly.setAttribute("stroke-width", isHovered ? "3.2" : "2.1");
-          const dash = dashArrayFor(s.linestyle);
-          if (dash) poly.setAttribute("stroke-dasharray", dash);
-          poly.setAttribute("points", coords);
-          g.appendChild(poly);
+        const nTicks = 6;
+        const rawStep = (yMax - yMin) / nTicks;
+        const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
+        const res = rawStep / mag;
+        const niceStep = res > 5 ? 10 * mag : res > 2 ? 5 * mag : res > 1 ? 2 * mag : mag;
+        const yTicks = [];
+        if (isLog) {{
+          for (const cand of [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 4000]) {{
+            if (cand >= yMin * 0.9 && cand <= yMax * 1.05) yTicks.push(cand);
+          }}
+        }} else {{
+          for (let v = 0; v <= yMax + niceStep * 0.1; v += niceStep) yTicks.push(v);
         }}
 
-        pts.forEach((pt, idx) => {{
-          const val = extractVal(s, pt);
-          const cx = xByReport[pt.report_id];
-          const cy = yPos(val);
-          const markerEl = createMarkerSVG(s.marker, cx, cy, isHovered ? 5.6 : 4.3, s.color, isHovered);
-          g.appendChild(markerEl);
+        for (const tv of yTicks) {{
+          const y = yPos(tv);
+          if (y < padT - 2 || y > padT + plotH + 2) continue;
+          const line = document.createElementNS(ns, "line");
+          line.setAttribute("x1", padL); line.setAttribute("y1", y);
+          line.setAttribute("x2", padL + plotW); line.setAttribute("y2", y);
+          line.setAttribute("stroke", "#e6ebf1");
+          svgEl.appendChild(line);
 
-          const hit = document.createElementNS(ns, "circle");
-          hit.setAttribute("cx", cx);
-          hit.setAttribute("cy", cy);
-          hit.setAttribute("r", 10);
-          hit.setAttribute("fill", "transparent");
-          hit.style.cursor = "pointer";
-          const prevPt = idx > 0 ? pts[idx - 1] : null;
-          hit.addEventListener("mouseenter", (e) => {{
-            st.hoveredSeries = s.id;
-            onHoverChange();
-            showTooltip(e, s, pt, prevPt, spec.mode);
+          const txt = document.createElementNS(ns, "text");
+          txt.setAttribute("x", padL - 8); txt.setAttribute("y", y + 4);
+          txt.setAttribute("text-anchor", "end"); txt.setAttribute("font-size", "11");
+          txt.setAttribute("fill", "#59636e");
+          txt.textContent = spec.mode === "speedup" ? `${{tv.toFixed(1)}}×` : (tv >= 10 ? Math.round(tv).toLocaleString() : tv.toFixed(1));
+          svgEl.appendChild(txt);
+        }}
+
+        if (spec.mode === "speedup" && yPos(1.0) >= padT && yPos(1.0) <= padT + plotH) {{
+          const refLine = document.createElementNS(ns, "line");
+          refLine.setAttribute("x1", padL); refLine.setAttribute("y1", yPos(1.0));
+          refLine.setAttribute("x2", padL + plotW); refLine.setAttribute("y2", yPos(1.0));
+          refLine.setAttribute("stroke", "#8c959f"); refLine.setAttribute("stroke-dasharray", "4,4");
+          svgEl.appendChild(refLine);
+        }}
+
+        for (const r of reports) {{
+          const x = xByReport[r.report_id];
+          const vline = document.createElementNS(ns, "line");
+          vline.setAttribute("x1", x); vline.setAttribute("y1", padT);
+          vline.setAttribute("x2", x); vline.setAttribute("y2", padT + plotH);
+          vline.setAttribute("stroke", "#eef2f6"); vline.setAttribute("stroke-dasharray", "3,3");
+          svgEl.appendChild(vline);
+
+          const dTxt = document.createElementNS(ns, "text");
+          dTxt.setAttribute("x", x); dTxt.setAttribute("y", padT + plotH + 20);
+          dTxt.setAttribute("text-anchor", "middle"); dTxt.setAttribute("font-size", "11.5");
+          dTxt.setAttribute("font-weight", "600"); dTxt.setAttribute("fill", "#1f2328");
+          dTxt.textContent = `${{r.date}} (${{r.commit_short}})`;
+          svgEl.appendChild(dTxt);
+        }}
+
+        const xAxis = document.createElementNS(ns, "line");
+        xAxis.setAttribute("x1", padL); xAxis.setAttribute("y1", padT + plotH);
+        xAxis.setAttribute("x2", padL + plotW); xAxis.setAttribute("y2", padT + plotH);
+        xAxis.setAttribute("stroke", "#8c959f"); svgEl.appendChild(xAxis);
+
+        const yAxis = document.createElementNS(ns, "line");
+        yAxis.setAttribute("x1", padL); yAxis.setAttribute("y1", padT);
+        yAxis.setAttribute("x2", padL); yAxis.setAttribute("y2", padT + plotH);
+        yAxis.setAttribute("stroke", "#8c959f"); svgEl.appendChild(yAxis);
+
+        const yTitle = document.createElementNS(ns, "text");
+        yTitle.setAttribute("transform", `translate(18, ${{padT + plotH / 2}}) rotate(-90)`);
+        yTitle.setAttribute("text-anchor", "middle"); yTitle.setAttribute("font-size", "12");
+        yTitle.setAttribute("font-weight", "600"); yTitle.setAttribute("fill", "#1f2328");
+        yTitle.textContent = spec.yLabel; svgEl.appendChild(yTitle);
+
+        const endLabels = [];
+        for (const s of activeSeries) {{
+          const isHovered = st.hoveredSeries === s.id;
+          const isDimmed = st.hoveredSeries && st.hoveredSeries !== s.id;
+          const pts = (s.points || []).filter(p => (p.report_id in xByReport) && extractVal(s, p) != null);
+          if (pts.length === 0) continue;
+
+          const g = document.createElementNS(ns, "g");
+          g.setAttribute("opacity", isDimmed ? "0.2" : "0.95");
+
+          if (pts.length > 1) {{
+            const coords = pts.map(p => `${{xByReport[p.report_id]}},${{yPos(extractVal(s, p))}}`).join(" ");
+            const poly = document.createElementNS(ns, "polyline");
+            poly.setAttribute("fill", "none"); poly.setAttribute("stroke", s.color);
+            poly.setAttribute("stroke-width", isHovered ? "3.2" : "2.1");
+            const dash = dashArrayFor(s.linestyle);
+            if (dash) poly.setAttribute("stroke-dasharray", dash);
+            poly.setAttribute("points", coords);
+            g.appendChild(poly);
+          }}
+
+          pts.forEach((pt, idx) => {{
+            const val = extractVal(s, pt);
+            const cx = xByReport[pt.report_id];
+            const cy = yPos(val);
+            const markerEl = createMarkerSVG(s.marker, cx, cy, isHovered ? 5.6 : 4.3, s.color, isHovered);
+            g.appendChild(markerEl);
+
+            const hit = document.createElementNS(ns, "circle");
+            hit.setAttribute("cx", cx); hit.setAttribute("cy", cy);
+            hit.setAttribute("r", 10); hit.setAttribute("fill", "transparent");
+            hit.style.cursor = "pointer";
+            const prevPt = idx > 0 ? pts[idx - 1] : null;
+            hit.addEventListener("mouseenter", (e) => {{
+              st.hoveredSeries = s.id; onHoverChange(); showTooltip(e, s, pt, prevPt, st.threads);
+            }});
+            hit.addEventListener("mousemove", (e) => positionTooltip(e));
+            hit.addEventListener("mouseleave", () => {{
+              st.hoveredSeries = null; onHoverChange(); hideTooltip();
+            }});
+            g.appendChild(hit);
           }});
-          hit.addEventListener("mousemove", (e) => positionTooltip(e));
-          hit.addEventListener("mouseleave", () => {{
-            st.hoveredSeries = null;
-            onHoverChange();
-            hideTooltip();
-          }});
-          g.appendChild(hit);
-        }});
 
-        const lastPt = pts[pts.length - 1];
-        const lastVal = extractVal(s, lastPt);
-        endLabels.push({{
-          s,
-          x: xByReport[lastPt.report_id],
-          rawY: yPos(lastVal),
-          y: yPos(lastVal),
-          val: lastVal,
-          isHovered,
-          isDimmed,
-        }});
-        svgEl.appendChild(g);
-      }}
+          const lastPt = pts[pts.length - 1];
+          const lastVal = extractVal(s, lastPt);
+          endLabels.push({{ s, x: xByReport[lastPt.report_id], rawY: yPos(lastVal), y: yPos(lastVal), val: lastVal, isHovered, isDimmed }});
+          svgEl.appendChild(g);
+        }}
 
-      endLabels.sort((a, b) => a.rawY - b.rawY);
-      const minGap = 14;
-      for (let i = 1; i < endLabels.length; i++) {{
-        if (endLabels[i].y - endLabels[i - 1].y < minGap) {{
-          endLabels[i].y = endLabels[i - 1].y + minGap;
+        endLabels.sort((a, b) => a.rawY - b.rawY);
+        const minGap = 14;
+        for (let i = 1; i < endLabels.length; i++) {{
+          if (endLabels[i].y - endLabels[i - 1].y < minGap) {{
+            endLabels[i].y = endLabels[i - 1].y + minGap;
+          }}
+        }}
+        for (const item of endLabels) {{
+          const lg = document.createElementNS(ns, "g");
+          lg.setAttribute("opacity", item.isDimmed ? "0.25" : "1.0");
+          const labelX = padL + plotW + 10;
+          const leader = document.createElementNS(ns, "path");
+          const midX = (item.x + labelX) / 2;
+          leader.setAttribute("d", `M ${{item.x + 5}} ${{item.rawY}} C ${{midX}} ${{item.rawY}}, ${{midX}} ${{item.y}}, ${{labelX - 3}} ${{item.y}}`);
+          leader.setAttribute("fill", "none"); leader.setAttribute("stroke", item.s.color);
+          leader.setAttribute("stroke-width", "0.9"); leader.setAttribute("opacity", "0.55");
+          lg.appendChild(leader);
+
+          const lbl = document.createElementNS(ns, "text");
+          lbl.setAttribute("x", labelX); lbl.setAttribute("y", item.y + 3.5);
+          lbl.setAttribute("font-size", "10.6"); lbl.setAttribute("font-weight", item.isHovered ? "700" : "500");
+          lbl.setAttribute("fill", item.s.color);
+          const valSuffix = spec.mode === "speedup"
+            ? `${{item.val.toFixed(2)}}×`
+            : (spec.mode === "util" ? `${{item.val.toFixed(1)}}%` : `${{item.val.toFixed(2)}}`);
+          lbl.textContent = `${{item.s.id}} (${{valSuffix}})`;
+          lg.appendChild(lbl);
+          svgEl.appendChild(lg);
         }}
       }}
-      for (const item of endLabels) {{
-        const lg = document.createElementNS(ns, "g");
-        lg.setAttribute("opacity", item.isDimmed ? "0.25" : "1.0");
-        const labelX = padL + plotW + 10;
-        const leader = document.createElementNS(ns, "path");
-        const midX = (item.x + labelX) / 2;
-        leader.setAttribute("d", `M ${{item.x + 5}} ${{item.rawY}} C ${{midX}} ${{item.rawY}}, ${{midX}} ${{item.y}}, ${{labelX - 3}} ${{item.y}}`);
-        leader.setAttribute("fill", "none");
-        leader.setAttribute("stroke", item.s.color);
-        leader.setAttribute("stroke-width", "0.9");
-        leader.setAttribute("opacity", "0.55");
-        lg.appendChild(leader);
 
-        const lbl = document.createElementNS(ns, "text");
-        lbl.setAttribute("x", labelX);
-        lbl.setAttribute("y", item.y + 3.5);
-        lbl.setAttribute("font-size", "10.6");
-        lbl.setAttribute("font-weight", item.isHovered ? "700" : "500");
-        lbl.setAttribute("fill", item.s.color);
-        const valSuffix = spec.mode === "speedup"
-          ? `${{item.val.toFixed(2)}}×`
-          : (spec.mode === "util" ? `${{item.val.toFixed(1)}}%` : `${{item.val.toFixed(2)}}`);
-        lbl.textContent = `${{item.s.id}} (${{valSuffix}})`;
-        lg.appendChild(lbl);
-        svgEl.appendChild(lg);
-      }}
-    }}
-
-    function renderAll() {{
-      const root = document.getElementById("suites-root");
-      root.innerHTML = "";
       const card = document.createElement("section");
       card.className = "suite-card";
 
       const reportLinks = (suite.reports || []).map(r => {{
         return `<a class="report-link-pill" href="${{r.report_url}}">📄 ${{r.date}} (${{r.commit_short}}) ↗</a>`;
       }}).join("");
+
+      const panel2Title = isSingleDate
+        ? `📈 Thread Scaling Trajectory (${{allThreads.map(t => t + "C").join(" → ")}}) [TOPS / TFLOPS ↑]`
+        : `🚀 Cumulative Speedup vs. First Report (× ↑)`;
+      const panel2Sub = isSingleDate
+        ? `Compare cluster-shared SME2 saturation vs. per-core NEON linear scaling`
+        : `Normalized speedup trajectory relative to initial baseline (1.00×)`;
 
       card.innerHTML = `
         <div class="suite-header">
@@ -1387,7 +1759,7 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
               <span>Gemma 4 31B Kernel Benchmark Suite</span>
               <span class="badge badge-machine">${{suite.microarchitecture}}</span>
             </h2>
-            <span class="badge">${{(suite.reports || []).length}} Dated Reports · 7 Load-Bearing Kernel Pairs</span>
+            <span class="badge">${{(suite.reports || []).length}} Dated Report${{(suite.reports || []).length === 1 ? "" : "s"}} · 7 Load-Bearing Kernel Pairs</span>
           </div>
           <div class="report-links-bar">
             <strong style="color:var(--muted)">Dated Kernel Reports:</strong>
@@ -1399,29 +1771,29 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
           <div class="charts-grid" data-charts-grid>
             <div class="chart-panel">
               <div class="chart-panel-header">
-                <div class="chart-panel-title">⚡ Compute-Bound GEMM Throughput Over Time (TOPS / TFLOPS ↑)</div>
+                <div class="chart-panel-title">⚡ Compute-Bound GEMM Throughput (TOPS / TFLOPS ↑)</div>
                 <div class="chart-panel-subtitle">Pairs 2 (INT4), 3 (FP32 BMM), 5 (INT8 ViT), and 6 (INT2 Audio)</div>
               </div>
               <svg class="chart-svg" data-chart-compute></svg>
             </div>
             <div class="chart-panel">
               <div class="chart-panel-header">
-                <div class="chart-panel-title">🚀 Cumulative Speedup vs. First Report (× ↑)</div>
-                <div class="chart-panel-subtitle">Normalized speedup trajectory relative to initial baseline (1.00×)</div>
+                <div class="chart-panel-title">${{panel2Title}}</div>
+                <div class="chart-panel-subtitle">${{panel2Sub}}</div>
               </div>
               <svg class="chart-svg" data-chart-speedup></svg>
             </div>
             <div class="chart-panel">
               <div class="chart-panel-header">
-                <div class="chart-panel-title">🌊 Memory-Bound &amp; Reduction Throughput Over Time (GOPS / GB/s ↑)</div>
+                <div class="chart-panel-title">🌊 Memory-Bound &amp; Reduction Throughput (GOPS / GB/s ↑)</div>
                 <div class="chart-panel-subtitle">Pairs 1 (M=1 INT4 GEMV), 4 (FP32 Softmax), and 7 (32-Bit Pack/Transpose)</div>
               </div>
               <svg class="chart-svg" data-chart-memory></svg>
             </div>
             <div class="chart-panel">
               <div class="chart-panel-header">
-                <div class="chart-panel-title">🎯 Practical ISA Roofline Utilization Over Time (% ↑)</div>
-                <div class="chart-panel-subtitle">% of empirical compute or cache/DRAM ceiling achieved</div>
+                <div class="chart-panel-title">🎯 Practical ISA Roofline Utilization (% ↑)</div>
+                <div class="chart-panel-subtitle">% of empirical compute or cache/memory ceiling achieved</div>
               </div>
               <svg class="chart-svg" data-chart-util></svg>
             </div>
@@ -1430,7 +1802,7 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
         </div>
         <div class="table-section">
           <h3>
-            <span>Per-Kernel Performance Progression &amp; Speedup Breakdown (${{st.threads}}C)</span>
+            <span data-table-heading>Per-Kernel Performance &amp; Roofline Breakdown (${{st.threads}}C)</span>
             <span style="font-size:0.8rem;font-weight:400;color:var(--muted)">Click any report date header to open the full Markdown report</span>
           </h3>
           <div data-table></div>
@@ -1445,6 +1817,7 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
       const svgUtil = card.querySelector("[data-chart-util]");
       const legendEl = card.querySelector("[data-legend]");
       const tableEl = card.querySelector("[data-table]");
+      const tableHeadingEl = card.querySelector("[data-table-heading]");
 
       function addCtrlGroup(label, options, curVal, onSelect) {{
         const grp = document.createElement("div");
@@ -1462,11 +1835,11 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
 
       function renderControls() {{
         controlsEl.innerHTML = "";
-        addCtrlGroup("Threads", [
-          ["28", "28C (All 3 Dates: Nov 10–17)"],
-          ["1", "1C (All 3 Dates: Nov 10–17)"],
-          ["56", "56C (Full Socket 0: Nov 13–17)"]
-        ], st.threads, v => {{ st.threads = v; }});
+        const threadOpts = allThreads.map(tk => {{
+          const nReps = (suite.reports || []).filter(r => (r.thread_configs || []).includes(Number(tk))).length;
+          return [tk, `${{tk}}C (${{nReps}} ${{nReps === 1 ? "report" : "reports"}})`];
+        }});
+        addCtrlGroup("Threads", threadOpts, st.threads, v => {{ st.threads = v; }});
 
         addCtrlGroup("Kernel Pair", [
           ["all", "All Pairs"],
@@ -1479,16 +1852,14 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
           ["pair7_pack_transpose", "P7: Pack/Transpose"]
         ], st.pairFilter, v => {{ st.pairFilter = v; }});
 
-        addCtrlGroup("Backend", [
-          ["all", "All"],
-          ["YNNPACK", "YNNPACK"],
-          ["XNNPACK", "XNNPACK"],
-          ["YNNPACK_VNNI_BASELINE", "YNN VNNI Baseline"]
-        ], st.backendFilter, v => {{ st.backendFilter = v; }});
+        const backendOpts = [["all", "All"]].concat(
+          (suite.backends || []).map(b => [b, BACKEND_LABELS[b] || b])
+        );
+        addCtrlGroup("Backend", backendOpts, st.backendFilter, v => {{ st.backendFilter = v; }});
 
         addCtrlGroup("Chart Shapes", [
           ["headline", "Headline Shapes"],
-          ["all", "All 26 Shapes"]
+          ["all", "All Shapes"]
         ], st.scopeFilter, v => {{ st.scopeFilter = v; }});
 
         addCtrlGroup("Y-Scale", [
@@ -1509,7 +1880,11 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
         const allVis = visibleSeriesForChart(null);
 
         renderChart(svgCompute, {{ mode: "tops", yLabel: `Throughput (TOPS / TFLOPS, ${{st.threads}}C)` }}, compSeries, redrawCharts);
-        renderChart(svgSpeedup, {{ mode: "speedup", yLabel: `Speedup Ratio vs. First Report (×, ${{st.threads}}C)` }}, allVis, redrawCharts);
+        if (isSingleDate && allThreads.length > 1) {{
+          renderThreadScalingChart(svgSpeedup, {{ yLabel: `Compute Throughput Scaling (TOPS / TFLOPS)` }}, compSeries, redrawCharts);
+        }} else {{
+          renderChart(svgSpeedup, {{ mode: "speedup", yLabel: `Speedup Ratio vs. First Report (×, ${{st.threads}}C)` }}, allVis, redrawCharts);
+        }}
         renderChart(svgMemory, {{ mode: "raw", yLabel: `Throughput / Bandwidth (GOPS / GB/s, ${{st.threads}}C)` }}, memSeries, redrawCharts);
         renderChart(svgUtil, {{ mode: "util", yLabel: `Practical ISA Roofline Utilization (%, ${{st.threads}}C)` }}, allVis, redrawCharts);
       }}
@@ -1541,6 +1916,7 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
       }}
 
       function renderTable() {{
+        tableHeadingEl.textContent = `Per-Kernel Performance & Roofline Breakdown (${{st.threads}}C)`;
         const reports = (suite.reports || []).filter(r => (r.thread_configs || []).includes(Number(st.threads)));
         const tableSeries = (suite.series || []).filter(s => {{
           if (st.pairFilter !== "all" && s.pair_id !== st.pairFilter) return false;
@@ -1639,7 +2015,11 @@ def render_html_dashboard(data: dict[str, Any]) -> str:
       root.appendChild(card);
     }}
 
-    renderAll();
+    const root = document.getElementById("suites-root");
+    root.innerHTML = "";
+    for (const suite of suites) {{
+      renderSuiteCard(suite, root);
+    }}
   }})();
   </script>
 </body>
@@ -1674,11 +2054,12 @@ def main(argv: list[str] | None = None) -> int:
   out_html.write_text(render_html_dashboard(dashboard_data), encoding="utf-8")
   out_md.write_text(generate_markdown_dashboard(dashboard_data), encoding="utf-8")
 
-  suite = dashboard_data["suites"][0]
-  print(
-      f"Updated kernel dashboard: {out_html} "
-      f"({len(suite['reports'])} report dates, {len(suite['series'])} tracked series)"
-  )
+  for suite in dashboard_data["suites"]:
+    print(
+        f"Updated kernel dashboard suite '{suite['id']}': "
+        f"({len(suite['reports'])} report date(s), {len(suite['series'])} tracked series)"
+    )
+  print(f"Updated kernel dashboard: {out_html}")
   print(f"Updated kernel dashboard data: {out_json}")
   print(f"Updated kernel markdown dashboard: {out_md}")
   return 0

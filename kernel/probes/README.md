@@ -16,6 +16,18 @@ Software probes empirically measure the practical hardware ceilings used as deno
     - **L2 Cache** (`512 KB`/core): Streaming `vmovaps` Read (`4,473.83 GB/s` 28C) and Read+Write Copy (`2,216.39 GB/s` 28C)
     - **Shared L3 LLC** (`32 MB` shared pool, `8 MB`/thread window): Streaming Read (`780.35 GB/s` 28C) and Read+Write Copy (`535.86 GB/s` 28C)
     - **DDR5 DRAM** (`896 MB` across 28 physical cores on Socket 0): Streaming Read (`246.60 GB/s` 28C), Read+Write Copy (`134.61 GB/s` 28C), and STREAM Triad (`151.58 GB/s` 28C)
+- [cpu_ceilings_arm64.c](cpu_ceilings_arm64.c) — Repeatable ARM64 / Apple Silicon (`Apple M5 Max`) hardware ceiling probe using `pthreads`, `QOS_CLASS_USER_INTERACTIVE`, and time-windowed heterogeneous work accounting across `1T` (single Super core), `6T` (Super cluster), and `18T` (full 18-core chip: 6 Super + 12 Performance cores in 3 clusters):
+  - **Compute Ceilings ($C_{\text{prac}}(\text{op}, \text{dtype})$)**:
+    - `sme2_int8_smopa` (`smopa za0..3.s`, `SVL=64B`, `2,048` INT8 OPs/inst — `4.38` / `6.54` / `6.47 TOPS` at `1T / 6T / 18T`)
+    - `sme2_bf16_bfmopa` / `sme2_fp16_fmopa` / `sme2_fp32_fmopa` (`1,024` FLOPs/inst — `2.19` / `3.27` / `3.23 TFLOPS` at `1T / 6T / 18T`)
+    - `neon_i8mm_smmla` (`smmla`, `64` INT8 OPs/inst — `0.59` / `3.25` / **`8.13 TOPS`** at `1T / 6T / 18T`)
+    - `neon_dotprod_sdot` (`sdot`, `32` INT8 OPs/inst — `0.48` / `2.65` / **`7.54 TOPS`** at `1T / 6T / 18T`)
+    - `neon_fp32_fmla` (`fmla`, `8` FP32 FLOPs/inst — `0.10` / `0.57` / `1.80 TFLOPS` at `1T / 6T / 18T`)
+  - **Memory Hierarchy Bandwidth Ceilings ($BW_{\text{prac}}(\text{WorkingSet})$)**:
+    - **L1D Cache** (`32 KB`/core): 8-accumulator NEON Read (`213.7` / `1,136.3` / `2,745.0 GB/s`) and Copy (`264.7` / `901.7` / `1,173.3 GB/s`)
+    - **L2 Cluster Cache** (`16 MiB` Super / `8 MiB` per Perf cluster): Read (`145.7` / `776.3` / `1,900.8 GB/s`) and Copy (`138.3` / `747.7` / `634.9 GB/s`)
+    - **Shared SLC** (`32 MB` shared pool): Read (`116.7` / `471.8` / `925.1 GB/s`) and Copy (`131.8` / `477.9` / `459.7 GB/s`)
+    - **Unified Memory (LPDDR5X)** (`512–1,152 MB`): Read (`91.9` / `302.4` / `301.1 GB/s`), Copy (`129.7` / `344.3` / `343.5 GB/s`), and Triad (`133.2` / `333.8` / `323.7 GB/s`)
 
 ---
 
@@ -103,13 +115,21 @@ Every probe in [cpu_ceilings.c](cpu_ceilings.c) enforces strict measurement repe
 ## Usage
 
 ```bash
+# Intel Sapphire Rapids (x86_64 Linux)
 gcc -O3 -march=sapphirerapids -fopenmp kernel/probes/cpu_ceilings.c -o /tmp/cpu_ceilings -lm
 /tmp/cpu_ceilings --threads 28,56 --trials 7 \
     --output kernel/reports/YYYY-MM-DD-gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json
+
+# Apple Silicon M5 Max (ARM64 macOS; omit +sve as Apple Silicon has SME2 without non-streaming SVE)
+clang -O3 -march=armv8.2-a+sme+sme2+fp16+bf16+i8mm+dotprod -pthread \
+    kernel/probes/cpu_ceilings_arm64.c -o /tmp/cpu_ceilings_arm64 -lm
+caffeinate -i /tmp/cpu_ceilings_arm64 --threads 6,18 --trials 7 \
+    --output kernel/reports/YYYY-MM-DD-gemma4-31b-apple-m5-max/ceilings_apple_m5_max.json
 ```
 
 ## Reference Output
 
+- [2026-11-25 ceilings_apple_m5_max.json](../reports/2026-11-25-gemma4-31b-apple-m5-max/ceilings_apple_m5_max.json) and [2026-11-25 kernel_report_gemma4_31b_apple_m5_max.md](../reports/2026-11-25-gemma4-31b-apple-m5-max/kernel_report_gemma4_31b_apple_m5_max.md) — 7-trial empirical ceiling profile and kernel roofline/precision report for Apple M5 Max (`1T`, `6T`, `18T`, SME2 + NEON I8MM/DotProd/FMA).
 - [2026-11-17 ceilings_sapphire_rapids.json](../reports/2026-11-17-gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json) — Latest 7-trial empirical ceiling profile for Intel Sapphire Rapids (`1T`, `28T`, `56T`).
 - [2026-11-17 kernel_report_gemma4_31b_sapphire_rapids.md](../reports/2026-11-17-gemma4-31b-sapphire-rapids/kernel_report_gemma4_31b_sapphire_rapids.md) — Latest kernel report (hardware roofline comparison and numerical precision verification) for load-bearing XNNPACK and YNNPACK microkernels.
 - [2026-11-13 ceilings_sapphire_rapids.json](../reports/2026-11-13-gemma4-31b-sapphire-rapids/ceilings_sapphire_rapids.json) and [2026-11-13 kernel_report_gemma4_31b_sapphire_rapids.md](../reports/2026-11-13-gemma4-31b-sapphire-rapids/kernel_report_gemma4_31b_sapphire_rapids.md) — Previous `1T` / `28T` / `56T` ceiling profile and kernel report (`6e5b0566`).

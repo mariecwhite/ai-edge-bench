@@ -1,0 +1,168 @@
+{
+  "arch": "arm64",
+  "microarchitecture": "Apple M5 Max",
+  "sme_svl_bytes": 64,
+  "topology": {
+    "total_cores": 18,
+    "super_cores": 6,
+    "performance_cores": 12,
+    "l1d_super_kb": 128,
+    "l1d_perf_kb": 64,
+    "l2_super_cluster_mb": 16,
+    "l2_perf_cluster_mb": 8,
+    "l2_perf_clusters": 2,
+    "cache_line_bytes": 128,
+    "unified_memory_gb": 36
+  },
+  "methodology": {
+    "clock": "CLOCK_MONOTONIC_RAW",
+    "scheduling": "pthreads + QOS_CLASS_USER_INTERACTIVE (Super cores prioritized at 1T/6T; full 3 clusters at 18T)",
+    "synchronization": "atomic spin-wait barrier + time-windowed heterogeneous work accounting",
+    "num_trials": 7,
+    "trial_window_sec": 0.25,
+    "reported_value": "median"
+  },
+  "threads_single_core": 1,
+  "threads_max": 18,
+  "thread_configs": [1, 6, 18],
+  "compute_ceilings_gops": {
+    "sme2_int8_smopa": {
+      "single_core": 4377.03,
+      "single_core_stats": { "median": 4377.03, "mean": 4376.04, "min": 4372.41, "max": 4378.04, "stdev": 2.48, "cv_pct": 0.06 },
+      "threads_6c": 6540.08,
+      "threads_6c_stats": { "median": 6540.08, "mean": 6540.35, "min": 6538.89, "max": 6542.21, "stdev": 1.41, "cv_pct": 0.02 },
+      "threads_18c": 6468.82,
+      "threads_18c_stats": { "median": 6468.82, "mean": 6463.54, "min": 6438.96, "max": 6478.79, "stdev": 15.37, "cv_pct": 0.24 }
+    },
+    "sme2_bf16_bfmopa": {
+      "single_core": 2188.39,
+      "single_core_stats": { "median": 2188.39, "mean": 2188.04, "min": 2185.88, "max": 2188.60, "stdev": 0.97, "cv_pct": 0.04 },
+      "threads_6c": 3270.30,
+      "threads_6c_stats": { "median": 3270.30, "mean": 3270.45, "min": 3269.72, "max": 3271.23, "stdev": 0.56, "cv_pct": 0.02 },
+      "threads_18c": 3227.70,
+      "threads_18c_stats": { "median": 3227.70, "mean": 3227.17, "min": 3209.66, "max": 3238.78, "stdev": 9.75, "cv_pct": 0.30 }
+    },
+    "sme2_fp16_fmopa": {
+      "single_core": 2188.44,
+      "single_core_stats": { "median": 2188.44, "mean": 2188.13, "min": 2186.16, "max": 2188.67, "stdev": 0.88, "cv_pct": 0.04 },
+      "threads_6c": 3270.26,
+      "threads_6c_stats": { "median": 3270.26, "mean": 3270.23, "min": 3269.28, "max": 3271.10, "stdev": 0.56, "cv_pct": 0.02 },
+      "threads_18c": 3226.45,
+      "threads_18c_stats": { "median": 3226.45, "mean": 3228.24, "min": 3218.62, "max": 3238.21, "stdev": 7.49, "cv_pct": 0.23 }
+    },
+    "sme2_fp32_fmopa": {
+      "single_core": 2188.33,
+      "single_core_stats": { "median": 2188.33, "mean": 2187.69, "min": 2186.02, "max": 2188.69, "stdev": 1.17, "cv_pct": 0.05 },
+      "threads_6c": 3270.91,
+      "threads_6c_stats": { "median": 3270.91, "mean": 3270.66, "min": 3269.88, "max": 3271.51, "stdev": 0.60, "cv_pct": 0.02 },
+      "threads_18c": 3231.88,
+      "threads_18c_stats": { "median": 3231.88, "mean": 3226.00, "min": 3191.30, "max": 3237.48, "stdev": 16.35, "cv_pct": 0.51 }
+    },
+    "neon_i8mm_smmla": {
+      "single_core": 588.20,
+      "single_core_stats": { "median": 588.20, "mean": 587.63, "min": 586.30, "max": 588.50, "stdev": 0.97, "cv_pct": 0.16 },
+      "threads_6c": 3250.79,
+      "threads_6c_stats": { "median": 3250.79, "mean": 3250.29, "min": 3248.03, "max": 3250.89, "stdev": 1.04, "cv_pct": 0.03 },
+      "threads_18c": 8126.42,
+      "threads_18c_stats": { "median": 8126.42, "mean": 8119.45, "min": 8052.12, "max": 8171.42, "stdev": 46.96, "cv_pct": 0.58 }
+    },
+    "neon_dotprod_sdot": {
+      "single_core": 479.77,
+      "single_core_stats": { "median": 479.77, "mean": 479.60, "min": 478.47, "max": 480.00, "stdev": 0.52, "cv_pct": 0.11 },
+      "threads_6c": 2648.37,
+      "threads_6c_stats": { "median": 2648.37, "mean": 2648.34, "min": 2647.87, "max": 2648.77, "stdev": 0.28, "cv_pct": 0.01 },
+      "threads_18c": 7543.62,
+      "threads_18c_stats": { "median": 7543.62, "mean": 7518.94, "min": 7464.19, "max": 7561.33, "stdev": 41.11, "cv_pct": 0.55 }
+    },
+    "neon_fp32_fmla": {
+      "single_core": 103.91,
+      "single_core_stats": { "median": 103.91, "mean": 103.78, "min": 103.36, "max": 103.93, "stdev": 0.21, "cv_pct": 0.20 },
+      "threads_6c": 574.07,
+      "threads_6c_stats": { "median": 574.07, "mean": 574.09, "min": 574.03, "max": 574.19, "stdev": 0.05, "cv_pct": 0.01 },
+      "threads_18c": 1799.27,
+      "threads_18c_stats": { "median": 1799.27, "mean": 1790.78, "min": 1764.41, "max": 1808.40, "stdev": 17.80, "cv_pct": 0.99 }
+    }
+  },
+  "bandwidth_ceilings_gbps": {
+    "l1d_32kb_per_core": {
+      "read_only": {
+        "single_core": 213.71,
+        "single_core_stats": { "median": 213.71, "mean": 213.53, "min": 212.93, "max": 213.89, "stdev": 0.37, "cv_pct": 0.17 },
+        "threads_6c": 1136.29,
+        "threads_6c_stats": { "median": 1136.29, "mean": 1135.80, "min": 1132.82, "max": 1136.54, "stdev": 1.32, "cv_pct": 0.12 },
+        "threads_18c": 2744.97,
+        "threads_18c_stats": { "median": 2744.97, "mean": 2741.62, "min": 2724.80, "max": 2755.02, "stdev": 10.63, "cv_pct": 0.39 }
+      },
+      "read_write_copy": {
+        "single_core": 264.69,
+        "single_core_stats": { "median": 264.69, "mean": 262.18, "min": 257.51, "max": 266.09, "stdev": 3.89, "cv_pct": 1.49 },
+        "threads_6c": 901.73,
+        "threads_6c_stats": { "median": 901.73, "mean": 888.76, "min": 829.17, "max": 953.10, "stdev": 48.19, "cv_pct": 5.42 },
+        "threads_18c": 1173.31,
+        "threads_18c_stats": { "median": 1173.31, "mean": 1202.72, "min": 1146.12, "max": 1360.75, "stdev": 80.87, "cv_pct": 6.72 }
+      }
+    },
+    "l2_cluster": {
+      "read_only": {
+        "single_core": 145.69,
+        "single_core_stats": { "median": 145.69, "mean": 145.62, "min": 144.74, "max": 145.99, "stdev": 0.44, "cv_pct": 0.30 },
+        "threads_6c": 776.29,
+        "threads_6c_stats": { "median": 776.29, "mean": 776.88, "min": 775.60, "max": 778.87, "stdev": 1.31, "cv_pct": 0.17 },
+        "threads_18c": 1900.78,
+        "threads_18c_stats": { "median": 1900.78, "mean": 1894.02, "min": 1867.90, "max": 1904.44, "stdev": 14.48, "cv_pct": 0.76 }
+      },
+      "read_write_copy": {
+        "single_core": 138.31,
+        "single_core_stats": { "median": 138.31, "mean": 138.19, "min": 137.83, "max": 138.40, "stdev": 0.24, "cv_pct": 0.17 },
+        "threads_6c": 747.70,
+        "threads_6c_stats": { "median": 747.70, "mean": 750.64, "min": 682.55, "max": 802.45, "stdev": 46.93, "cv_pct": 6.25 },
+        "threads_18c": 634.90,
+        "threads_18c_stats": { "median": 634.90, "mean": 634.18, "min": 629.31, "max": 637.10, "stdev": 2.73, "cv_pct": 0.43 }
+      }
+    },
+    "slc_shared": {
+      "read_only": {
+        "single_core": 116.71,
+        "single_core_stats": { "median": 116.71, "mean": 116.64, "min": 116.06, "max": 117.06, "stdev": 0.38, "cv_pct": 0.32 },
+        "threads_6c": 471.83,
+        "threads_6c_stats": { "median": 471.83, "mean": 472.08, "min": 464.13, "max": 478.60, "stdev": 5.03, "cv_pct": 1.06 },
+        "threads_18c": 925.09,
+        "threads_18c_stats": { "median": 925.09, "mean": 937.53, "min": 913.61, "max": 981.74, "stdev": 24.75, "cv_pct": 2.64 }
+      },
+      "read_write_copy": {
+        "single_core": 131.75,
+        "single_core_stats": { "median": 131.75, "mean": 131.62, "min": 131.25, "max": 131.88, "stdev": 0.25, "cv_pct": 0.19 },
+        "threads_6c": 477.92,
+        "threads_6c_stats": { "median": 477.92, "mean": 476.90, "min": 469.95, "max": 483.69, "stdev": 5.12, "cv_pct": 1.07 },
+        "threads_18c": 459.70,
+        "threads_18c_stats": { "median": 459.70, "mean": 461.72, "min": 456.52, "max": 468.76, "stdev": 5.37, "cv_pct": 1.16 }
+      }
+    },
+    "unified_memory": {
+      "read_only": {
+        "single_core": 91.93,
+        "single_core_stats": { "median": 91.93, "mean": 91.79, "min": 91.27, "max": 92.05, "stdev": 0.29, "cv_pct": 0.32 },
+        "threads_6c": 302.41,
+        "threads_6c_stats": { "median": 302.41, "mean": 302.24, "min": 301.06, "max": 303.07, "stdev": 0.77, "cv_pct": 0.25 },
+        "threads_18c": 301.07,
+        "threads_18c_stats": { "median": 301.07, "mean": 300.43, "min": 298.83, "max": 301.63, "stdev": 1.20, "cv_pct": 0.40 }
+      },
+      "read_write_copy": {
+        "single_core": 129.70,
+        "single_core_stats": { "median": 129.70, "mean": 129.57, "min": 129.09, "max": 129.75, "stdev": 0.26, "cv_pct": 0.20 },
+        "threads_6c": 344.28,
+        "threads_6c_stats": { "median": 344.28, "mean": 344.01, "min": 341.90, "max": 345.28, "stdev": 1.09, "cv_pct": 0.32 },
+        "threads_18c": 343.53,
+        "threads_18c_stats": { "median": 343.53, "mean": 343.45, "min": 341.41, "max": 345.08, "stdev": 1.36, "cv_pct": 0.40 }
+      },
+      "stream_triad": {
+        "single_core": 133.19,
+        "single_core_stats": { "median": 133.19, "mean": 132.93, "min": 132.44, "max": 133.22, "stdev": 0.35, "cv_pct": 0.26 },
+        "threads_6c": 333.80,
+        "threads_6c_stats": { "median": 333.80, "mean": 333.83, "min": 332.41, "max": 335.67, "stdev": 1.18, "cv_pct": 0.35 },
+        "threads_18c": 323.73,
+        "threads_18c_stats": { "median": 323.73, "mean": 323.84, "min": 322.68, "max": 325.35, "stdev": 0.91, "cv_pct": 0.28 }
+      }
+    }
+  }
+}
