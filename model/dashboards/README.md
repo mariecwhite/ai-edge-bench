@@ -2,7 +2,7 @@
 
 - **Interactive HTML Dashboard**: [`model/dashboards/index.html`](index.html)
 - **Raw Time-Series JSON**: [`model/dashboards/data.json`](data.json)
-- **Last Updated**: `2026-11-23 18:27:40 UTC`
+- **Last Updated**: `2026-11-26 10:26:57 UTC`
 
 ## Tracked Model Benchmark Suites
 
@@ -10,6 +10,7 @@
 | :--- | :--- | :--- | ---: | ---: | :--- |
 | [`gemma4-e2b-cpu-sapphire-rapids`](#gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids) | `sapphire-rapids` | `1024 -> 128` (`ctx=4096`) | 16 | 5 | [`2026-11-03`](../reports/2026-11-03-gemma4-e2b-cpu-sapphire-rapids-sapphire-rapids/README.md) |
 | [`gemma4-31b-cpu-sapphire-rapids`](#gemma4-31b-cpu-sapphire-rapids-sapphire-rapids) | `sapphire-rapids` | `1024 -> 128` (`ctx=4096`) | 13 | 3 | [`2026-11-23`](../reports/2026-11-23-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/README.md) |
+| [`gemma4-31b-cpu-apple-m5-max`](#gemma4-31b-cpu-apple-m5-max-apple-m5-max) | `apple-m5-max` | `1024 -> 128` (`ctx=4096`) | 7 | 1 | [`2026-11-26`](../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/README.md) |
 | [`gemma4-26b-a4b-gpu`](#gemma4-26b-a4b-gpu-apple-m5-max) | `apple-m5-max` | `1024 -> 256` (`ctx=4096`) | 4 | 1 | [`2026-10-22`](../reports/2026-10-22-gemma4-26b-a4b-gpu-apple-m5-max/README.md) |
 | [`gemma4-e2b-cpu-arm-runtimes`](#gemma4-e2b-cpu-arm-runtimes-apple-m5-max) | `apple-m5-max` | `1024 -> 256` (`ctx=4096`) | 3 | 1 | [`2026-10-02`](../reports/2026-10-02-gemma4-e2b-cpu-arm-runtimes-apple-m5-max/README.md) |
 | [`gemma4-e2b-cpu`](#gemma4-e2b-cpu-apple-m5-max) | `apple-m5-max` | `1024 -> 256` (`ctx=4096`) | 5 | 1 | [`2026-10-01`](../reports/2026-10-01-gemma4-e2b-cpu-apple-m5-max/README.md) |
@@ -139,6 +140,27 @@ xychart-beta
 | `litert-lm/fastest` | `fastest` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 56 | 203.6 | 157.0 | 87.3 | -69.7 (-44.4%) | 6.17 | 5.35 | 4.70 | -0.65 (-12.2%) | 11,726 | 2,102 (5.58×) | 38,609 | 27,278 | 81.00% / 100.00% |
 | `litert-lm/ynnpack` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 32 | 102.8 | 76.9 | 54.4 | -22.6 (-29.3%) | 4.75 | 3.71 | 4.36 | +0.65 (+17.5%) | 18,828 | 3,029 (6.22×) | 47,857 | 27,260 | 83.00% / 100.00% |
 | `litert-lm/ynnpack-fastest` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 56 | 120.2 | 106.2 | 75.5 | -30.6 (-28.9%) | 4.44 | 3.97 | 4.15 | +0.18 (+4.5%) | 13,558 | 2,304 (5.88×) | 44,242 | 27,804 | 83.00% / 100.00% |
+
+---
+
+## gemma4-31b-cpu-apple-m5-max (apple-m5-max)
+
+Gemma 4 31B (dense 60-layer, 50 sliding-window + 10 global attention layers) on Apple M5 Max CPU (18 physical cores: 6 Super + 12 Performance, 36 GB unified memory), run natively on macOS ARM64 across LiteRT-LM (XNNPACK, YNNPACK, YNNPACK-SDPA) and llama.cpp (CPU-only with KleidiAI + Accelerate) on the INT4 track.
+
+- **Hardware / OS**: `Apple M5 Max (18-core CPU: 6 Super + 12 Performance, 36 GB unified memory), native macOS ARM64 CPU (no container)`
+- **Headline Workload**: `1024` prompt -> `128` decode tokens (`ctx=4096`)
+- **Reports**: [`2026-11-26`](../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/README.md)
+
+| Framework / Config | Track | Checkpoint | Weights / Acts / KV | Threads | Prefill [2026-11-26](../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/README.md) (tok/s) ↑ | Decode [2026-11-26](../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/README.md) (tok/s) ↑ | Latest TTFT (ms) ↓ | Warm TTFT (ms) ↓ | Latest E2E (ms) ↓ | Peak RSS (MB) ↓ | MMLU / GSM8K ↑ |
+| :--- | :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **INT4 / Mixed Track** | | | | | | | | | | | |
+| 🏆 **`llama.cpp/fastest`** | `fastest` | `it (GGUF)` | `q4_0 / q8_0 / fp16` | 18 | 61.7 | 10.45 | 16,598 | 2,725 (6.09×) | 28,790 | 20,936 | 85.50% / 100.00% |
+| `llama.cpp/matched` | `matched` | `qat-q4_0` | `q4_0 / q8_0 / fp16` | 12 | 44.9 | 9.29 | 22,821 | 3,587 (6.36×) | 36,509 | 20,673 | 85.50% / 100.00% |
+| `litert-lm/ynnpack-sdpa` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 18 | 60.5 | 7.60 | 16,929 | 2,853 (5.93×) | 33,640 | 27,087 | 85.00% / 100.00% |
+| `litert-lm/ynnpack-fastest` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 18 | 48.0 | 5.28 | 21,310 | 3,503 (6.08×) | 45,364 | 27,236 | — / — |
+| `litert-lm/matched` | `matched` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 12 | 39.2 | 4.72 | 26,110 | 3,848 (6.79×) | 53,011 | 28,362 | — / — |
+| `litert-lm/fastest` | `fastest` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 18 | 49.6 | 4.58 | 20,645 | 3,562 (5.80×) | 48,316 | 28,362 | — / — |
+| `litert-lm/ynnpack` | `reference` | `qat-q4_0` | `int4_int8 / fp32 / fp32` | 12 | 36.5 | 4.44 | 28,087 | 3,998 (7.03×) | 56,665 | 27,292 | — / — |
 
 ---
 

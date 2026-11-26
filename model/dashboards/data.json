@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23 18:27:40 UTC",
+  "generated_at": "2026-11-26 10:26:57 UTC",
   "suites": [
     {
       "id": "gemma4-e2b-cpu-sapphire-rapids--sapphire-rapids",
@@ -4821,6 +4821,449 @@
               "framework_ref": "jax==0.12.1.dev20261116",
               "framework_commit": "jaxlib==0.12.1.dev20261116",
               "report_url": "../reports/2026-11-23-gemma4-31b-cpu-sapphire-rapids-sapphire-rapids/index.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gemma4-31b-cpu-apple-m5-max--apple-m5-max",
+      "suite": "gemma4-31b-cpu-apple-m5-max",
+      "machine": "apple-m5-max",
+      "machine_notes": "Apple M5 Max (18-core CPU: 6 Super + 12 Performance, 36 GB unified memory), native macOS ARM64 CPU (no container)",
+      "description": "Gemma 4 31B (dense 60-layer, 50 sliding-window + 10 global attention layers) on Apple M5 Max CPU (18 physical cores: 6 Super + 12 Performance, 36 GB unified memory), run natively on macOS ARM64 across LiteRT-LM (XNNPACK, YNNPACK, YNNPACK-SDPA) and llama.cpp (CPU-only with KleidiAI + Accelerate) on the INT4 track.",
+      "workload": {
+        "prompt_tokens": 1024,
+        "gen_tokens": 128,
+        "ctx": 4096,
+        "rounds": 3,
+        "repetitions": 5
+      },
+      "reports": [
+        {
+          "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+          "date": "2026-11-26",
+          "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html"
+        }
+      ],
+      "configs": [
+        {
+          "id": "llama.cpp/fastest",
+          "framework": "llama.cpp",
+          "track": "fastest",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "it (GGUF)",
+          "weights_acts_kv": "q4_0 / q8_0 / fp16",
+          "threads": "18",
+          "color": "#a85a10",
+          "marker": "square",
+          "linestyle": "dashed",
+          "latest_prefill_tps": 61.69,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 10.45,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 28789.54,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+              "date": "2026-11-26",
+              "prefill_tps": {
+                "median": 61.69,
+                "min": 61.27,
+                "max": 61.94,
+                "cv": 0.00326,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 10.45,
+                "min": 10.36,
+                "max": 10.49,
+                "cv": 0.00435,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 28789.54,
+                "min": 28640.89,
+                "max": 28902.48,
+                "cv": 0.00275,
+                "n": 15
+              },
+              "ttft_ms": 16598.1,
+              "itl_p99_ms": 128.8,
+              "rss_max_mb": 20936.0,
+              "mmlu": 0.855,
+              "gsm8k": 1.0,
+              "framework_ref": "b12469",
+              "framework_commit": "e0a9118fe9ed9229b715f4bd83fd9767963659c6",
+              "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html",
+              "warm_ttft_ms": 2724.8,
+              "warm_prefill_tps": 375.8,
+              "ttft_speedup": 6.09
+            }
+          ]
+        },
+        {
+          "id": "llama.cpp/matched",
+          "framework": "llama.cpp",
+          "track": "matched",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-q4_0",
+          "weights_acts_kv": "q4_0 / q8_0 / fp16",
+          "threads": "12",
+          "color": "#d9822b",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 44.87,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 9.29,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 36508.78,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+              "date": "2026-11-26",
+              "prefill_tps": {
+                "median": 44.87,
+                "min": 43.69,
+                "max": 44.98,
+                "cv": 0.00929,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 9.29,
+                "min": 9.25,
+                "max": 9.69,
+                "cv": 0.01137,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 36508.78,
+                "min": 36411.32,
+                "max": 36992.39,
+                "cv": 0.00448,
+                "n": 15
+              },
+              "ttft_ms": 22821.0,
+              "itl_p99_ms": 110.6,
+              "rss_max_mb": 20673.0,
+              "mmlu": 0.855,
+              "gsm8k": 1.0,
+              "framework_ref": "b12469",
+              "framework_commit": "e0a9118fe9ed9229b715f4bd83fd9767963659c6",
+              "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html",
+              "warm_ttft_ms": 3586.9,
+              "warm_prefill_tps": 285.5,
+              "ttft_speedup": 6.36
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/ynnpack-sdpa",
+          "framework": "litert-lm",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-q4_0",
+          "weights_acts_kv": "int4_int8 / fp32 / fp32",
+          "threads": "18",
+          "color": "#0b2c66",
+          "marker": "diamond",
+          "linestyle": "solid",
+          "latest_prefill_tps": 60.49,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 7.6,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 33639.7,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+              "date": "2026-11-26",
+              "prefill_tps": {
+                "median": 60.49,
+                "min": 58.42,
+                "max": 60.97,
+                "cv": 0.01417,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 7.6,
+                "min": 7.43,
+                "max": 7.6,
+                "cv": 0.00879,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 33639.7,
+                "min": 33517.86,
+                "max": 34619.13,
+                "cv": 0.01158,
+                "n": 15
+              },
+              "ttft_ms": 16928.6,
+              "itl_p99_ms": 135.9,
+              "rss_max_mb": 27087.0,
+              "mmlu": 0.85,
+              "gsm8k": 1.0,
+              "framework_ref": "main",
+              "framework_commit": "b5391c5ceec447c78bd8f1d78460a4b1239f442d",
+              "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html",
+              "warm_ttft_ms": 2853.2,
+              "warm_prefill_tps": 358.9,
+              "ttft_speedup": 5.93
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/ynnpack-fastest",
+          "framework": "litert-lm",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-q4_0",
+          "weights_acts_kv": "int4_int8 / fp32 / fp32",
+          "threads": "18",
+          "color": "#3d7be0",
+          "marker": "inverted_triangle",
+          "linestyle": "dotted",
+          "latest_prefill_tps": 48.05,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 5.28,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 45364.27,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+              "date": "2026-11-26",
+              "prefill_tps": {
+                "median": 48.05,
+                "min": 45.69,
+                "max": 48.37,
+                "cv": 0.01655,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 5.28,
+                "min": 5.19,
+                "max": 5.29,
+                "cv": 0.00607,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 45364.27,
+                "min": 45179.5,
+                "max": 46633.45,
+                "cv": 0.01009,
+                "n": 15
+              },
+              "ttft_ms": 21310.0,
+              "itl_p99_ms": 192.6,
+              "rss_max_mb": 27236.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "main",
+              "framework_commit": "b5391c5ceec447c78bd8f1d78460a4b1239f442d",
+              "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html",
+              "warm_ttft_ms": 3503.0,
+              "warm_prefill_tps": 292.3,
+              "ttft_speedup": 6.08
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/matched",
+          "framework": "litert-lm",
+          "track": "matched",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-q4_0",
+          "weights_acts_kv": "int4_int8 / fp32 / fp32",
+          "threads": "12",
+          "color": "#2b6cd9",
+          "marker": "circle",
+          "linestyle": "solid",
+          "latest_prefill_tps": 39.22,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 4.72,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 53011.24,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+              "date": "2026-11-26",
+              "prefill_tps": {
+                "median": 39.22,
+                "min": 38.34,
+                "max": 39.3,
+                "cv": 0.00598,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 4.72,
+                "min": 4.71,
+                "max": 4.73,
+                "cv": 0.00116,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 53011.24,
+                "min": 52957.51,
+                "max": 53628.24,
+                "cv": 0.00305,
+                "n": 15
+              },
+              "ttft_ms": 26109.8,
+              "itl_p99_ms": 216.7,
+              "rss_max_mb": 28362.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "main",
+              "framework_commit": "b5391c5ceec447c78bd8f1d78460a4b1239f442d",
+              "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html",
+              "warm_ttft_ms": 3847.6,
+              "warm_prefill_tps": 266.1,
+              "ttft_speedup": 6.79
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/fastest",
+          "framework": "litert-lm",
+          "track": "fastest",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-q4_0",
+          "weights_acts_kv": "int4_int8 / fp32 / fp32",
+          "threads": "18",
+          "color": "#13408f",
+          "marker": "square",
+          "linestyle": "dashed",
+          "latest_prefill_tps": 49.6,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 4.58,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 48316.3,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+              "date": "2026-11-26",
+              "prefill_tps": {
+                "median": 49.6,
+                "min": 49.4,
+                "max": 50.22,
+                "cv": 0.00516,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 4.58,
+                "min": 4.58,
+                "max": 4.59,
+                "cv": 0.00124,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 48316.3,
+                "min": 48093.19,
+                "max": 48450.63,
+                "cv": 0.0024,
+                "n": 15
+              },
+              "ttft_ms": 20645.0,
+              "itl_p99_ms": 223.5,
+              "rss_max_mb": 28362.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "main",
+              "framework_commit": "b5391c5ceec447c78bd8f1d78460a4b1239f442d",
+              "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html",
+              "warm_ttft_ms": 3562.0,
+              "warm_prefill_tps": 287.5,
+              "ttft_speedup": 5.8
+            }
+          ]
+        },
+        {
+          "id": "litert-lm/ynnpack",
+          "framework": "litert-lm",
+          "track": "reference",
+          "dtype": "int4",
+          "dtype_label": "INT4 / Mixed",
+          "checkpoint": "qat-q4_0",
+          "weights_acts_kv": "int4_int8 / fp32 / fp32",
+          "threads": "12",
+          "color": "#5c9aff",
+          "marker": "triangle",
+          "linestyle": "dashdot",
+          "latest_prefill_tps": 36.46,
+          "delta_prefill_tps": null,
+          "delta_prefill_pct": null,
+          "latest_decode_tps": 4.44,
+          "delta_decode_tps": null,
+          "delta_decode_pct": null,
+          "latest_e2e_ms": 56664.65,
+          "delta_ms": null,
+          "delta_pct": null,
+          "points": [
+            {
+              "report_id": "2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max",
+              "date": "2026-11-26",
+              "prefill_tps": {
+                "median": 36.46,
+                "min": 36.35,
+                "max": 36.82,
+                "cv": 0.00304,
+                "n": 15
+              },
+              "decode_tps": {
+                "median": 4.44,
+                "min": 4.36,
+                "max": 4.45,
+                "cv": 0.00607,
+                "n": 15
+              },
+              "e2e_ms": {
+                "median": 56664.65,
+                "min": 56413.02,
+                "max": 57154.5,
+                "cv": 0.00333,
+                "n": 15
+              },
+              "ttft_ms": 28086.8,
+              "itl_p99_ms": 229.1,
+              "rss_max_mb": 27292.0,
+              "mmlu": null,
+              "gsm8k": null,
+              "framework_ref": "main",
+              "framework_commit": "b5391c5ceec447c78bd8f1d78460a4b1239f442d",
+              "report_url": "../reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/index.html",
+              "warm_ttft_ms": 3997.9,
+              "warm_prefill_tps": 256.1,
+              "ttft_speedup": 7.03
             }
           ]
         }
