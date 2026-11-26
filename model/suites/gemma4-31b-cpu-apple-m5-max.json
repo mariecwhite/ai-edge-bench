@@ -1,0 +1,215 @@
+{
+  "name": "gemma4-31b-cpu-apple-m5-max",
+  "description": "Gemma 4 31B (dense 60-layer, 50 sliding-window + 10 global attention layers) on Apple M5 Max CPU (18 physical cores: 6 Super + 12 Performance, 36 GB unified memory), run natively on macOS ARM64 across LiteRT-LM (XNNPACK, YNNPACK, YNNPACK-SDPA) and llama.cpp (CPU-only with KleidiAI + Accelerate) on the INT4 track.",
+  "model": "google/gemma-4-31B-it",
+  "references": "references/gemma-4-31B-it.json",
+  "reference_accuracy": "references/gemma-4-31B-it.json",
+  "execution": "native",
+  "device": "cpu",
+  "rounds": 3,
+  "accuracy_select_fastest_by_dtype": true,
+  "workload": {
+    "prompt_tokens": 1024,
+    "gen_tokens": 128,
+    "warmup": 2,
+    "repetitions": 5,
+    "cooldown_s": 2,
+    "ctx": 4096
+  },
+  "prefix_cache": {
+    "prompt_tokens": 1024,
+    "prefix_tokens": 896,
+    "gen_tokens": 128,
+    "warmup": 2,
+    "repetitions": 5,
+    "cooldown_s": 2,
+    "ctx": 4096,
+    "rounds": 3,
+    "only": [
+      "llama.cpp/matched",
+      "llama.cpp/fastest",
+      "litert-lm/matched",
+      "litert-lm/fastest",
+      "litert-lm/ynnpack",
+      "litert-lm/ynnpack-fastest",
+      "litert-lm/ynnpack-sdpa"
+    ]
+  },
+  "repro": {
+    "repeats": 2,
+    "max_tokens": 64,
+    "slots": [
+      ["greedy", null, 1.0, 0],
+      ["greedy", null, 1.0, 1],
+      ["greedy", null, 0.5, 2],
+      ["seeded", 1234, 1.0, 0],
+      ["seeded", 1234, 1.0, 1],
+      ["seeded", 1235, 1.0, 3]
+    ],
+    "only": [
+      "llama.cpp/matched",
+      "llama.cpp/fastest",
+      "litert-lm/matched",
+      "litert-lm/fastest",
+      "litert-lm/ynnpack",
+      "litert-lm/ynnpack-fastest",
+      "litert-lm/ynnpack-sdpa"
+    ]
+  },
+  "sequence_sweep": {
+    "prompt_tokens": [64, 256, 1024, 4096],
+    "gen_tokens": 128,
+    "ctx": 8192,
+    "warmup": 1,
+    "repetitions": 1,
+    "cooldown_s": 2,
+    "rounds": 1,
+    "select_fastest_by_dtype": true,
+    "min_accuracy": {
+      "mmlu": 0.40,
+      "gsm8k": 0.40
+    }
+  },
+  "models": {
+    "gguf_q4_0": "/models/ggml-org/gemma-4-31B-it-GGUF/gemma-4-31B-it-Q4_0.gguf",
+    "gguf_qat_q4_0": "/models/google/gemma-4-31B-it-qat-q4_0-gguf/gemma-4-31B_q4_0-it.gguf",
+    "litert": "/models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it.litertlm",
+    "litert_sdpa": "/models/litert-community/gemma-4-31B-it-litert-lm/gemma-4-31B-it-sdpa.litertlm"
+  },
+  "machines": {
+    "apple-m5-max": {
+      "threads": 12,
+      "threads_note": "12 threads for matched comparison; 18 threads (all 6 Super + 12 Performance physical cores) empirically fastest for both llama.cpp and LiteRT-LM on Gemma 4 31B.",
+      "machine_notes": "Apple M5 Max (18-core CPU: 6 Super + 12 Performance, 36 GB unified memory), native macOS ARM64 CPU (no container)",
+      "fastest": {
+        "llama.cpp": {
+          "threads": 18,
+          "batch": 2048,
+          "ubatch": 512,
+          "selected_by": "probe at 6/12/16/18 threads x {mmap, --no-mmap, --no-repack} x {GGML_KLEIDIAI_SME=0,1}; GGML_KLEIDIAI_SME=0 + --no-mmap avoids 36 GB KleidiAI SME repack footprint expansion and mmap double-residency on the 36 GB host"
+        },
+        "litert-lm": {
+          "threads": 18,
+          "selected_by": "probe at 6/12/16/18 threads x {XNNPACK, YNNPACK}; 18 physical cores gives lowest end-to-end latency"
+        }
+      }
+    }
+  },
+  "configs": [
+    {
+      "id": "llama.cpp/matched",
+      "framework": "llama.cpp",
+      "dtype": "int4",
+      "track": "matched",
+      "report": {
+        "checkpoint": "qat-q4_0",
+        "weights": "q4_0",
+        "activations": "q8_0",
+        "kv_cache": "fp16"
+      },
+      "env": {"GGML_KLEIDIAI_SME": "0"},
+      "quant_note": "Official Google QAT Q4_0 GGUF (google/gemma-4-31B-it-qat-q4_0-gguf) on CPU with KleidiAI NEON/i8mm + Accelerate (12 threads, --no-mmap, GGML_KLEIDIAI_SME=0 to stay within 36 GB RAM)",
+      "args": ["--model", "{gguf_qat_q4_0}", "--threads", "{threads}", "--ctx", "{ctx}", "--no-mmap"],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    },
+    {
+      "id": "llama.cpp/fastest",
+      "framework": "llama.cpp",
+      "dtype": "q4_0",
+      "track": "fastest",
+      "report": {
+        "checkpoint": "it (GGUF)",
+        "weights": "q4_0",
+        "activations": "q8_0",
+        "kv_cache": "fp16"
+      },
+      "env": {"GGML_KLEIDIAI_SME": "0"},
+      "quant_note": "Official ggml-org Q4_0 GGUF (ggml-org/gemma-4-31B-it-GGUF) on CPU with KleidiAI NEON/i8mm + Accelerate, flash-attn, batch=2048, 18 threads, --no-mmap",
+      "args": [
+        "--model", "{gguf_q4_0}",
+        "--threads", "{fastest.llama.cpp.threads}",
+        "--ctx", "{ctx}",
+        "--batch", "{fastest.llama.cpp.batch}",
+        "--ubatch", "{fastest.llama.cpp.ubatch}",
+        "--flash-attn", "on",
+        "--no-mmap"
+      ],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    },
+    {
+      "id": "litert-lm/matched",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "matched",
+      "report": {
+        "checkpoint": "qat-q4_0",
+        "weights": "int4_int8",
+        "activations": "fp32",
+        "kv_cache": "fp32"
+      },
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32 exported from google/gemma-4-31B-it-qat-q4_0-unquantized via litert-torch) with XNNPACK delegate (12 threads)",
+      "args": ["--model", "{litert}", "--threads", "{threads}", "--ctx", "{ctx}", "--cache-dir", "/results/.cache/litert-lm-31b"],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    },
+    {
+      "id": "litert-lm/fastest",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "fastest",
+      "report": {
+        "checkpoint": "qat-q4_0",
+        "weights": "int4_int8",
+        "activations": "fp32",
+        "kv_cache": "fp32"
+      },
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32) with XNNPACK delegate across all 18 physical cores",
+      "args": ["--model", "{litert}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--cache-dir", "/results/.cache/litert-lm-31b"],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    },
+    {
+      "id": "litert-lm/ynnpack",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "report": {
+        "checkpoint": "qat-q4_0",
+        "weights": "int4_int8",
+        "activations": "fp32",
+        "kv_cache": "fp32"
+      },
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32) with YNNPACK delegate (--ynnpack / --enable_ynnpack=true, 12 threads; YNNPACK falls back to XNNPACK for blockwise-quantized FC ops)",
+      "args": ["--model", "{litert}", "--threads", "{threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b"],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    },
+    {
+      "id": "litert-lm/ynnpack-fastest",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "report": {
+        "checkpoint": "qat-q4_0",
+        "weights": "int4_int8",
+        "activations": "fp32",
+        "kv_cache": "fp32"
+      },
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32) with YNNPACK delegate (--ynnpack / --enable_ynnpack=true, 18 threads; YNNPACK falls back to XNNPACK for blockwise-quantized FC ops)",
+      "args": ["--model", "{litert}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b"],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    },
+    {
+      "id": "litert-lm/ynnpack-sdpa",
+      "framework": "litert-lm",
+      "dtype": "int4",
+      "track": "reference",
+      "report": {
+        "checkpoint": "qat-q4_0",
+        "weights": "int4_int8",
+        "activations": "fp32",
+        "kv_cache": "fp32"
+      },
+      "quant_note": "LiteRT-LM (.litertlm, blockwise-32 dynamic_wi4b32_afp32 with odml.sdpa_transposed composite + bool mask) with YNNPACK delegate (--ynnpack / --enable_ynnpack=true, 18 threads; YNNPACK executes SDPA/non-FC ops with SME2 and falls back to XNNPACK for blockwise-quantized FC ops)",
+      "args": ["--model", "{litert_sdpa}", "--threads", "{fastest.litert-lm.threads}", "--ctx", "{ctx}", "--ynnpack", "--cache-dir", "/results/.cache/litert-lm-31b-ynn-sdpa"],
+      "accuracy": {"mmlu_limit": 200, "gsm8k_limit": 50}
+    }
+  ]
+}

@@ -39,10 +39,10 @@ SERVICE = {
 # Native (host) execution: suites with "execution": "native" run the harness
 # directly on the host (e.g. Metal GPU on macOS, unreachable from the Docker VM)
 # with the stack built by scripts/native-apple-gpu.sh.
-NATIVE = ROOT / "build" / "native"
+NATIVE = Path(os.environ.get("AEB_NATIVE_DIR", str(ROOT / "build" / "native")))
 NATIVE_BUILD_INFO = {"llama.cpp": "llama.cpp", "litert-lm": "litert-lm", "mlx": "mlx",
                      "basert": "basert"}
-EXECUTION = {"mode": "container", "machine_notes": "", "chat_template": "gemma4"}
+EXECUTION = {"mode": "container", "device": "gpu", "machine_notes": "", "chat_template": "gemma4"}
 
 
 def resolve(value: str, ctx: dict) -> str:
@@ -69,6 +69,8 @@ def _lookup_dotted(ctx: dict, key: str) -> str:
 
 
 def git_rev() -> str:
+  if os.environ.get("AEB_GIT_REV"):
+    return os.environ["AEB_GIT_REV"]
   try:
     rev = subprocess.check_output(["git", "rev-parse", "--short=12", "HEAD"], cwd=ROOT,
                                   text=True, stderr=subprocess.DEVNULL).strip()
@@ -86,38 +88,56 @@ def compose_base(machine: str, dev: bool) -> list[str]:
 
 
 def host_path(arg: str) -> str:
-  """Map the container mount points used in suite files to the repo directories."""
-  for mount in ("/models", "/results", "/datasets"):
+  """Map the container mount points used in suite files to host directories."""
+  mounts = {
+      "/models": os.environ.get("AEB_MODELS_DIR", str(ROOT / "models")),
+      "/results": os.environ.get("AEB_RESULTS_DIR", str(ROOT / "results")),
+      "/datasets": os.environ.get("AEB_DATASETS_DIR", str(ROOT / "datasets")),
+  }
+  for mount, target in mounts.items():
     if arg == mount or arg.startswith(mount + "/"):
-      return str(ROOT / mount.lstrip("/")) + arg[len(mount):]
+      return target + arg[len(mount):]
   return arg
 
 
-def native_cmd(machine: str, framework: str, module_args: list[str]) -> list[str]:
+def native_cmd(machine: str, framework: str, module_args: list[str],
+               extra_env: dict[str, str] | None = None) -> list[str]:
+  native_dir = Path(os.environ.get("AEB_NATIVE_DIR", str(NATIVE)))
+  py_paths = [str(ROOT / "docker" / "harness")]
+  if framework == "litert-lm" and (native_dir / "litert-lm" / "python").is_dir():
+    py_paths.append(str(native_dir / "litert-lm" / "python"))
   env = {
       "AEB_MACHINE": machine,
       "AEB_MACHINE_NOTES": EXECUTION["machine_notes"],
-      "AEB_RESULTS_DIR": str(ROOT / "results"),
-      "AEB_DATASETS_DIR": str(ROOT / "datasets"),
+      "AEB_RESULTS_DIR": os.environ.get("AEB_RESULTS_DIR", str(ROOT / "results")),
+      "AEB_DATASETS_DIR": os.environ.get("AEB_DATASETS_DIR", str(ROOT / "datasets")),
       "AEB_GIT_REV": git_rev(),
-      "AEB_BUILD_INFO": str(NATIVE / NATIVE_BUILD_INFO[framework] / "build-info.json"),
-      "PYTHONPATH": str(ROOT / "docker" / "harness"),
-      "PATH": f"{NATIVE / 'llama.cpp' / 'bin'}:{NATIVE / 'venv' / 'bin'}:/usr/bin:/bin:/usr/sbin:/sbin",
-      "BASERT_LIB_PATH": str(NATIVE / "basert" / "engine" / "libbaseRT.dylib"),
+      "AEB_BUILD_INFO": str(native_dir / NATIVE_BUILD_INFO[framework] / "build-info.json"),
+      "PYTHONPATH": ":".join(py_paths),
+      "PATH": f"{native_dir / 'llama.cpp' / 'bin'}:{native_dir / 'venv' / 'bin'}:/usr/bin:/bin:/usr/sbin:/sbin",
+      "BASERT_LIB_PATH": str(native_dir / "basert" / "engine" / "libbaseRT.dylib"),
       "PYTHONUNBUFFERED": "1",
       "AEB_CHAT_TEMPLATE": EXECUTION["chat_template"],
   }
+  if os.environ.get("AEB_HOSTNAME"):
+    env["AEB_HOSTNAME"] = os.environ["AEB_HOSTNAME"]
+  if extra_env:
+    env.update({str(k): str(v) for k, v in extra_env.items()})
   return (["env", "-i", *(f"{k}={v}" for k, v in env.items()),
-           str(NATIVE / "venv" / "bin" / "python"), "-m"]
+           str(native_dir / "venv" / "bin" / "python"), "-m"]
           + [host_path(a) for a in module_args])
 
 
-def run_cmd(machine: str, framework: str, module_args: list[str], dev: bool) -> list[str]:
+def run_cmd(machine: str, framework: str, module_args: list[str], dev: bool,
+            extra_env: dict[str, str] | None = None) -> list[str]:
   if EXECUTION["mode"] == "native":
-    return native_cmd(machine, framework, module_args)
+    return native_cmd(machine, framework, module_args, extra_env=extra_env)
   cmd = compose_base(machine, dev) + ["run", "--rm", "-T", "-e", f"AEB_GIT_REV={git_rev()}"]
   if EXECUTION["chat_template"] != "gemma4":
     cmd += ["-e", f"AEB_CHAT_TEMPLATE={EXECUTION['chat_template']}"]
+  if extra_env:
+    for k, v in extra_env.items():
+      cmd += ["-e", f"{k}={v}"]
   if dev:
     cmd += ["-v", f"{ROOT / 'docker' / 'harness'}:/opt/aeb/harness:ro"]
   return cmd + [SERVICE[framework], *module_args]
@@ -131,6 +151,7 @@ def load(suite_path: Path, machine: str) -> tuple[dict, dict]:
   ctx = dict(suite["models"])
   ctx.update(threads=mcfg["threads"], ctx=suite["workload"]["ctx"], fastest=mcfg.get("fastest", {}))
   EXECUTION.update(mode=suite.get("execution", "container"),
+                   device=suite.get("device", "gpu"),
                    machine_notes=mcfg.get("machine_notes", ""),
                    chat_template=suite["workload"].get("chat_template", "gemma4"))
   return suite, ctx
@@ -297,7 +318,7 @@ def perf_commands(suite, ctx, machine, rounds, only, dev,
                "--repetitions", str(cw["repetitions"]), "--cooldown-s", str(cw["cooldown_s"]),
                "--notes", f"suite={suite['name']}", "--"]
       args += [resolve(a, ctx) for a in c["args"]]
-      out.append((c["id"], run_cmd(machine, fw, args, dev)))
+      out.append((c["id"], run_cmd(machine, fw, args, dev, extra_env=c.get("env"))))
   return out
 
 
@@ -315,7 +336,7 @@ def prime_commands(suite, ctx, machine, only, dev,
             "--prompt-tokens", "128", "--gen-tokens", "8", "--warmup", "1", "--repetitions", "0",
             "--cooldown-s", "0", "--notes", f"prime:{suite['name']}", "--"]
     args += [resolve(a, ctx) for a in c["args"]]
-    out.append((f"prime {c['id']}", run_cmd(machine, fw, args, dev)))
+    out.append((f"prime {c['id']}", run_cmd(machine, fw, args, dev, extra_env=c.get("env"))))
   return out
 
 
@@ -644,7 +665,7 @@ def accuracy_commands(suite, ctx, machine, only, dev, tasks, threads=None, shard
             args += ["--resume", resume_dir]
         args += ["--"] + driver
         cost = n_items / k * TASK_COST[task] * (2.5 if fw == "llama.cpp" else 1.0)
-        out.append((f"{c['id']}:{task}:{shard_str}", run_cmd(machine, fw, args, dev), cost))
+        out.append((f"{c['id']}:{task}:{shard_str}", run_cmd(machine, fw, args, dev, extra_env=c.get("env")), cost))
   return out
 
 
@@ -685,7 +706,7 @@ def repro_commands(suite, ctx, machine, only, dev, seed=1234,
       if sd is not None:
         args += ["--seed", str(sd)]
       out.append((f"{c['id']}:{mode}:seed={sd}:p{proc}:t{driver[i]}",
-                  run_cmd(machine, fw, args + ["--"] + driver, dev)))
+                  run_cmd(machine, fw, args + ["--"] + driver, dev, extra_env=c.get("env"))))
   return out
 
 
@@ -739,7 +760,7 @@ def keep_awake() -> None:
   as this process lives. Native GPU runs also keep the display awake, so the
   window server's GPU load does not change part-way through a run."""
   if sys.platform == "darwin":
-    flags = ["-i", "-s"] + (["-d"] if EXECUTION["mode"] == "native" else [])
+    flags = ["-i", "-s"] + (["-d"] if EXECUTION["mode"] == "native" and EXECUTION.get("device", "gpu") != "cpu" else [])
     try:
       subprocess.Popen(["caffeinate", *flags, "-w", str(os.getpid())])
     except OSError:
@@ -777,7 +798,8 @@ def main(argv=None) -> int:
   suite, ctx = load(args.suite, args.machine)
   dry = args.dry_run or args.action == "plan"
   if not dry:
-    if EXECUTION["mode"] == "native" and not (NATIVE / "venv" / "bin" / "python").exists():
+    native_dir = Path(os.environ.get("AEB_NATIVE_DIR", str(NATIVE)))
+    if EXECUTION["mode"] == "native" and not (native_dir / "venv" / "bin" / "python").exists():
       raise SystemExit("native suite: run scripts/native-apple-gpu.sh (make native) first")
     keep_awake()
   rounds = suite.get("rounds", 3) if args.rounds is None else args.rounds

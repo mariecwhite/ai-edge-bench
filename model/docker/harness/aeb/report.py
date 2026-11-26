@@ -59,7 +59,7 @@ HEADLINE = [  # metric, label, unit, higher_is_better, fmt
     ("rss_file_max_mb", "Peak RSS file-backed", "MB", False, "{:.0f}"),
     ("pss_max_mb", "Peak PSS", "MB", False, "{:.0f}"),
 ]
-# Native macOS (Metal) suites: no /proc split of RSS, no PSS/cgroup; GPU and
+# Native macOS (Metal GPU) suites: no /proc split of RSS, no PSS/cgroup; GPU and
 # phys_footprint instead. higher_is_better None = descriptive (no arrow).
 NATIVE_HEADLINE = [
     ("ttft_ms", "TTFT", "ms", False, "{:.0f}"),
@@ -76,6 +76,21 @@ NATIVE_HEADLINE = [
     ("footprint_max_mb", "Peak phys_footprint (request)", "MB", False, "{:.0f}"),
     ("rss_max_mb", "Peak resident size (request)", "MB", False, "{:.0f}"),
     ("gpu_mem_max_mb", "GPU in-use memory, system (request)", "MB", False, "{:.0f}"),
+]
+# Native macOS CPU suites: host rusage (phys_footprint, resident size, CPU energy),
+# no GPU utilization or GPU memory panels.
+NATIVE_CPU_HEADLINE = [
+    ("ttft_ms", "TTFT", "ms", False, "{:.0f}"),
+    ("prefill_tps", "Prefill", "tok/s", True, "{:.1f}"),
+    ("decode_tps", "Decode", "tok/s", True, "{:.2f}"),
+    ("e2e_ms", "End-to-end", "ms", False, "{:.0f}"),
+    ("itl_p99_ms", "Inter-token p99", "ms", False, "{:.1f}"),
+    ("cpu_cores_prefill", "CPU cores (prefill)", "cores", False, "{:.2f}"),
+    ("cpu_cores_decode", "CPU cores (decode)", "cores", False, "{:.2f}"),
+    ("cpu_seconds", "CPU time / request", "s", False, "{:.1f}"),
+    ("cpu_energy_j", "CPU energy / request", "J", False, "{:.1f}"),
+    ("footprint_max_mb", "Peak phys_footprint (request)", "MB", False, "{:.0f}"),
+    ("rss_max_mb", "Peak resident size (request)", "MB", False, "{:.0f}"),
 ]
 CPU_HEADLINE = HEADLINE
 CHANGE_THRESHOLD = 0.03  # flag history changes beyond max(3%, 3 x pooled CV)
@@ -767,9 +782,9 @@ def prefix_cache_section(data: dict) -> str:
   return "\n".join(lines) + "\n"
 
 
-def timeline_chart(path: Path, cfg_ids, cfg_runs, native=False):
+def timeline_chart(path: Path, cfg_ids, cfg_runs, native=False, native_gpu=True):
   if native:
-    return native_timeline_chart(path, cfg_ids, cfg_runs)
+    return native_timeline_chart(path, cfg_ids, cfg_runs, include_gpu=native_gpu)
   rows = [cid for cid in cfg_ids if cfg_runs.get(cid)]
   fig, (ax_mem, ax_cpu) = plt.subplots(2, 1, figsize=(11.5, 9.0))
   for cid in rows:
@@ -816,10 +831,14 @@ def timeline_chart(path: Path, cfg_ids, cfg_runs, native=False):
   plt.close(fig)
 
 
-def native_timeline_chart(path: Path, cfg_ids, cfg_runs):
-  """Compare configurations on aligned memory, CPU and system GPU panels."""
+def native_timeline_chart(path: Path, cfg_ids, cfg_runs, include_gpu=True):
+  """Compare configurations on aligned memory, CPU (and optionally GPU) panels."""
   rows = [cid for cid in cfg_ids if cfg_runs.get(cid)]
-  fig, (ax_mem, ax_cpu, ax_gpu) = plt.subplots(3, 1, figsize=(11.5, 12.0))
+  if include_gpu:
+    fig, (ax_mem, ax_cpu, ax_gpu) = plt.subplots(3, 1, figsize=(11.5, 12.0))
+  else:
+    fig, (ax_mem, ax_cpu) = plt.subplots(2, 1, figsize=(11.5, 9.0))
+    ax_gpu = None
   for cid in rows:
     run = cfg_runs[cid][0]
     ts = read_timeseries(run["dir"] / "timeseries.csv")
@@ -828,11 +847,11 @@ def native_timeline_chart(path: Path, cfg_ids, cfg_runs):
     clk = run["meta"]["clk_tck"]
     t0 = ts["t_ns"][0]
     t = [(x - t0) / 1e9 for x in ts["t_ns"]]
-    col = COLORS.get(cid.split("/")[0], "gray")
+    col, _, ls = HIST_STYLE.get(cid, (COLORS.get(cid.split("/")[0], "gray"), "o", "-"))
     ax_mem.plot(t, [v / 1024 if v is not None else float("nan") for v in ts["footprint_kb"]],
-                color=col, lw=1.6, label=f"{cid} (phys_footprint)")
+                color=col, ls=ls, lw=1.6, label=f"{cid} (phys_footprint)")
     ax_mem.plot(t, [v / 1024 if v is not None else float("nan") for v in ts["rss_kb"]],
-                color=col, lw=1, ls="--", alpha=0.7, label=f"{cid} (resident size)")
+                color=col, lw=1, ls=":", alpha=0.65, label=f"{cid} (resident size)")
     ticks = ts["cpu_ticks"]
     cores_t, cores = [], []
     for j in range(1, len(t)):
@@ -841,16 +860,21 @@ def native_timeline_chart(path: Path, cfg_ids, cfg_runs):
         cores_t.append(t[j])
         cores.append((ticks[j] - ticks[j - 1]) / clk / dt_)
     sm = [statistics.fmean(cores[max(0, k - 2):k + 3]) for k in range(len(cores))]
-    ax_cpu.plot(cores_t, sm, color=col, lw=1.4, alpha=0.88, label=cid)
-    util = [(tt, u) for tt, u in zip(t, ts.get("gpu_util_pct", [])) if u is not None]
-    if util:
-      ax_gpu.plot(*zip(*util), color=col, lw=1.4, alpha=0.88, label=cid)
-  ax_gpu.set_ylim(0, 105)
-  for ax, ylabel, title in (
+    ax_cpu.plot(cores_t, sm, color=col, ls=ls, lw=1.4, alpha=0.88, label=cid)
+    if ax_gpu is not None:
+      util = [(tt, u) for tt, u in zip(t, ts.get("gpu_util_pct", [])) if u is not None]
+      if util:
+        ax_gpu.plot(*zip(*util), color=col, lw=1.4, alpha=0.88, label=cid)
+  panels = [
       (ax_mem, "Memory (MB)", "Memory over time across configurations (round 0 process)"),
       (ax_cpu, "CPU cores busy", "CPU utilization over time across configurations (round 0 process)"),
-      (ax_gpu, "GPU utilization (%)", "System GPU utilization over time (not process-specific)"),
-  ):
+  ]
+  if ax_gpu is not None:
+    ax_gpu.set_ylim(0, 105)
+    panels.append(
+        (ax_gpu, "GPU utilization (%)", "System GPU utilization over time (not process-specific)")
+    )
+  for ax, ylabel, title in panels:
     ax.set_ylabel(ylabel)
     ax.set_xlabel("Seconds since process start")
     ax.set_title(title, fontsize=10.5, fontweight="bold")
@@ -1113,8 +1137,12 @@ def main(argv=None) -> int:
   suite = json.loads(args.suite.read_text())
   global HEADLINE
   native = suite.get("execution") == "native"
-  HEADLINE = NATIVE_HEADLINE if native else CPU_HEADLINE
+  native_gpu = native and suite.get("device", "gpu") != "cpu"
+  HEADLINE = (NATIVE_HEADLINE if native_gpu
+              else NATIVE_CPU_HEADLINE if native
+              else CPU_HEADLINE)
   args._native = native
+  args._native_gpu = native_gpu
   EXCLUDED.clear()
   report_id = f"{args.date}-{suite['name']}-{args.machine}"
   out = args.out / report_id
@@ -1130,7 +1158,7 @@ def main(argv=None) -> int:
   # ---- accuracy: latest complete set of shards per (config, task, limit)
   acc_rows, acc_preds = merge_accuracy(load_accuracy(args.results, args.machine), agg)
   agreement = paired_agreement(acc_preds, {c["id"]: c["track"] for c in suite["configs"]}
-                               if native else None)
+                               if native_gpu else None)
 
   repro = load_repro(args.results, args.machine, set(cfg_ids))
   repro_tbl, repro_cross = repro_rows(repro, cfg_ids) if repro else ([], [])
@@ -1140,15 +1168,18 @@ def main(argv=None) -> int:
   bar_chart(out / "latency.png", cfg_ids, agg, [_h("ttft_ms"), _h("e2e_ms"), _h("itl_p99_ms")], "Latency")
   bar_chart(out / "cpu.png", cfg_ids, agg,
             [_h("cpu_cores_prefill"), _h("cpu_cores_decode"), _h("cpu_seconds")], "CPU use")
-  if native:
+  if native_gpu:
     bar_chart(out / "gpu.png", cfg_ids, agg, [_h("gpu_util_prefill"), _h("gpu_util_decode")],
               "GPU utilization (system-wide IOAccelerator counter; indicator only)")
     bar_chart(out / "memory.png", cfg_ids, agg,
               [GPU_MEM_DELTA, _h("footprint_max_mb"), _h("rss_max_mb")], "Memory")
+  elif native:
+    bar_chart(out / "memory.png", cfg_ids, agg,
+              [_h("footprint_max_mb"), _h("rss_max_mb")], "Memory")
   else:
     bar_chart(out / "memory.png", cfg_ids, agg,
               [_h("rss_anon_max_mb"), _h("rss_file_max_mb"), _h("pss_max_mb")], "Memory")
-  timeline_chart(out / "timeline.png", cfg_ids, cfg_runs, native)
+  timeline_chart(out / "timeline.png", cfg_ids, cfg_runs, native, native_gpu)
   if sequence:
     sequence_charts(out, sequence)
   if prefix_cache:
@@ -1165,7 +1196,7 @@ def main(argv=None) -> int:
       ("thread_scaling.png", has_scaling), ("pareto.png", has_pareto),
       ("prefix_cache.png", bool(prefix_cache)), ("accuracy.png", bool(acc_rows)),
       ("sequence_prefill.png", bool(sequence)), ("sequence_decode.png", bool(sequence)),
-      ("gpu.png", native),
+      ("gpu.png", native_gpu),
   ):
     if not present:
       (out / name).unlink(missing_ok=True)
@@ -1230,8 +1261,14 @@ def _scrub(text: str, args) -> str:
   (/results, /models, /build/native/...) as container runs do."""
   if not getattr(args, "_native", False):
     return text
-  root = str(args.results.resolve().parent)
-  return text.replace(root + "/", "/").replace(json.dumps(root + "/")[1:-1], "/")
+  import os
+  roots = [str(args.results.resolve().parent)]
+  extra_root = os.environ.get("AEB_SCRUB_ROOT")
+  if extra_root:
+    roots.append(extra_root.rstrip("/"))
+  for root in roots:
+    text = text.replace(root + "/", "/").replace(json.dumps(root + "/")[1:-1], "/")
+  return text
 
 
 def _track(suite, cid):
@@ -1671,8 +1708,9 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
   n_gen = w.get("gen_tokens", 128)
   _get_acc = _resolve_acc_lookup(cfg_runs, acc_rows)
   native = suite.get("execution") == "native"
-  memory_key = "gpu_mem_delta_mb" if native else "rss_max_mb"
-  memory_label = "GPU memory Δ (MB)" if native else "Peak RSS (MB)"
+  native_gpu = native and suite.get("device", "gpu") != "cpu"
+  memory_key = "gpu_mem_delta_mb" if native_gpu else "rss_max_mb"
+  memory_label = "GPU memory Δ (MB)" if native_gpu else "Peak RSS (MB)"
 
   mmlu_ns = {a["n"] for a in acc_rows if a["task"] == "mmlu"}
   gsm8k_ns = {a["n"] for a in acc_rows if a["task"] == "gsm8k"}
@@ -1786,13 +1824,17 @@ def summary_by_dtype_section(suite: dict, cfg_ids: list[str], cfg_runs: dict, ag
   if "reference" in tracks:
     L.append("- **`reference`**: Published framework-specific artifacts and defaults; weights "
              "and quantization are not matched. Read speed together with accuracy.\n")
-  if native:
+  if native_gpu:
     L.append("- **GPU memory Δ**: Peak system GPU in-use memory over each process lifetime "
              "minus its pre-load baseline; includes other GPU clients. Process RSS and "
              "phys_footprint do not consistently include Metal weights across runtimes.\n"
              "- **Precision**: Suite-declared artifact metadata; `not exposed` means the "
              "runtime/artifact does not establish that precision. Thread counts describe "
              "host work or are recorded only, not GPU parallelism.\n")
+  elif native:
+    L.append("- **Memory**: Native macOS runs report `Peak RSS (MB)` (process resident size) "
+             "in the summary table and both `phys_footprint` (private physical memory) and "
+             "resident size in the detailed metrics and memory charts.\n")
   return "\n".join(L)
 
 
@@ -1809,18 +1851,24 @@ def detailed_metrics_section(suite, args, cfg_ids, cfg_runs, agg):
       d = agg[cid].get(m)
       cells.append("n/a" if not d else f"{f.format(d['median'])} [{f.format(d['min'])}–{f.format(d['max'])}]")
     L.append(f"| {lab} ({unit}){_arrow(hib)} | " + " | ".join(cells) + " |")
-  extra_rows = ((("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
-                 ("gpu_mem_delta_mb", "GPU in-use memory above pre-load baseline, process lifetime (system, MB)", "{:.0f}"),
-                 ("peak_footprint_mb_lifetime", "Peak phys_footprint, process lifetime (MB)", "{:.0f}"),
-                 ("idle_footprint_mb", "phys_footprint after load, before 1st request (MB)", "{:.0f}"),
-                 ("idle_rss_mb", "Resident size after load, before 1st request (MB)", "{:.0f}"),
-                 ("gpu_util_idle", "GPU utilization between requests (background)", "{:.0%}"))
-                if getattr(args, "_native", False) else
-                (("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
-                 ("peak_rss_mb_lifetime", "Peak RSS, process lifetime (VmHWM, MB)", "{:.0f}"),
-                 ("idle_rss_mb", "RSS after load, before 1st request (MB)", "{:.0f}"),
-                 ("idle_rss_anon_mb", "  …of which anonymous (MB)", "{:.0f}"),
-                 ("cgroup_peak_mb", "Container memory.peak incl. page cache (MB)", "{:.0f}")))
+  if getattr(args, "_native_gpu", False):
+    extra_rows = (("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
+                  ("gpu_mem_delta_mb", "GPU in-use memory above pre-load baseline, process lifetime (system, MB)", "{:.0f}"),
+                  ("peak_footprint_mb_lifetime", "Peak phys_footprint, process lifetime (MB)", "{:.0f}"),
+                  ("idle_footprint_mb", "phys_footprint after load, before 1st request (MB)", "{:.0f}"),
+                  ("idle_rss_mb", "Resident size after load, before 1st request (MB)", "{:.0f}"),
+                  ("gpu_util_idle", "GPU utilization between requests (background)", "{:.0%}"))
+  elif getattr(args, "_native", False):
+    extra_rows = (("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
+                  ("peak_footprint_mb_lifetime", "Peak phys_footprint, process lifetime (MB)", "{:.0f}"),
+                  ("idle_footprint_mb", "phys_footprint after load, before 1st request (MB)", "{:.0f}"),
+                  ("idle_rss_mb", "Resident size after load, before 1st request (MB)", "{:.0f}"))
+  else:
+    extra_rows = (("load_ms", "Model load, warm cache (ms)", "{:.0f}"),
+                  ("peak_rss_mb_lifetime", "Peak RSS, process lifetime (VmHWM, MB)", "{:.0f}"),
+                  ("idle_rss_mb", "RSS after load, before 1st request (MB)", "{:.0f}"),
+                  ("idle_rss_anon_mb", "  …of which anonymous (MB)", "{:.0f}"),
+                  ("cgroup_peak_mb", "Container memory.peak incl. page cache (MB)", "{:.0f}"))
   for key, lab, f in extra_rows:
     cells = [fmt((agg[cid].get(key) or {}).get("median"), f) for cid in cfg_ids]
     L.append(f"| {lab} | " + " | ".join(cells) + " |")
@@ -1899,14 +1947,14 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   L.append("![Latency](latency.png)\n")
   if prefix_cache:
     L.append(prefix_cache_section(prefix_cache))
-  if getattr(args, "_native", False):
+  if getattr(args, "_native_gpu", False):
     L.append("### GPU\n")
     L.append("![GPU](gpu.png)\n")
   L.append("### CPU\n")
   L.append("![CPU](cpu.png)\n")
   L.append("### Memory\n")
   L.append("![Memory](memory.png)\n")
-  if getattr(args, "_native", False):
+  if getattr(args, "_native_gpu", False):
     L.append("### Memory, CPU and GPU over time\n")
     L.append("Combined timelines (one round-0 process per configuration): load, warm-up "
              "and measured requests. Solid = phys_footprint, dashed = resident size. "
@@ -1915,6 +1963,11 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
              "others (llama.cpp's no-copy mmap'd weights, LiteRT-LM's and BaseRT's GPU weights), "
              "so compare memory with the GPU in-use memory above the pre-load baseline. GPU "
              "utilization is the system-wide IOAccelerator counter.\n")
+  elif getattr(args, "_native", False):
+    L.append("### Memory and CPU over time\n")
+    L.append("Combined timelines (one round-0 process per configuration: model load, warm-up "
+             "and measured requests) showing process `phys_footprint` (private physical memory), "
+             "resident size (dotted, includes clean mmap'd pages), and active CPU cores.\n")
   else:
     L.append("### Memory and CPU over time\n")
     L.append("Combined timeline (round-0 process per configuration: model load, warm-up "
@@ -2052,11 +2105,13 @@ def render_markdown(suite, args, report_id, cfg_ids, cfg_runs, agg, acc_rows, ha
   cpu = sysinfo.get("cpu", {})
   if getattr(args, "_native", False):
     gpu, power = sysinfo.get("gpu", {}), sysinfo.get("power", {})
+    gpu_part = (f", {gpu.get('cores', '?')}-core GPU ({gpu.get('metal', '?')})"
+                if getattr(args, "_native_gpu", False) else "")
     L.append(f"| Host (native, no container) | {sysinfo.get('host', {}).get('os', '?')}, "
              f"{sysinfo.get('host', {}).get('kernel', '?')}; {cpu.get('model', '?')}: "
              f"{cpu.get('nproc', '?')} CPU cores ({cpu.get('perflevel0_cores', '?')} + "
-             f"{cpu.get('perflevel1_cores', '?')}), {gpu.get('cores', '?')}-core GPU "
-             f"({gpu.get('metal', '?')}), {(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.0f} GiB "
+             f"{cpu.get('perflevel1_cores', '?')}){gpu_part}, "
+             f"{(sysinfo.get('memory', {}).get('total_kb', 0) / 2**20):.0f} GiB "
              f"unified memory; power: {'; '.join(power.get('source', [])) or '?'}, low-power mode "
              f"{'on' if power.get('low_power_mode') else 'off'} |")
   else:
@@ -2191,15 +2246,39 @@ def reproduction_section(suite: dict, machine: str, suite_filename: str, cfg_ids
   )
 
   if suite.get("execution") == "native":
+    native_gpu = suite.get("device", "gpu") != "cpu"
     L.append("### 2. Building the native framework stack (pinned)\n")
-    L.append("Metal runs on the macOS host, not in Docker. The setup script pins framework "
-             "versions and verifies downloaded artifacts; BaseRT uses a prebuilt engine.\n")
-    L.append("```bash\nmake native\nmake gpu-models\n```\n")
-    L.append("### 3. Machine setup & running the full benchmark suite\n")
-    L.append("Use AC power with low-power mode off; keep other GPU clients idle. The suite "
-             "prevents sleep and runs one benchmark process at a time.\n")
+    if native_gpu:
+      L.append("Metal runs on the macOS host, not in Docker. The setup script pins framework "
+               "versions and verifies downloaded artifacts; BaseRT uses a prebuilt engine.\n")
+      L.append("```bash\nmake native\nmake gpu-models\n```\n")
+      L.append("### 3. Machine setup & running the full benchmark suite\n")
+      L.append("Use AC power with low-power mode off; keep other GPU clients idle. The suite "
+               "prevents sleep and runs one benchmark process at a time.\n")
+    else:
+      llama_ref = (builds.get("llama.cpp") or {}).get("ref", "b12469")
+      litert_ref = (builds.get("litert-lm") or {}).get("commit") or (builds.get("litert-lm") or {}).get("ref", "main")
+      L.append("This suite runs natively on macOS ARM64 CPU (no Docker VM overhead, full SME2 / "
+               "AMX / Accelerate / KleidiAI access). Build CPU-only `llama.cpp` with KleidiAI and "
+               "`LiteRT-LM` (`//c:litert-lm`) with `--define=litert_enable_ynnpack=true` into "
+               "`build/native/`:\n")
+      L.append("```bash")
+      L.append(f"# llama.cpp ({llama_ref}) CPU-only with KleidiAI + Accelerate + native SME2")
+      L.append(f"git clone --depth 1 --branch {llama_ref} https://github.com/ggml-org/llama.cpp.git")
+      L.append("cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \\")
+      L.append("  -DGGML_METAL=OFF -DGGML_NATIVE=ON -DGGML_CPU_KLEIDIAI=ON -DBUILD_SHARED_LIBS=ON")
+      L.append("cmake --build build --target llama llama-bench llama-common -j 16")
+      L.append("")
+      L.append(f"# LiteRT-LM ({litert_ref[:12]}) macOS arm64 C library with XNNPACK + YNNPACK")
+      L.append("bazel build --config=macos_arm64 --define=litert_enable_ynnpack=true //c:litert-lm")
+      L.append("```\n")
+      L.append("### 3. Machine setup & running the full benchmark suite\n")
+      L.append("Use AC power with low-power mode off and no background CPU workloads. The suite "
+               "prevents sleep via `caffeinate` and runs one benchmark process at a time.\n")
     L.append("```bash")
-    for target in ("suite-perf", "suite-sequence", "suite-accuracy", "suite-repro"):
+    for target in ("suite-perf", "suite-prefix-cache", "suite-sequence", "suite-accuracy", "suite-repro"):
+      if target == "suite-prefix-cache" and not suite.get("prefix_cache"):
+        continue
       if target == "suite-sequence" and not suite.get("sequence_sweep"):
         continue
       L.append(f"make MACHINE={machine} SUITE={suite_rel} {target}")

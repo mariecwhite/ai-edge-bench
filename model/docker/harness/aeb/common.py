@@ -108,7 +108,7 @@ def darwin_sysinfo() -> dict:
       "collected_at": utc_now(),
       "machine": os.environ.get("AEB_MACHINE", "unknown-machine"),
       "machine_notes": os.environ.get("AEB_MACHINE_NOTES", ""),
-      "hostname": _cmd("hostname", "-s"),
+      "hostname": os.environ.get("AEB_HOSTNAME") or _cmd("hostname", "-s"),
       "kernel": _cmd("uname", "-sr"),
       "arch": _cmd("uname", "-m"),
       "host": {"os": f"macOS {_cmd('sw_vers', '-productVersion')} ({_cmd('sw_vers', '-buildVersion')})",

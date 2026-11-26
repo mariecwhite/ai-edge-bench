@@ -534,6 +534,32 @@ class NativeReportTest(unittest.TestCase):
       self.assertEqual(page.split("<style>")[1].split("</style>")[0],
                        cpu_page.split("<style>")[1].split("</style>")[0])
       self.assertEqual(cpu_page, (cpu_dir / "index.html").read_text())
+
+      native_cpu_suite = dict(
+          suite,
+          execution="native",
+          device="cpu",
+          ratio_baseline=None,
+          configs=[c for c in suite["configs"] if c["framework"] in ("llama.cpp", "litert-lm")],
+      )
+      native_cpu_path = tmp / "native-cpu-suite.json"
+      native_cpu_path.write_text(json.dumps(native_cpu_suite))
+      native_cpu_out = tmp / "native-cpu-reports"
+      self.assertEqual(report.main(["--machine", "m", "--suite", str(native_cpu_path),
+                                    "--results", str(results), "--out", str(native_cpu_out),
+                                    "--date", "2026-10-22"]), 0)
+      nc_dir = native_cpu_out / f"2026-10-22-{suite['name']}-m"
+      nc_md = (nc_dir / "README.md").read_text()
+      self.assertIn("Host (native, no container)", nc_md)
+      self.assertIn("Peak RSS (MB)", nc_md)
+      self.assertIn("Peak phys_footprint (request)", nc_md)
+      self.assertIn("CPU energy / request", nc_md)
+      self.assertIn("litert_enable_ynnpack=true", nc_md)
+      self.assertNotIn("### GPU\n", nc_md)
+      self.assertNotIn("GPU memory Δ", nc_md)
+      self.assertFalse((nc_dir / "gpu.png").exists())
+      self.assertTrue((nc_dir / "memory.png").is_file())
+      self.assertTrue((nc_dir / "timeline.png").is_file())
       report.HEADLINE = report.CPU_HEADLINE
 
 
