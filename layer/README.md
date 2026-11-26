@@ -59,6 +59,8 @@ Optimizations at the Layer tier are classified into two categories:
 
 | Directory | Purpose |
 | :--- | :--- |
-| [subgraphs/](subgraphs/README.md) | LiteRT Tensor API and competitor subgraph implementations (attention, normalization, MLP, MoE, and full blocks). |
-| [suites/](suites/README.md) | Layer benchmark suite definitions (shapes, sequence/context depths, thread counts, and precision configurations). |
-| [scripts/](scripts/README.md) | Layer benchmark runners, whole-subgraph roofline calculators, and numerical error propagation evaluators. |
+| [subgraphs/](subgraphs/README.md) | Self-contained C++ subgraph benchmarks & two-level FP64 numerical verifiers for LiteRT (XNNPACK / YNNPACK), Direct YNNPACK C API, and `llama.cpp` / `ggml` CPU. |
+| [suites/](suites/README.md) | Layer benchmark suite definitions (e.g., [gemma4-31b-cpu-apple-m5-max.json](suites/gemma4-31b-cpu-apple-m5-max.json)). |
+| [scripts/](scripts/README.md) | Whole-subgraph roofline report generator ([generate_layer_report.py](scripts/generate_layer_report.py)) and interactive dashboard builder ([update_dashboard.py](scripts/update_dashboard.py)). |
+| [reports/](reports/) | Dated raw benchmark/verification JSONs and generated Markdown/JSON roofline reports (e.g., [2026-11-26 Apple M5 Max](reports/2026-11-26-gemma4-31b-apple-m5-max/layer_report_gemma4_31b_apple_m5_max.md)). |
+| [dashboards/](dashboards/README.md) | Interactive HTML/SVG dashboard ([index.html](dashboards/index.html)), time-series JSON ([data.json](dashboards/data.json)), and Markdown summary. |

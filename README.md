@@ -31,7 +31,7 @@ To ensure external reproducibility, every software, data, and hardware variable 
 
 Benchmarking is strictly purpose-driven:
 - **Workloads:** Kernels and layers are selected based on their frequency of occurrence and execution-time weight in target models. Models are analyzed to decompose logical subgraphs into [`layer/`](layer/README.md) benchmarks and underlying compute/memory primitives into [`kernel/`](kernel/README.md) benchmarks.
-- **Reports & Dashboards:** Benchmark results, historical series, and interactive dashboards are stored directly in the repository (see [model/dashboards/index.html](model/dashboards/index.html), [model/reports/](model/reports), and [model/reports/history/](model/reports/history)).
+- **Reports & Dashboards:** Benchmark results, historical series, and interactive dashboards are stored directly in the repository (see [layer/dashboards/index.html](layer/dashboards/index.html), [layer/reports/](layer/reports), [model/dashboards/index.html](model/dashboards/index.html), [model/reports/](model/reports), and [model/reports/history/](model/reports/history)).
 
 ---
 

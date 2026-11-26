@@ -1,0 +1,2348 @@
+{
+  "harness": "bench_litert_layers",
+  "mode": "verify",
+  "litert_commit": "74d7f2170eba3ccd5010c05c25fc6a3f821eccfc",
+  "xnnpack_commit": "edecd8af5e45bde84a36fa8220c80d6878824de2",
+  "results": [
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.000000,
+        "fp32_ops": 9424512.000000,
+        "total_ops": 2123353728.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 66192384.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 1310720.000000,
+        "kv_bytes_ideal": 655360.000000,
+        "io_bytes": 344064.000000,
+        "min_bytes_format": 67847168.000000,
+        "min_bytes_ideal": 67104768.000000
+      },
+      "memory": {"phys_footprint_mb": 8855.834969, "peak_rss_mb": 8857.875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99974861, "rel_l2_err": 0.02242314, "sqnr_db": 32.9861, "max_abs_err": 0.141599, "kl_div": 0.00031516, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94738246, "rel_l2_err": 0.32437793, "sqnr_db": 9.7790, "max_abs_err": 2.089937, "kl_div": 0.06595086, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.00000000,
+        "fp32_ops": 9424512.00000000,
+        "total_ops": 2123353728.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 76017664.00000000,
+        "min_bytes_ideal": 67104768.00000000
+      },
+      "memory": {"phys_footprint_mb": 8878.56934357, "peak_rss_mb": 8880.68750000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99973350, "rel_l2_err": 0.02308679, "sqnr_db": 32.7327, "max_abs_err": 0.166072, "kl_div": 0.00034136, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97003054, "rel_l2_err": 0.24481012, "sqnr_db": 12.2234, "max_abs_err": 1.641680, "kl_div": 0.03713369, "nan_inf_count": 0, "passed": true},
+        "deterministic": false, "max_repro_diff": 4.76837158e-07
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.00000000,
+        "fp32_ops": 9424512.00000000,
+        "total_ops": 2123353728.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 66192384.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 67847168.00000000,
+        "min_bytes_ideal": 67104768.00000000
+      },
+      "memory": {"phys_footprint_mb": 8885.63186646, "peak_rss_mb": 8889.71875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99974863, "rel_l2_err": 0.02242234, "sqnr_db": 32.9864, "max_abs_err": 0.141599, "kl_div": 0.00031515, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94738322, "rel_l2_err": 0.32437559, "sqnr_db": 9.7790, "max_abs_err": 2.089937, "kl_div": 0.06595009, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 59,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.00000000,
+        "fp32_ops": 9424512.00000000,
+        "total_ops": 2123353728.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 66192384.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 67847168.00000000,
+        "min_bytes_ideal": 67104768.00000000
+      },
+      "memory": {"phys_footprint_mb": 8886.60061646, "peak_rss_mb": 8890.73437500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99974863, "rel_l2_err": 0.02242234, "sqnr_db": 32.9864, "max_abs_err": 0.141599, "kl_div": 0.00031515, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94738322, "rel_l2_err": 0.32437559, "sqnr_db": 9.7790, "max_abs_err": 2.089937, "kl_div": 0.06595009, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 6, "total_nodes": 59,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.00000000,
+        "fp32_ops": 9424512.00000000,
+        "total_ops": 2123353728.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 76017664.00000000,
+        "min_bytes_ideal": 67104768.00000000
+      },
+      "memory": {"phys_footprint_mb": 8887.14751434, "peak_rss_mb": 8891.26562500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99973349, "rel_l2_err": 0.02308720, "sqnr_db": 32.7326, "max_abs_err": 0.166072, "kl_div": 0.00034135, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97003048, "rel_l2_err": 0.24481040, "sqnr_db": 12.2234, "max_abs_err": 1.641680, "kl_div": 0.03713384, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 59,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.00000000,
+        "fp32_ops": 9424512.00000000,
+        "total_ops": 2123353728.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 76017664.00000000,
+        "min_bytes_ideal": 67104768.00000000
+      },
+      "memory": {"phys_footprint_mb": 8922.06941223, "peak_rss_mb": 8926.21875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99976414, "rel_l2_err": 0.02171923, "sqnr_db": 33.2631, "max_abs_err": 0.170219, "kl_div": 0.00029939, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97009498, "rel_l2_err": 0.24454666, "sqnr_db": 12.2328, "max_abs_err": 1.662425, "kl_div": 0.03706276, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.00000000,
+        "fp32_ops": 9424512.00000000,
+        "total_ops": 2123353728.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 66192384.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 67847168.00000000,
+        "min_bytes_ideal": 67104768.00000000
+      },
+      "memory": {"phys_footprint_mb": 8933.31941223, "peak_rss_mb": 8937.46875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99974863, "rel_l2_err": 0.02242234, "sqnr_db": 32.9864, "max_abs_err": 0.141599, "kl_div": 0.00031515, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94738322, "rel_l2_err": 0.32437559, "sqnr_db": 9.7790, "max_abs_err": 2.089937, "kl_div": 0.06595009, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.00000000,
+        "fp32_ops": 9424512.00000000,
+        "total_ops": 2123353728.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 76017664.00000000,
+        "min_bytes_ideal": 67104768.00000000
+      },
+      "memory": {"phys_footprint_mb": 8957.21006012, "peak_rss_mb": 8961.34375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99976414, "rel_l2_err": 0.02171923, "sqnr_db": 33.2631, "max_abs_err": 0.170219, "kl_div": 0.00029939, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97009498, "rel_l2_err": 0.24454666, "sqnr_db": 12.2328, "max_abs_err": 1.662425, "kl_div": 0.03706276, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 66192384.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 68365312.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8955.35068512, "peak_rss_mb": 8961.34375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99988075, "rel_l2_err": 0.01544319, "sqnr_db": 36.2253, "max_abs_err": 0.071889, "kl_div": 0.00015251, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98732839, "rel_l2_err": 0.15926869, "sqnr_db": 15.9574, "max_abs_err": 0.656361, "kl_div": 0.01494488, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 76535808.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8955.35068512, "peak_rss_mb": 8961.34375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99988597, "rel_l2_err": 0.01510146, "sqnr_db": 36.4196, "max_abs_err": 0.069768, "kl_div": 0.00014735, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.99210980, "rel_l2_err": 0.12563192, "sqnr_db": 18.0180, "max_abs_err": 0.529972, "kl_div": 0.01023153, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 66192384.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 68365312.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8955.46006012, "peak_rss_mb": 8961.34375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99988075, "rel_l2_err": 0.01544319, "sqnr_db": 36.2253, "max_abs_err": 0.071889, "kl_div": 0.00015251, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98732839, "rel_l2_err": 0.15926870, "sqnr_db": 15.9574, "max_abs_err": 0.656361, "kl_div": 0.01494488, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 59,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 66192384.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 68365312.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8956.19443512, "peak_rss_mb": 8961.34375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99988075, "rel_l2_err": 0.01544319, "sqnr_db": 36.2253, "max_abs_err": 0.071889, "kl_div": 0.00015251, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98732839, "rel_l2_err": 0.15926870, "sqnr_db": 15.9574, "max_abs_err": 0.656361, "kl_div": 0.01494488, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 6, "total_nodes": 59,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 76535808.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8956.52258301, "peak_rss_mb": 8961.34375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99988597, "rel_l2_err": 0.01510146, "sqnr_db": 36.4196, "max_abs_err": 0.069768, "kl_div": 0.00014735, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.99210980, "rel_l2_err": 0.12563192, "sqnr_db": 18.0180, "max_abs_err": 0.529972, "kl_div": 0.01023153, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 59,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 76535808.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8956.63193512, "peak_rss_mb": 8961.34375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99989081, "rel_l2_err": 0.01477736, "sqnr_db": 36.6081, "max_abs_err": 0.064495, "kl_div": 0.00013729, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.99216518, "rel_l2_err": 0.12518557, "sqnr_db": 18.0489, "max_abs_err": 0.513857, "kl_div": 0.01016153, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 66192384.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 68365312.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8957.58506012, "peak_rss_mb": 8961.71875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99988075, "rel_l2_err": 0.01544319, "sqnr_db": 36.2253, "max_abs_err": 0.071889, "kl_div": 0.00015251, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98732839, "rel_l2_err": 0.15926870, "sqnr_db": 15.9574, "max_abs_err": 0.656361, "kl_div": 0.01494488, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 76535808.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 8957.80381012, "peak_rss_mb": 8961.93750000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99989081, "rel_l2_err": 0.01477736, "sqnr_db": 36.6081, "max_abs_err": 0.064495, "kl_div": 0.00013729, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.99216518, "rel_l2_err": 0.12518557, "sqnr_db": 18.0489, "max_abs_err": 0.513857, "kl_div": 0.01016153, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 69,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 94727168.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9135.08519745, "peak_rss_mb": 9139.12500000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99959625, "rel_l2_err": 0.02841559, "sqnr_db": 30.9289, "max_abs_err": 0.216810, "kl_div": 0.00052544, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.93613938, "rel_l2_err": 0.35734443, "sqnr_db": 8.9383, "max_abs_err": 2.298437, "kl_div": 0.08101703, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 69,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 106330112.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9251.39778900, "peak_rss_mb": 9255.37500000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99946510, "rel_l2_err": 0.03270799, "sqnr_db": 29.7069, "max_abs_err": 0.205258, "kl_div": 0.00068529, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96350945, "rel_l2_err": 0.27029744, "sqnr_db": 11.3632, "max_abs_err": 1.508295, "kl_div": 0.04607190, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 69,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 94727168.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9252.81966400, "peak_rss_mb": 9256.79687500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99959663, "rel_l2_err": 0.02840224, "sqnr_db": 30.9329, "max_abs_err": 0.214742, "kl_div": 0.00052535, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.93614100, "rel_l2_err": 0.35733997, "sqnr_db": 8.9384, "max_abs_err": 2.296500, "kl_div": 0.08102305, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 94727168.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9253.19466400, "peak_rss_mb": 9257.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99959663, "rel_l2_err": 0.02840224, "sqnr_db": 30.9329, "max_abs_err": 0.214742, "kl_div": 0.00052535, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.93614100, "rel_l2_err": 0.35733997, "sqnr_db": 8.9384, "max_abs_err": 2.296500, "kl_div": 0.08102305, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 6, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 106330112.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9253.28843689, "peak_rss_mb": 9257.25000000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99946510, "rel_l2_err": 0.03270799, "sqnr_db": 29.7069, "max_abs_err": 0.205258, "kl_div": 0.00068529, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96350945, "rel_l2_err": 0.27029745, "sqnr_db": 11.3632, "max_abs_err": 1.508295, "kl_div": 0.04607190, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 106330112.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9307.46031189, "peak_rss_mb": 9311.42187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99954914, "rel_l2_err": 0.03002805, "sqnr_db": 30.4495, "max_abs_err": 0.201195, "kl_div": 0.00057499, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96351308, "rel_l2_err": 0.27027480, "sqnr_db": 11.3639, "max_abs_err": 1.513515, "kl_div": 0.04608113, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 94727168.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9308.24156189, "peak_rss_mb": 9312.20312500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99959663, "rel_l2_err": 0.02840224, "sqnr_db": 30.9329, "max_abs_err": 0.214742, "kl_div": 0.00052535, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.93614100, "rel_l2_err": 0.35733997, "sqnr_db": 8.9384, "max_abs_err": 2.296500, "kl_div": 0.08102305, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 106330112.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 9399.17913055, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99954914, "rel_l2_err": 0.03002805, "sqnr_db": 30.4495, "max_abs_err": 0.201195, "kl_div": 0.00057499, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96351308, "rel_l2_err": 0.27027480, "sqnr_db": 11.3639, "max_abs_err": 1.513515, "kl_div": 0.04608113, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 69,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 94835712.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9396.36663055, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99968727, "rel_l2_err": 0.02501415, "sqnr_db": 32.0363, "max_abs_err": 0.111303, "kl_div": 0.00039786, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.92511983, "rel_l2_err": 0.38743974, "sqnr_db": 8.2359, "max_abs_err": 1.696840, "kl_div": 0.09321325, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 69,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 106438656.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9396.36663055, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99981724, "rel_l2_err": 0.01911875, "sqnr_db": 34.3708, "max_abs_err": 0.099693, "kl_div": 0.00023313, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97674343, "rel_l2_err": 0.21607528, "sqnr_db": 13.3079, "max_abs_err": 0.877461, "kl_div": 0.02823576, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 69,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 94835712.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9396.80413055, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99968727, "rel_l2_err": 0.02501415, "sqnr_db": 32.0363, "max_abs_err": 0.111303, "kl_div": 0.00039786, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.92511983, "rel_l2_err": 0.38743974, "sqnr_db": 8.2359, "max_abs_err": 1.696840, "kl_div": 0.09321325, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 94835712.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9396.88225555, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99968727, "rel_l2_err": 0.02501415, "sqnr_db": 32.0363, "max_abs_err": 0.111303, "kl_div": 0.00039786, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.92511983, "rel_l2_err": 0.38743974, "sqnr_db": 8.2359, "max_abs_err": 1.696840, "kl_div": 0.09321325, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 6, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 106438656.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9397.33540344, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99981724, "rel_l2_err": 0.01911875, "sqnr_db": 34.3708, "max_abs_err": 0.099693, "kl_div": 0.00023313, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97674343, "rel_l2_err": 0.21607528, "sqnr_db": 13.3079, "max_abs_err": 0.877461, "kl_div": 0.02823576, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 64,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 106438656.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9397.96038055, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99986813, "rel_l2_err": 0.01624054, "sqnr_db": 35.7880, "max_abs_err": 0.070888, "kl_div": 0.00017511, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97695032, "rel_l2_err": 0.21511746, "sqnr_db": 13.3465, "max_abs_err": 0.856332, "kl_div": 0.02801651, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 93727744.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 94835712.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9397.33538055, "peak_rss_mb": 9403.09375000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99968727, "rel_l2_err": 0.02501415, "sqnr_db": 32.0363, "max_abs_err": 0.111303, "kl_div": 0.00039786, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.92511983, "rel_l2_err": 0.38743974, "sqnr_db": 8.2359, "max_abs_err": 1.696840, "kl_div": 0.09321325, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 106438656.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 9409.25727844, "peak_rss_mb": 9413.15625000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99986813, "rel_l2_err": 0.01624054, "sqnr_db": 35.7880, "max_abs_err": 0.070888, "kl_div": 0.00017511, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97695032, "rel_l2_err": 0.21511746, "sqnr_db": 13.3465, "max_abs_err": 0.856332, "kl_div": 0.02801651, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 173644800.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 173988864.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 9684.96060944, "peak_rss_mb": 9688.71875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99967792, "rel_l2_err": 0.02537951, "sqnr_db": 31.9103, "max_abs_err": 0.128233, "kl_div": 0.00040276, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98298266, "rel_l2_err": 0.18455288, "sqnr_db": 14.6776, "max_abs_err": 1.027524, "kl_div": 0.02139482, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 195471360.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 9871.16387177, "peak_rss_mb": 9874.82812500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99968458, "rel_l2_err": 0.02511678, "sqnr_db": 32.0007, "max_abs_err": 0.120868, "kl_div": 0.00039780, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98988181, "rel_l2_err": 0.14228230, "sqnr_db": 16.9370, "max_abs_err": 0.807867, "kl_div": 0.01270577, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 173644800.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 173988864.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 9871.17949677, "peak_rss_mb": 9874.95312500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99967792, "rel_l2_err": 0.02537951, "sqnr_db": 31.9103, "max_abs_err": 0.128233, "kl_div": 0.00040276, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98298266, "rel_l2_err": 0.18455288, "sqnr_db": 14.6776, "max_abs_err": 1.027524, "kl_div": 0.02139482, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 5, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 195471360.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 9871.60139465, "peak_rss_mb": 9875.25000000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99968458, "rel_l2_err": 0.02511678, "sqnr_db": 32.0007, "max_abs_err": 0.120868, "kl_div": 0.00039780, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98988181, "rel_l2_err": 0.14228230, "sqnr_db": 16.9370, "max_abs_err": 0.807868, "kl_div": 0.01270577, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 195471360.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 9886.17951965, "peak_rss_mb": 9889.82812500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99969030, "rel_l2_err": 0.02488816, "sqnr_db": 32.0801, "max_abs_err": 0.117789, "kl_div": 0.00039157, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98988416, "rel_l2_err": 0.14226670, "sqnr_db": 16.9379, "max_abs_err": 0.806805, "kl_div": 0.01273176, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 173644800.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 173988864.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 9995.39833832, "peak_rss_mb": 9999.00000000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99967792, "rel_l2_err": 0.02537951, "sqnr_db": 31.9103, "max_abs_err": 0.128233, "kl_div": 0.00040276, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98298266, "rel_l2_err": 0.18455288, "sqnr_db": 14.6776, "max_abs_err": 1.027524, "kl_div": 0.02139482, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 195471360.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 10052.99213409, "peak_rss_mb": 10056.56250000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99969030, "rel_l2_err": 0.02488816, "sqnr_db": 32.0801, "max_abs_err": 0.117789, "kl_div": 0.00039157, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98988416, "rel_l2_err": 0.14226670, "sqnr_db": 16.9379, "max_abs_err": 0.806805, "kl_div": 0.01273176, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 173644800.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 173687808.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 10051.82025909, "peak_rss_mb": 10056.56250000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99966822, "rel_l2_err": 0.02575858, "sqnr_db": 31.7816, "max_abs_err": 0.109143, "kl_div": 0.00039832, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98325392, "rel_l2_err": 0.18307688, "sqnr_db": 14.7473, "max_abs_err": 0.917837, "kl_div": 0.02206841, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 195170304.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 10051.82025909, "peak_rss_mb": 10056.56250000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99969534, "rel_l2_err": 0.02468302, "sqnr_db": 32.1520, "max_abs_err": 0.107839, "kl_div": 0.00041021, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98993022, "rel_l2_err": 0.14190930, "sqnr_db": 16.9598, "max_abs_err": 0.807867, "kl_div": 0.01218002, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 173644800.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 173687808.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 10051.82025909, "peak_rss_mb": 10056.56250000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99966822, "rel_l2_err": 0.02575859, "sqnr_db": 31.7816, "max_abs_err": 0.109143, "kl_div": 0.00039832, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98325392, "rel_l2_err": 0.18307689, "sqnr_db": 14.7473, "max_abs_err": 0.917837, "kl_div": 0.02206841, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 5, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 195170304.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 10052.13278198, "peak_rss_mb": 10056.56250000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99969534, "rel_l2_err": 0.02468302, "sqnr_db": 32.1520, "max_abs_err": 0.107839, "kl_div": 0.00041021, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98993022, "rel_l2_err": 0.14190931, "sqnr_db": 16.9598, "max_abs_err": 0.807868, "kl_div": 0.01218002, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 18,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 195170304.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 10053.22650909, "peak_rss_mb": 10056.79687500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99969384, "rel_l2_err": 0.02474363, "sqnr_db": 32.1307, "max_abs_err": 0.103200, "kl_div": 0.00041754, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98993997, "rel_l2_err": 0.14183753, "sqnr_db": 16.9642, "max_abs_err": 0.806805, "kl_div": 0.01221351, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 173644800.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 173687808.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 10051.86713409, "peak_rss_mb": 10056.79687500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99966822, "rel_l2_err": 0.02575859, "sqnr_db": 31.7816, "max_abs_err": 0.109143, "kl_div": 0.00039832, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98325392, "rel_l2_err": 0.18307689, "sqnr_db": 14.7473, "max_abs_err": 0.917837, "kl_div": 0.02206841, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 195170304.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 10053.41400909, "peak_rss_mb": 10056.98437500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99969384, "rel_l2_err": 0.02474363, "sqnr_db": 32.1307, "max_abs_err": 0.103200, "kl_div": 0.00041754, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98993997, "rel_l2_err": 0.14183753, "sqnr_db": 16.9642, "max_abs_err": 0.806805, "kl_div": 0.01221351, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 241491968.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10071.80463409, "peak_rss_mb": 10075.37500000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99944162, "rel_l2_err": 0.03341670, "sqnr_db": 29.5207, "max_abs_err": 0.270876, "kl_div": 0.00126364, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.91534635, "rel_l2_err": 0.41136056, "sqnr_db": 7.7155, "max_abs_err": 4.063335, "kl_div": 0.18555017, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 271144960.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10077.28900909, "peak_rss_mb": 10080.85937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99943589, "rel_l2_err": 0.03358760, "sqnr_db": 29.4764, "max_abs_err": 0.257843, "kl_div": 0.00124621, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.95083356, "rel_l2_err": 0.31346103, "sqnr_db": 10.0763, "max_abs_err": 2.556762, "kl_div": 0.11093553, "nan_inf_count": 0, "passed": false},
+        "deterministic": false, "max_repro_diff": 4.76837158e-07
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 241491968.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10078.32025909, "peak_rss_mb": 10081.89062500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99944188, "rel_l2_err": 0.03340895, "sqnr_db": 29.5227, "max_abs_err": 0.270876, "kl_div": 0.00126293, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.91533954, "rel_l2_err": 0.41137794, "sqnr_db": 7.7152, "max_abs_err": 4.063335, "kl_div": 0.18557951, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 77,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 241491968.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10078.91400909, "peak_rss_mb": 10082.48437500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99944188, "rel_l2_err": 0.03340895, "sqnr_db": 29.5227, "max_abs_err": 0.270876, "kl_div": 0.00126293, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.91533954, "rel_l2_err": 0.41137794, "sqnr_db": 7.7152, "max_abs_err": 4.063335, "kl_div": 0.18557951, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 10, "total_nodes": 77,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 271144960.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10079.19528198, "peak_rss_mb": 10082.75000000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99943578, "rel_l2_err": 0.03359080, "sqnr_db": 29.4756, "max_abs_err": 0.257843, "kl_div": 0.00124522, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.95083113, "rel_l2_err": 0.31346792, "sqnr_db": 10.0761, "max_abs_err": 2.556762, "kl_div": 0.11096898, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 77,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 271144960.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10114.07028198, "peak_rss_mb": 10117.62500000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99948951, "rel_l2_err": 0.03195397, "sqnr_db": 29.9095, "max_abs_err": 0.245372, "kl_div": 0.00111683, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.95085401, "rel_l2_err": 0.31341967, "sqnr_db": 10.0775, "max_abs_err": 2.614442, "kl_div": 0.11110223, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 241491968.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10114.80465698, "peak_rss_mb": 10118.35937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99944188, "rel_l2_err": 0.03340895, "sqnr_db": 29.5227, "max_abs_err": 0.270876, "kl_div": 0.00126293, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.91533954, "rel_l2_err": 0.41137794, "sqnr_db": 7.7152, "max_abs_err": 4.063335, "kl_div": 0.18557951, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1310720.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 271144960.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 10170.64845276, "peak_rss_mb": 10174.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99948951, "rel_l2_err": 0.03195397, "sqnr_db": 29.9095, "max_abs_err": 0.245372, "kl_div": 0.00111683, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.95085401, "rel_l2_err": 0.31341967, "sqnr_db": 10.0775, "max_abs_err": 2.614442, "kl_div": 0.11110223, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 242010112.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10168.78907776, "peak_rss_mb": 10174.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99964596, "rel_l2_err": 0.02660818, "sqnr_db": 31.4997, "max_abs_err": 0.158978, "kl_div": 0.00085300, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97215399, "rel_l2_err": 0.23603789, "sqnr_db": 12.5404, "max_abs_err": 1.306018, "kl_div": 0.05627475, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 271663104.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10168.78907776, "peak_rss_mb": 10174.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99967288, "rel_l2_err": 0.02557833, "sqnr_db": 31.8426, "max_abs_err": 0.174951, "kl_div": 0.00075579, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98299673, "rel_l2_err": 0.18429235, "sqnr_db": 14.6899, "max_abs_err": 1.070604, "kl_div": 0.03864117, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 242010112.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10168.82032776, "peak_rss_mb": 10174.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99964596, "rel_l2_err": 0.02660818, "sqnr_db": 31.4997, "max_abs_err": 0.158978, "kl_div": 0.00085300, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97215399, "rel_l2_err": 0.23603790, "sqnr_db": 12.5404, "max_abs_err": 1.306018, "kl_div": 0.05627476, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 77,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 242010112.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10169.52345276, "peak_rss_mb": 10174.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99964596, "rel_l2_err": 0.02660818, "sqnr_db": 31.4997, "max_abs_err": 0.158978, "kl_div": 0.00085300, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97215399, "rel_l2_err": 0.23603790, "sqnr_db": 12.5404, "max_abs_err": 1.306018, "kl_div": 0.05627476, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 10, "total_nodes": 77,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 271663104.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10169.86722565, "peak_rss_mb": 10174.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99967288, "rel_l2_err": 0.02557833, "sqnr_db": 31.8426, "max_abs_err": 0.174951, "kl_div": 0.00075579, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98299673, "rel_l2_err": 0.18429235, "sqnr_db": 14.6899, "max_abs_err": 1.070604, "kl_div": 0.03864117, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 77,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 271663104.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10170.17970276, "peak_rss_mb": 10174.17187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99966728, "rel_l2_err": 0.02580005, "sqnr_db": 31.7676, "max_abs_err": 0.152300, "kl_div": 0.00077043, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98305759, "rel_l2_err": 0.18398032, "sqnr_db": 14.7046, "max_abs_err": 1.061726, "kl_div": 0.03809371, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 239837184.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 242010112.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10170.89845276, "peak_rss_mb": 10174.42187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99964596, "rel_l2_err": 0.02660818, "sqnr_db": 31.4997, "max_abs_err": 0.158978, "kl_div": 0.00085300, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97215399, "rel_l2_err": 0.23603790, "sqnr_db": 12.5404, "max_abs_err": 1.306018, "kl_div": 0.05627476, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 2129920.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 271663104.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 10171.13282776, "peak_rss_mb": 10174.65625000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99966728, "rel_l2_err": 0.02580005, "sqnr_db": 31.7676, "max_abs_err": 0.152300, "kl_div": 0.00077043, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98305759, "rel_l2_err": 0.18398032, "sqnr_db": 14.7046, "max_abs_err": 1.061726, "kl_div": 0.03809371, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 87,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 268371968.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10169.02345276, "peak_rss_mb": 10174.65625000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99920383, "rel_l2_err": 0.03990286, "sqnr_db": 27.9799, "max_abs_err": 0.360359, "kl_div": 0.00182331, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.90033333, "rel_l2_err": 0.44660832, "sqnr_db": 7.0015, "max_abs_err": 3.613730, "kl_div": 0.22560183, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 87,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 301457408.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10175.92970276, "peak_rss_mb": 10179.45312500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99901233, "rel_l2_err": 0.04444495, "sqnr_db": 27.0436, "max_abs_err": 0.362910, "kl_div": 0.00226440, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94250934, "rel_l2_err": 0.33913889, "sqnr_db": 9.3924, "max_abs_err": 2.324657, "kl_div": 0.12985125, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 87,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 268371968.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10177.05470276, "peak_rss_mb": 10180.57812500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99920397, "rel_l2_err": 0.03990036, "sqnr_db": 27.9805, "max_abs_err": 0.392082, "kl_div": 0.00181506, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.90040391, "rel_l2_err": 0.44646040, "sqnr_db": 7.0043, "max_abs_err": 3.633132, "kl_div": 0.22555721, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 268371968.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10177.44532776, "peak_rss_mb": 10180.96875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99920397, "rel_l2_err": 0.03990036, "sqnr_db": 27.9805, "max_abs_err": 0.392082, "kl_div": 0.00181506, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.90040391, "rel_l2_err": 0.44646040, "sqnr_db": 7.0043, "max_abs_err": 3.633132, "kl_div": 0.22555721, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 10, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 301457408.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10177.74222565, "peak_rss_mb": 10181.25000000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99901233, "rel_l2_err": 0.04444495, "sqnr_db": 27.0436, "max_abs_err": 0.362909, "kl_div": 0.00226440, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94250934, "rel_l2_err": 0.33913889, "sqnr_db": 9.3924, "max_abs_err": 2.324657, "kl_div": 0.12985125, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 301457408.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10178.00782776, "peak_rss_mb": 10181.53125000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99914250, "rel_l2_err": 0.04141030, "sqnr_db": 27.6578, "max_abs_err": 0.330465, "kl_div": 0.00196191, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94251877, "rel_l2_err": 0.33908952, "sqnr_db": 9.3937, "max_abs_err": 2.340951, "kl_div": 0.12999311, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 268371968.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10234.13287354, "peak_rss_mb": 10237.62500000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99920397, "rel_l2_err": 0.03990036, "sqnr_db": 27.9805, "max_abs_err": 0.392082, "kl_div": 0.00181506, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.90040391, "rel_l2_err": 0.44646040, "sqnr_db": 7.0043, "max_abs_err": 3.633132, "kl_div": 0.22555721, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 301457408.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 10289.14854431, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99914250, "rel_l2_err": 0.04141030, "sqnr_db": 27.6578, "max_abs_err": 0.330465, "kl_div": 0.00196191, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.94251877, "rel_l2_err": 0.33908952, "sqnr_db": 9.3937, "max_abs_err": 2.340951, "kl_div": 0.12999311, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qc4w",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 87,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 268480512.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10286.42979431, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99935695, "rel_l2_err": 0.03587538, "sqnr_db": 28.9041, "max_abs_err": 0.197762, "kl_div": 0.00137984, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.89093806, "rel_l2_err": 0.46778427, "sqnr_db": 6.5991, "max_abs_err": 2.806956, "kl_div": 0.26067099, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_xnn_qb4w32",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 87,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 301565952.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10286.42979431, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99955527, "rel_l2_err": 0.02982989, "sqnr_db": 30.5070, "max_abs_err": 0.173898, "kl_div": 0.00101130, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96224692, "rel_l2_err": 0.27545526, "sqnr_db": 11.1990, "max_abs_err": 1.650158, "kl_div": 0.08899332, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_decomposed",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 87,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 268480512.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10286.80479431, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99935695, "rel_l2_err": 0.03587538, "sqnr_db": 28.9041, "max_abs_err": 0.197762, "kl_div": 0.00137984, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.89093806, "rel_l2_err": 0.46778427, "sqnr_db": 6.5991, "max_abs_err": 2.806956, "kl_div": 0.26067098, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qc4w_sdpa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 268480512.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10287.03916931, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99935695, "rel_l2_err": 0.03587538, "sqnr_db": 28.9041, "max_abs_err": 0.197762, "kl_div": 0.00137984, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.89093806, "rel_l2_err": 0.46778427, "sqnr_db": 6.5991, "max_abs_err": 2.806956, "kl_div": 0.26067098, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 10, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 301565952.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10287.39856720, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99955527, "rel_l2_err": 0.02982989, "sqnr_db": 30.5070, "max_abs_err": 0.173898, "kl_div": 0.00101130, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96224692, "rel_l2_err": 0.27545526, "sqnr_db": 11.1990, "max_abs_err": 1.650158, "kl_div": 0.08899333, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "litert_ynn_qb4w32_pure_sdpa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 2, "total_nodes": 82,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 301565952.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10287.85166931, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99963283, "rel_l2_err": 0.02711827, "sqnr_db": 31.3348, "max_abs_err": 0.147321, "kl_div": 0.00087605, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96271926, "rel_l2_err": 0.27379271, "sqnr_db": 11.2516, "max_abs_err": 1.644280, "kl_div": 0.08803114, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qc4w",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 267372544.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 268480512.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10286.96104431, "peak_rss_mb": 10292.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99935695, "rel_l2_err": 0.03587538, "sqnr_db": 28.9041, "max_abs_err": 0.197762, "kl_div": 0.00137984, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.89093806, "rel_l2_err": 0.46778427, "sqnr_db": 6.5991, "max_abs_err": 2.806956, "kl_div": 0.26067098, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "direct_ynn_capi_qb4w32",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "delegated_nodes": 1, "total_nodes": 1,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 301565952.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 10293.25791931, "peak_rss_mb": 10296.71875000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99963283, "rel_l2_err": 0.02711827, "sqnr_db": 31.3348, "max_abs_err": 0.147321, "kl_div": 0.00087605, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96271926, "rel_l2_err": 0.27379271, "sqnr_db": 11.2516, "max_abs_err": 1.644280, "kl_div": 0.08803114, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    }
+  ]
+}
