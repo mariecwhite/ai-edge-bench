@@ -1,0 +1,1747 @@
+{
+  "harness": "bench_ggml_layers",
+  "mode": "bench",
+  "llama_cpp_commit": "e0a9118fe9ed9229b715f4bd83fd9767963659c6",
+  "results": [
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 33822867456.000000,
+        "fp32_ops": 302524416.000000,
+        "total_ops": 34125391872.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 4194304.000000,
+        "kv_bytes_ideal": 4194304.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 84062208.000000,
+        "min_bytes_ideal": 75804672.000000
+      },
+      "memory": {"phys_footprint_mb": 2770.721199, "peak_rss_mb": 2774.250000},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 4,
+        "median_ms": 20.265156, "mean_ms": 20.293257, "min_ms": 20.249708, "max_ms": 20.485896, "p90_ms": 20.356221, "p99_ms": 20.472928, "stdev_ms": 0.085279, "cv_pct": 0.420235,
+        "samples_ms": [20.268885, 20.265156, 20.249708, 20.253531, 20.259854, 20.269771, 20.485896]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 33822867456.000000,
+        "fp32_ops": 302524416.000000,
+        "total_ops": 34125391872.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 4194304.000000,
+        "kv_bytes_ideal": 4194304.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 84062208.000000,
+        "min_bytes_ideal": 75804672.000000
+      },
+      "memory": {"phys_footprint_mb": 2777.564949, "peak_rss_mb": 2781.406250},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 6,
+        "median_ms": 11.066576, "mean_ms": 11.061370, "min_ms": 11.017076, "max_ms": 11.116187, "p90_ms": 11.089400, "p99_ms": 11.113509, "stdev_ms": 0.033546, "cv_pct": 0.303276,
+        "samples_ms": [11.066576, 11.071542, 11.070924, 11.017076, 11.065264, 11.116187, 11.022021]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 270582939648.000000,
+        "fp32_ops": 17525981184.000000,
+        "total_ops": 288108920832.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 33554432.000000,
+        "kv_bytes_ideal": 33554432.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 151957504.000000,
+        "min_bytes_ideal": 143699968.000000
+      },
+      "memory": {"phys_footprint_mb": 2915.393166, "peak_rss_mb": 2918.843750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 190.853291, "mean_ms": 190.975946, "min_ms": 190.784332, "max_ms": 191.479500, "p90_ms": 191.296525, "p99_ms": 191.461203, "stdev_ms": 0.256999, "cv_pct": 0.134571,
+        "samples_ms": [191.174542, 190.830584, 190.853291, 190.832499, 190.876875, 190.784332, 191.479500]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 270582939648.000000,
+        "fp32_ops": 17525981184.000000,
+        "total_ops": 288108920832.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 33554432.000000,
+        "kv_bytes_ideal": 33554432.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 151957504.000000,
+        "min_bytes_ideal": 143699968.000000
+      },
+      "memory": {"phys_footprint_mb": 2923.408791, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 88.300541, "mean_ms": 88.438399, "min_ms": 87.391168, "max_ms": 89.703250, "p90_ms": 89.328650, "p99_ms": 89.665790, "stdev_ms": 0.840256, "cv_pct": 0.950103,
+        "samples_ms": [89.078917, 88.300541, 88.166750, 87.391168, 89.703250, 87.530000, 88.898167]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 2347008.000000,
+        "total_ops": 266588160.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 1064960.000000,
+        "kv_bytes_ideal": 1064960.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 75470848.000000,
+        "min_bytes_ideal": 67213312.000000
+      },
+      "memory": {"phys_footprint_mb": 2800.752449, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 0.629045, "mean_ms": 0.628998, "min_ms": 0.623510, "max_ms": 0.632254, "p90_ms": 0.631645, "p99_ms": 0.632193, "stdev_ms": 0.002827, "cv_pct": 0.449368,
+        "samples_ms": [0.630177, 0.623510, 0.631240, 0.629045, 0.628514, 0.628243, 0.632254]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 2347008.000000,
+        "total_ops": 266588160.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 1064960.000000,
+        "kv_bytes_ideal": 1064960.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 75470848.000000,
+        "min_bytes_ideal": 67213312.000000
+      },
+      "memory": {"phys_footprint_mb": 2800.768074, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.175222, "mean_ms": 1.076670, "min_ms": 0.769396, "max_ms": 1.242757, "p90_ms": 1.222432, "p99_ms": 1.240724, "stdev_ms": 0.186072, "cv_pct": 17.282161,
+        "samples_ms": [1.175222, 0.769396, 1.072260, 0.868413, 1.208882, 1.242757, 1.199760]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv256",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 256, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 8669184.000000,
+        "total_ops": 272910336.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 4210688.000000,
+        "kv_bytes_ideal": 4210688.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 78616576.000000,
+        "min_bytes_ideal": 70359040.000000
+      },
+      "memory": {"phys_footprint_mb": 2808.768074, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 0.669268, "mean_ms": 0.669159, "min_ms": 0.666605, "max_ms": 0.671399, "p90_ms": 0.671374, "p99_ms": 0.671397, "stdev_ms": 0.001853, "cv_pct": 0.276919,
+        "samples_ms": [0.669268, 0.671399, 0.669604, 0.666605, 0.671358, 0.668660, 0.667219]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv256",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 256, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 8669184.000000,
+        "total_ops": 272910336.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 4210688.000000,
+        "kv_bytes_ideal": 4210688.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 78616576.000000,
+        "min_bytes_ideal": 70359040.000000
+      },
+      "memory": {"phys_footprint_mb": 2808.783699, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.222944, "mean_ms": 1.181624, "min_ms": 0.797004, "max_ms": 1.306965, "p90_ms": 1.287419, "p99_ms": 1.305011, "stdev_ms": 0.172997, "cv_pct": 14.640632,
+        "samples_ms": [1.274389, 1.239288, 1.217281, 1.306965, 1.213497, 0.797004, 1.222944]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 33957888.000000,
+        "total_ops": 298199040.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 91199488.000000,
+        "min_bytes_ideal": 82941952.000000
+      },
+      "memory": {"phys_footprint_mb": 2820.846222, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 0.820885, "mean_ms": 0.820769, "min_ms": 0.816851, "max_ms": 0.823184, "p90_ms": 0.822753, "p99_ms": 0.823141, "stdev_ms": 0.002084, "cv_pct": 0.253945,
+        "samples_ms": [0.821663, 0.820885, 0.823184, 0.820653, 0.822465, 0.816851, 0.819684]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 33957888.000000,
+        "total_ops": 298199040.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 91199488.000000,
+        "min_bytes_ideal": 82941952.000000
+      },
+      "memory": {"phys_footprint_mb": 2820.846222, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.395448, "mean_ms": 1.256362, "min_ms": 0.658142, "max_ms": 1.675799, "p90_ms": 1.571178, "p99_ms": 1.665337, "stdev_ms": 0.389696, "cv_pct": 31.017811,
+        "samples_ms": [1.316434, 1.483597, 0.658142, 1.501430, 0.763681, 1.675799, 1.395448]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv1024_cap8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 8192, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 33957888.000000,
+        "total_ops": 298199040.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 91199488.000000,
+        "min_bytes_ideal": 82941952.000000
+      },
+      "memory": {"phys_footprint_mb": 2820.846222, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 0.822462, "mean_ms": 0.821787, "min_ms": 0.818736, "max_ms": 0.823701, "p90_ms": 0.823633, "p99_ms": 0.823694, "stdev_ms": 0.001915, "cv_pct": 0.233048,
+        "samples_ms": [0.818736, 0.822462, 0.820639, 0.823587, 0.820278, 0.823701, 0.823108]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "decode_kv1024_cap8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 8192, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.000000,
+        "fp32_ops": 33957888.000000,
+        "total_ops": 298199040.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 91199488.000000,
+        "min_bytes_ideal": 82941952.000000
+      },
+      "memory": {"phys_footprint_mb": 2820.877472, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.270604, "mean_ms": 1.154369, "min_ms": 0.651920, "max_ms": 1.831743, "p90_ms": 1.641124, "p99_ms": 1.812681, "stdev_ms": 0.489501, "cv_pct": 42.404145,
+        "samples_ms": [1.514045, 0.651920, 1.480441, 1.831743, 0.664878, 1.270604, 0.666955]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 47915728896.000000,
+        "fp32_ops": 579348480.000000,
+        "total_ops": 48495077376.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 2097152.000000,
+        "kv_bytes_ideal": 2097152.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 112932864.000000,
+        "min_bytes_ideal": 101234688.000000
+      },
+      "memory": {"phys_footprint_mb": 2903.877541, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 3,
+        "median_ms": 31.932931, "mean_ms": 31.877421, "min_ms": 31.575083, "max_ms": 32.159486, "p90_ms": 32.093586, "p99_ms": 32.152896, "stdev_ms": 0.228935, "cv_pct": 0.718173,
+        "samples_ms": [31.932931, 32.049653, 31.826333, 32.159486, 32.018222, 31.575083, 31.580236]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 47915728896.000000,
+        "fp32_ops": 579348480.000000,
+        "total_ops": 48495077376.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 2097152.000000,
+        "kv_bytes_ideal": 2097152.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 112932864.000000,
+        "min_bytes_ideal": 101234688.000000
+      },
+      "memory": {"phys_footprint_mb": 2903.877541, "peak_rss_mb": 2927.140625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 5,
+        "median_ms": 16.809383, "mean_ms": 16.863701, "min_ms": 16.614242, "max_ms": 17.409700, "p90_ms": 17.103630, "p99_ms": 17.379093, "stdev_ms": 0.257523, "cv_pct": 1.527082,
+        "samples_ms": [16.614242, 16.743400, 16.728225, 16.809383, 16.899583, 16.841375, 17.409700]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 383325831168.000000,
+        "fp32_ops": 34772959232.000000,
+        "total_ops": 418098790400.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 16777216.000000,
+        "kv_bytes_ideal": 16777216.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 166148096.000000,
+        "min_bytes_ideal": 154449920.000000
+      },
+      "memory": {"phys_footprint_mb": 3086.721428, "peak_rss_mb": 3090.093750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 302.587460, "mean_ms": 302.173727, "min_ms": 300.573542, "max_ms": 302.981418, "p90_ms": 302.876117, "p99_ms": 302.970888, "stdev_ms": 0.857398, "cv_pct": 0.283743,
+        "samples_ms": [302.981418, 302.805916, 302.587460, 302.608457, 300.573542, 302.146834, 301.512459]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 383325831168.000000,
+        "fp32_ops": 34772959232.000000,
+        "total_ops": 418098790400.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 16777216.000000,
+        "kv_bytes_ideal": 16777216.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 166148096.000000,
+        "min_bytes_ideal": 154449920.000000
+      },
+      "memory": {"phys_footprint_mb": 3086.737053, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 141.903710, "mean_ms": 142.136435, "min_ms": 139.704582, "max_ms": 145.946500, "p90_ms": 144.649425, "p99_ms": 145.816792, "stdev_ms": 2.156464, "cv_pct": 1.517179,
+        "samples_ms": [141.909833, 143.784708, 145.946500, 141.903710, 141.675667, 140.030042, 139.704582]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "prefill_1024_ctx4096",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 4096, "S_cap": 8192, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 383325831168.000000,
+        "fp32_ops": 241434705920.000000,
+        "total_ops": 624760537088.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 41943040.000000,
+        "kv_bytes_ideal": 41943040.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 191313920.000000,
+        "min_bytes_ideal": 179615744.000000
+      },
+      "memory": {"phys_footprint_mb": 3156.799599, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 687.956792, "mean_ms": 687.890607, "min_ms": 685.729625, "max_ms": 689.447000, "p90_ms": 688.700476, "p99_ms": 689.372347, "stdev_ms": 1.100939, "cv_pct": 0.160046,
+        "samples_ms": [687.956792, 689.447000, 685.729625, 687.842875, 687.888750, 688.202793, 688.166415]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "prefill_1024_ctx4096",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 4096, "S_cap": 8192, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 383325831168.000000,
+        "fp32_ops": 241434705920.000000,
+        "total_ops": 624760537088.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 41943040.000000,
+        "kv_bytes_ideal": 41943040.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 191313920.000000,
+        "min_bytes_ideal": 179615744.000000
+      },
+      "memory": {"phys_footprint_mb": 3156.815224, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 333.753250, "mean_ms": 334.394321, "min_ms": 331.238708, "max_ms": 337.933458, "p90_ms": 336.864033, "p99_ms": 337.826516, "stdev_ms": 2.373766, "cv_pct": 0.709870,
+        "samples_ms": [332.873875, 336.151083, 331.238708, 333.753250, 337.933458, 336.065667, 332.744208]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 4493312.000000,
+        "total_ops": 378834944.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 532480.000000,
+        "kv_bytes_ideal": 532480.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 105906176.000000,
+        "min_bytes_ideal": 94208000.000000
+      },
+      "memory": {"phys_footprint_mb": 2947.377563, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 0.796507, "mean_ms": 0.797192, "min_ms": 0.790993, "max_ms": 0.808694, "p90_ms": 0.802394, "p99_ms": 0.808064, "stdev_ms": 0.005739, "cv_pct": 0.719887,
+        "samples_ms": [0.808694, 0.795625, 0.798195, 0.790993, 0.796507, 0.792451, 0.797879]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 4493312.000000,
+        "total_ops": 378834944.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 532480.000000,
+        "kv_bytes_ideal": 532480.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 105906176.000000,
+        "min_bytes_ideal": 94208000.000000
+      },
+      "memory": {"phys_footprint_mb": 2947.408813, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.190587, "mean_ms": 1.249527, "min_ms": 0.783941, "max_ms": 1.823576, "p90_ms": 1.688276, "p99_ms": 1.810046, "stdev_ms": 0.380292, "cv_pct": 30.434862,
+        "samples_ms": [1.823576, 0.783941, 1.598076, 0.867889, 1.082118, 1.400504, 1.190587]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 67561472.000000,
+        "total_ops": 441903104.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 8396800.000000,
+        "kv_bytes_ideal": 8396800.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 113770496.000000,
+        "min_bytes_ideal": 102072320.000000
+      },
+      "memory": {"phys_footprint_mb": 2954.955688, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.116333, "mean_ms": 1.116739, "min_ms": 1.112580, "max_ms": 1.123257, "p90_ms": 1.121936, "p99_ms": 1.123125, "stdev_ms": 0.004030, "cv_pct": 0.360906,
+        "samples_ms": [1.116357, 1.112580, 1.112962, 1.123257, 1.121056, 1.116333, 1.114625]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 67561472.000000,
+        "total_ops": 441903104.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 8396800.000000,
+        "kv_bytes_ideal": 8396800.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 113770496.000000,
+        "min_bytes_ideal": 102072320.000000
+      },
+      "memory": {"phys_footprint_mb": 2954.955688, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.549021, "mean_ms": 1.520997, "min_ms": 1.345851, "max_ms": 1.555792, "p90_ms": 1.555517, "p99_ms": 1.555764, "stdev_ms": 0.077430, "cv_pct": 5.090768,
+        "samples_ms": [1.345851, 1.549021, 1.554354, 1.555792, 1.555333, 1.545854, 1.540771]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv4096",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 4096, "S_cap": 8192, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 269379584.000000,
+        "total_ops": 643721216.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 33562624.000000,
+        "kv_bytes_ideal": 33562624.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 138936320.000000,
+        "min_bytes_ideal": 127238144.000000
+      },
+      "memory": {"phys_footprint_mb": 3011.096359, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.205444, "mean_ms": 2.213016, "min_ms": 2.199330, "max_ms": 2.256979, "p90_ms": 2.229267, "p99_ms": 2.254208, "stdev_ms": 0.019776, "cv_pct": 0.893637,
+        "samples_ms": [2.256979, 2.199330, 2.203670, 2.205444, 2.210792, 2.204715, 2.210184]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv4096",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 4096, "S_cap": 8192, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 269379584.000000,
+        "total_ops": 643721216.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 33562624.000000,
+        "kv_bytes_ideal": 33562624.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 138936320.000000,
+        "min_bytes_ideal": 127238144.000000
+      },
+      "memory": {"phys_footprint_mb": 3011.096359, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.898243, "mean_ms": 1.901846, "min_ms": 1.394858, "max_ms": 2.748559, "p90_ms": 2.378409, "p99_ms": 2.711544, "stdev_ms": 0.461997, "cv_pct": 24.292042,
+        "samples_ms": [2.131642, 1.403108, 1.898243, 1.830358, 2.748559, 1.906156, 1.394858]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 8192, "S_cap": 16384, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 538470400.000000,
+        "total_ops": 912812032.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 67117056.000000,
+        "kv_bytes_ideal": 67117056.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 172490752.000000,
+        "min_bytes_ideal": 160792576.000000
+      },
+      "memory": {"phys_footprint_mb": 3171.330849, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 3.722500, "mean_ms": 3.725771, "min_ms": 3.702837, "max_ms": 3.775434, "p90_ms": 3.745334, "p99_ms": 3.772424, "stdev_ms": 0.023275, "cv_pct": 0.624710,
+        "samples_ms": [3.725267, 3.722500, 3.775434, 3.724989, 3.714121, 3.702837, 3.715247]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 8192, "S_cap": 16384, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 538470400.000000,
+        "total_ops": 912812032.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 67117056.000000,
+        "kv_bytes_ideal": 67117056.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 172490752.000000,
+        "min_bytes_ideal": 160792576.000000
+      },
+      "memory": {"phys_footprint_mb": 3171.330849, "peak_rss_mb": 3178.718750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.772993, "mean_ms": 2.736993, "min_ms": 2.258875, "max_ms": 3.691229, "p90_ms": 3.262048, "p99_ms": 3.648311, "stdev_ms": 0.513108, "cv_pct": 18.747125,
+        "samples_ms": [2.258875, 2.844305, 2.274521, 3.691229, 2.341101, 2.772993, 2.975927]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv16384",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 16384, "S_cap": 16384, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 1076652032.000000,
+        "total_ops": 1450993664.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 134225920.000000,
+        "kv_bytes_ideal": 134225920.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 239599616.000000,
+        "min_bytes_ideal": 227901440.000000
+      },
+      "memory": {"phys_footprint_mb": 3491.768578, "peak_rss_mb": 3494.953125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 9,
+        "median_ms": 6.903051, "mean_ms": 6.910729, "min_ms": 6.868384, "max_ms": 6.949523, "p90_ms": 6.943287, "p99_ms": 6.948899, "stdev_ms": 0.029031, "cv_pct": 0.420090,
+        "samples_ms": [6.903051, 6.927583, 6.897620, 6.868384, 6.949523, 6.889815, 6.939130]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "decode_kv16384",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 16384, "S_cap": 16384, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.000000,
+        "fp32_ops": 1076652032.000000,
+        "total_ops": 1450993664.000000,
+        "weight_params": 187170816.000000,
+        "weight_bytes_format": 105330688.000000,
+        "weight_bytes_ideal": 93632512.000000,
+        "kv_bytes_format": 134225920.000000,
+        "kv_bytes_ideal": 134225920.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 239599616.000000,
+        "min_bytes_ideal": 227901440.000000
+      },
+      "memory": {"phys_footprint_mb": 3491.768578, "peak_rss_mb": 3495.328125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 4.612962, "mean_ms": 4.757580, "min_ms": 4.592121, "max_ms": 5.471865, "p90_ms": 5.063692, "p99_ms": 5.431047, "stdev_ms": 0.322609, "cv_pct": 6.780944,
+        "samples_ms": [4.634288, 4.791576, 4.592121, 4.603524, 4.596723, 4.612962, 5.471865]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 0, "S_cap": 0, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 88785027072.000000,
+        "fp32_ops": 33030144.000000,
+        "total_ops": 88818057216.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 200632320.000000,
+        "min_bytes_ideal": 178956288.000000
+      },
+      "memory": {"phys_footprint_mb": 3474.987350, "peak_rss_mb": 3495.328125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 2,
+        "median_ms": 52.168249, "mean_ms": 52.140797, "min_ms": 51.780958, "max_ms": 52.685875, "p90_ms": 52.409287, "p99_ms": 52.658216, "stdev_ms": 0.304733, "cv_pct": 0.584442,
+        "samples_ms": [51.797563, 52.685875, 52.207979, 51.780958, 52.168249, 52.120063, 52.224895]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 88785027072.000000,
+        "fp32_ops": 33030144.000000,
+        "total_ops": 88818057216.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 200632320.000000,
+        "min_bytes_ideal": 178956288.000000
+      },
+      "memory": {"phys_footprint_mb": 3475.002975, "peak_rss_mb": 3495.328125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 4,
+        "median_ms": 26.626614, "mean_ms": 26.840439, "min_ms": 26.404854, "max_ms": 27.491958, "p90_ms": 27.464452, "p99_ms": 27.489207, "stdev_ms": 0.444102, "cv_pct": 1.654599,
+        "samples_ms": [27.446114, 26.623771, 26.626614, 26.516135, 26.773625, 26.404854, 27.491958]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 0, "S_cap": 0, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 710280216576.000000,
+        "fp32_ops": 264241152.000000,
+        "total_ops": 710544457728.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 239167488.000000,
+        "min_bytes_ideal": 217491456.000000
+      },
+      "memory": {"phys_footprint_mb": 3658.846863, "peak_rss_mb": 3661.968750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 397.880709, "mean_ms": 397.376798, "min_ms": 393.560833, "max_ms": 400.141167, "p90_ms": 399.282591, "p99_ms": 400.055309, "stdev_ms": 2.164537, "cv_pct": 0.544706,
+        "samples_ms": [400.141167, 398.710208, 395.566208, 397.880709, 398.079875, 393.560833, 397.698583]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 710280216576.000000,
+        "fp32_ops": 264241152.000000,
+        "total_ops": 710544457728.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 239167488.000000,
+        "min_bytes_ideal": 217491456.000000
+      },
+      "memory": {"phys_footprint_mb": 3658.846863, "peak_rss_mb": 3662.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 170.288750, "mean_ms": 171.322518, "min_ms": 169.383124, "max_ms": 177.525543, "p90_ms": 173.647767, "p99_ms": 177.137765, "stdev_ms": 2.787340, "cv_pct": 1.626955,
+        "samples_ms": [177.525543, 171.062583, 170.198374, 170.769376, 169.383124, 170.288750, 170.029875]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "decode_1",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 693633024.000000,
+        "fp32_ops": 258048.000000,
+        "total_ops": 693891072.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 195170304.000000,
+        "min_bytes_ideal": 173494272.000000
+      },
+      "memory": {"phys_footprint_mb": 3448.956078, "peak_rss_mb": 3662.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.337778, "mean_ms": 1.337414, "min_ms": 1.334719, "max_ms": 1.339791, "p90_ms": 1.339239, "p99_ms": 1.339736, "stdev_ms": 0.001704, "cv_pct": 0.127420,
+        "samples_ms": [1.339791, 1.337889, 1.334719, 1.337778, 1.336243, 1.336604, 1.338871]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "decode_1",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 693633024.000000,
+        "fp32_ops": 258048.000000,
+        "total_ops": 693891072.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 195170304.000000,
+        "min_bytes_ideal": 173494272.000000
+      },
+      "memory": {"phys_footprint_mb": 3448.971703, "peak_rss_mb": 3662.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.595389, "mean_ms": 1.525200, "min_ms": 0.973472, "max_ms": 2.232535, "p90_ms": 1.919776, "p99_ms": 2.201259, "stdev_ms": 0.437716, "cv_pct": 28.698929,
+        "samples_ms": [0.984642, 1.595389, 0.973472, 1.711271, 1.540483, 1.638608, 2.232535]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 122607894528.000000,
+        "fp32_ops": 335554560.000000,
+        "total_ops": 122943449088.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 4194304.000000,
+        "kv_bytes_ideal": 4194304.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 279189504.000000,
+        "min_bytes_ideal": 249255936.000000
+      },
+      "memory": {"phys_footprint_mb": 3552.096771, "peak_rss_mb": 3662.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 2,
+        "median_ms": 72.125291, "mean_ms": 72.128545, "min_ms": 71.703708, "max_ms": 72.578104, "p90_ms": 72.558179, "p99_ms": 72.576111, "stdev_ms": 0.332858, "cv_pct": 0.461479,
+        "samples_ms": [71.863917, 72.544896, 71.932875, 72.151021, 72.578104, 71.703708, 72.125291]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 122607894528.000000,
+        "fp32_ops": 335554560.000000,
+        "total_ops": 122943449088.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 4194304.000000,
+        "kv_bytes_ideal": 4194304.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 279189504.000000,
+        "min_bytes_ideal": 249255936.000000
+      },
+      "memory": {"phys_footprint_mb": 3552.112396, "peak_rss_mb": 3662.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 3,
+        "median_ms": 37.419875, "mean_ms": 40.956518, "min_ms": 37.045833, "max_ms": 58.011542, "p90_ms": 47.600167, "p99_ms": 56.970404, "stdev_ms": 7.643053, "cv_pct": 18.661384,
+        "samples_ms": [37.419875, 58.011542, 37.045833, 40.659250, 39.227306, 37.222764, 37.109055]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 980863156224.000000,
+        "fp32_ops": 17790222336.000000,
+        "total_ops": 998653378560.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 33554432.000000,
+        "kv_bytes_ideal": 33554432.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 347084800.000000,
+        "min_bytes_ideal": 317151232.000000
+      },
+      "memory": {"phys_footprint_mb": 3779.940681, "peak_rss_mb": 3783.015625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 589.584542, "mean_ms": 589.133869, "min_ms": 587.065333, "max_ms": 590.291084, "p90_ms": 590.278983, "p99_ms": 590.289874, "stdev_ms": 1.204321, "cv_pct": 0.204422,
+        "samples_ms": [589.886708, 588.408500, 590.270916, 589.584542, 588.430000, 590.291084, 587.065333]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 980863156224.000000,
+        "fp32_ops": 17790222336.000000,
+        "total_ops": 998653378560.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 33554432.000000,
+        "kv_bytes_ideal": 33554432.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 347084800.000000,
+        "min_bytes_ideal": 317151232.000000
+      },
+      "memory": {"phys_footprint_mb": 3779.940681, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 259.174709, "mean_ms": 260.654262, "min_ms": 257.949041, "max_ms": 268.930458, "p90_ms": 264.308408, "p99_ms": 268.468253, "stdev_ms": 3.779084, "cv_pct": 1.449846,
+        "samples_ms": [261.227041, 268.930458, 259.174709, 258.845625, 257.949041, 259.156543, 259.296416]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 2605056.000000,
+        "total_ops": 960479232.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 1064960.000000,
+        "kv_bytes_ideal": 1064960.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 270598144.000000,
+        "min_bytes_ideal": 240664576.000000
+      },
+      "memory": {"phys_footprint_mb": 3521.049873, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.856556, "mean_ms": 1.854736, "min_ms": 1.849611, "max_ms": 1.859194, "p90_ms": 1.858459, "p99_ms": 1.859121, "stdev_ms": 0.004090, "cv_pct": 0.220501,
+        "samples_ms": [1.849799, 1.857969, 1.859194, 1.852191, 1.849611, 1.857833, 1.856556]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 2605056.000000,
+        "total_ops": 960479232.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 1064960.000000,
+        "kv_bytes_ideal": 1064960.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 270598144.000000,
+        "min_bytes_ideal": 240664576.000000
+      },
+      "memory": {"phys_footprint_mb": 3521.049873, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.935663, "mean_ms": 1.813715, "min_ms": 1.289035, "max_ms": 2.397264, "p90_ms": 2.350433, "p99_ms": 2.392581, "stdev_ms": 0.506753, "cv_pct": 27.940039,
+        "samples_ms": [2.160868, 1.935663, 1.289035, 2.397264, 1.292899, 2.319212, 1.301066]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 34215936.000000,
+        "total_ops": 992090112.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 286326784.000000,
+        "min_bytes_ideal": 256393216.000000
+      },
+      "memory": {"phys_footprint_mb": 3536.112373, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.054083, "mean_ms": 2.056716, "min_ms": 2.048580, "max_ms": 2.069563, "p90_ms": 2.067167, "p99_ms": 2.069323, "stdev_ms": 0.008151, "cv_pct": 0.396315,
+        "samples_ms": [2.065569, 2.058375, 2.050601, 2.048580, 2.054083, 2.069563, 2.050239]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 34215936.000000,
+        "total_ops": 992090112.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 286326784.000000,
+        "min_bytes_ideal": 256393216.000000
+      },
+      "memory": {"phys_footprint_mb": 3536.112373, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.929708, "mean_ms": 1.885498, "min_ms": 1.383892, "max_ms": 2.446861, "p90_ms": 2.281609, "p99_ms": 2.430336, "stdev_ms": 0.383093, "cv_pct": 20.317878,
+        "samples_ms": [2.171441, 1.929708, 1.383892, 2.446861, 1.412562, 1.965694, 1.888327]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv1024_cap8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 8192, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 34215936.000000,
+        "total_ops": 992090112.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 286326784.000000,
+        "min_bytes_ideal": 256393216.000000
+      },
+      "memory": {"phys_footprint_mb": 3536.112373, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.051271, "mean_ms": 2.050033, "min_ms": 2.039906, "max_ms": 2.064434, "p90_ms": 2.057872, "p99_ms": 2.063778, "stdev_ms": 0.008124, "cv_pct": 0.396303,
+        "samples_ms": [2.064434, 2.051271, 2.042566, 2.039906, 2.046479, 2.053497, 2.052076]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv1024_cap8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 8192, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 34215936.000000,
+        "total_ops": 992090112.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 286326784.000000,
+        "min_bytes_ideal": 256393216.000000
+      },
+      "memory": {"phys_footprint_mb": 3536.112373, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.935858, "mean_ms": 1.983770, "min_ms": 1.635413, "max_ms": 2.999569, "p90_ms": 2.426338, "p99_ms": 2.942246, "stdev_ms": 0.481727, "cv_pct": 24.283397,
+        "samples_ms": [1.648552, 2.999569, 1.636153, 2.044184, 1.635413, 1.986660, 1.935858]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 136700755968.000000,
+        "fp32_ops": 612378624.000000,
+        "total_ops": 137313134592.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 2097152.000000,
+        "kv_bytes_ideal": 2097152.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 308060160.000000,
+        "min_bytes_ideal": 274685952.000000
+      },
+      "memory": {"phys_footprint_mb": 3584.690544, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 83.079250, "mean_ms": 83.364750, "min_ms": 82.879583, "max_ms": 84.493876, "p90_ms": 84.114775, "p99_ms": 84.455965, "stdev_ms": 0.598320, "cv_pct": 0.717713,
+        "samples_ms": [82.900126, 83.078542, 83.862042, 83.079250, 84.493876, 83.259834, 82.879583]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_128",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 128, "S_kv": 128, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 136700755968.000000,
+        "fp32_ops": 612378624.000000,
+        "total_ops": 137313134592.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 2097152.000000,
+        "kv_bytes_ideal": 2097152.000000,
+        "io_bytes": 5505024.000000,
+        "min_bytes_format": 308060160.000000,
+        "min_bytes_ideal": 274685952.000000
+      },
+      "memory": {"phys_footprint_mb": 3584.690544, "peak_rss_mb": 3783.296875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 2,
+        "median_ms": 43.417395, "mean_ms": 43.445640, "min_ms": 42.961271, "max_ms": 44.359188, "p90_ms": 43.882163, "p99_ms": 44.311485, "stdev_ms": 0.459802, "cv_pct": 1.058340,
+        "samples_ms": [44.359188, 42.961271, 43.564146, 43.182167, 43.520521, 43.114791, 43.417395]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1093606047744.000000,
+        "fp32_ops": 35037200384.000000,
+        "total_ops": 1128643248128.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 16777216.000000,
+        "kv_bytes_ideal": 16777216.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 361275392.000000,
+        "min_bytes_ideal": 327901184.000000
+      },
+      "memory": {"phys_footprint_mb": 3833.550102, "peak_rss_mb": 3836.593750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 701.142125, "mean_ms": 701.001042, "min_ms": 699.534001, "max_ms": 702.198417, "p90_ms": 701.838117, "p99_ms": 702.162387, "stdev_ms": 0.910064, "cv_pct": 0.129824,
+        "samples_ms": [701.404584, 701.046959, 699.534001, 700.083290, 701.597917, 702.198417, 701.142125]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1093606047744.000000,
+        "fp32_ops": 35037200384.000000,
+        "total_ops": 1128643248128.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 16777216.000000,
+        "kv_bytes_ideal": 16777216.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 361275392.000000,
+        "min_bytes_ideal": 327901184.000000
+      },
+      "memory": {"phys_footprint_mb": 3833.550102, "peak_rss_mb": 3836.843750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 313.823292, "mean_ms": 314.063322, "min_ms": 310.745500, "max_ms": 318.522250, "p90_ms": 317.326625, "p99_ms": 318.402688, "stdev_ms": 2.880625, "cv_pct": 0.917212,
+        "samples_ms": [316.529542, 315.217708, 310.745500, 311.027000, 312.577958, 313.823292, 318.522250]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_1024_ctx4096",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 4096, "S_cap": 8192, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1093606047744.000000,
+        "fp32_ops": 241698947072.000000,
+        "total_ops": 1335304994816.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 41943040.000000,
+        "kv_bytes_ideal": 41943040.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 386441216.000000,
+        "min_bytes_ideal": 353067008.000000
+      },
+      "memory": {"phys_footprint_mb": 3863.565750, "peak_rss_mb": 3866.593750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 1085.414250, "mean_ms": 1085.395458, "min_ms": 1083.142792, "max_ms": 1087.087750, "p90_ms": 1086.786050, "p99_ms": 1087.057580, "stdev_ms": 1.432428, "cv_pct": 0.131973,
+        "samples_ms": [1087.087750, 1083.142792, 1085.227665, 1083.969208, 1086.341625, 1086.584917, 1085.414250]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_1024_ctx4096",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 4096, "S_cap": 8192, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1093606047744.000000,
+        "fp32_ops": 241698947072.000000,
+        "total_ops": 1335304994816.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 41943040.000000,
+        "kv_bytes_ideal": 41943040.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 386441216.000000,
+        "min_bytes_ideal": 353067008.000000
+      },
+      "memory": {"phys_footprint_mb": 3863.565750, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 506.861376, "mean_ms": 507.385482, "min_ms": 504.710126, "max_ms": 512.680833, "p90_ms": 510.363158, "p99_ms": 512.449066, "stdev_ms": 2.684301, "cv_pct": 0.529046,
+        "samples_ms": [508.818041, 506.861376, 505.977083, 505.466167, 507.184749, 512.680833, 504.710126]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 4751360.000000,
+        "total_ops": 1072726016.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 532480.000000,
+        "kv_bytes_ideal": 532480.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 301033472.000000,
+        "min_bytes_ideal": 267659264.000000
+      },
+      "memory": {"phys_footprint_mb": 3550.174896, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.048073, "mean_ms": 2.052405, "min_ms": 2.041278, "max_ms": 2.087226, "p90_ms": 2.066172, "p99_ms": 2.085120, "stdev_ms": 0.015809, "cv_pct": 0.770252,
+        "samples_ms": [2.052135, 2.087226, 2.047007, 2.048073, 2.041278, 2.048830, 2.042284]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 4751360.000000,
+        "total_ops": 1072726016.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 532480.000000,
+        "kv_bytes_ideal": 532480.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 301033472.000000,
+        "min_bytes_ideal": 267659264.000000
+      },
+      "memory": {"phys_footprint_mb": 3550.174896, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.959364, "mean_ms": 2.001503, "min_ms": 1.398809, "max_ms": 2.454681, "p90_ms": 2.407091, "p99_ms": 2.449922, "stdev_ms": 0.420899, "cv_pct": 21.029137,
+        "samples_ms": [2.454681, 1.546552, 1.959364, 1.904847, 2.370899, 1.398809, 2.375365]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 67819520.000000,
+        "total_ops": 1135794176.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 8396800.000000,
+        "kv_bytes_ideal": 8396800.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 308897792.000000,
+        "min_bytes_ideal": 275523584.000000
+      },
+      "memory": {"phys_footprint_mb": 3557.706146, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.356243, "mean_ms": 2.357394, "min_ms": 2.351614, "max_ms": 2.367479, "p90_ms": 2.363263, "p99_ms": 2.367058, "stdev_ms": 0.005222, "cv_pct": 0.221517,
+        "samples_ms": [2.354285, 2.354549, 2.357135, 2.367479, 2.356243, 2.360451, 2.351614]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 67819520.000000,
+        "total_ops": 1135794176.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 8396800.000000,
+        "kv_bytes_ideal": 8396800.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 308897792.000000,
+        "min_bytes_ideal": 275523584.000000
+      },
+      "memory": {"phys_footprint_mb": 3557.706146, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.128028, "mean_ms": 2.014264, "min_ms": 1.589729, "max_ms": 2.386886, "p90_ms": 2.324733, "p99_ms": 2.380670, "stdev_ms": 0.311412, "cv_pct": 15.460317,
+        "samples_ms": [1.589729, 2.146743, 1.944698, 2.386886, 2.128028, 1.620469, 2.283298]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv4096",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 4096, "S_cap": 8192, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 269637632.000000,
+        "total_ops": 1337612288.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 33562624.000000,
+        "kv_bytes_ideal": 33562624.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 334063616.000000,
+        "min_bytes_ideal": 300689408.000000
+      },
+      "memory": {"phys_footprint_mb": 3581.831169, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 3.463570, "mean_ms": 3.463222, "min_ms": 3.458361, "max_ms": 3.467622, "p90_ms": 3.466324, "p99_ms": 3.467492, "stdev_ms": 0.003273, "cv_pct": 0.094519,
+        "samples_ms": [3.462660, 3.458361, 3.467622, 3.463570, 3.465149, 3.459736, 3.465458]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv4096",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 4096, "S_cap": 8192, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 269637632.000000,
+        "total_ops": 1337612288.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 33562624.000000,
+        "kv_bytes_ideal": 33562624.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 334063616.000000,
+        "min_bytes_ideal": 300689408.000000
+      },
+      "memory": {"phys_footprint_mb": 3581.831169, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.336010, "mean_ms": 2.460093, "min_ms": 2.106545, "max_ms": 2.907903, "p90_ms": 2.805974, "p99_ms": 2.897710, "stdev_ms": 0.321628, "cv_pct": 13.073794,
+        "samples_ms": [2.124788, 2.711375, 2.296010, 2.907903, 2.106545, 2.738021, 2.336010]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 8192, "S_cap": 16384, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 538728448.000000,
+        "total_ops": 1606703104.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 67117056.000000,
+        "kv_bytes_ideal": 67117056.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 367618048.000000,
+        "min_bytes_ideal": 334243840.000000
+      },
+      "memory": {"phys_footprint_mb": 3613.971817, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 5.001358, "mean_ms": 4.999008, "min_ms": 4.965427, "max_ms": 5.027913, "p90_ms": 5.025484, "p99_ms": 5.027670, "stdev_ms": 0.024836, "cv_pct": 0.496823,
+        "samples_ms": [5.027913, 5.013215, 4.991542, 5.023865, 4.969736, 5.001358, 4.965427]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv8192",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 8192, "S_cap": 16384, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 538728448.000000,
+        "total_ops": 1606703104.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 67117056.000000,
+        "kv_bytes_ideal": 67117056.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 367618048.000000,
+        "min_bytes_ideal": 334243840.000000
+      },
+      "memory": {"phys_footprint_mb": 3613.971817, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 3.055914, "mean_ms": 3.247136, "min_ms": 2.930754, "max_ms": 3.755687, "p90_ms": 3.584183, "p99_ms": 3.738537, "stdev_ms": 0.309118, "cv_pct": 9.519699,
+        "samples_ms": [2.930754, 3.040052, 3.469847, 3.055914, 3.032194, 3.755687, 3.445504]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv16384",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 16384, "S_cap": 16384, "threads": 6,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 1076910080.000000,
+        "total_ops": 2144884736.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 134225920.000000,
+        "kv_bytes_ideal": 134225920.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 434726912.000000,
+        "min_bytes_ideal": 401352704.000000
+      },
+      "memory": {"phys_footprint_mb": 3678.253113, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 8,
+        "median_ms": 8.196130, "mean_ms": 8.219813, "min_ms": 8.178021, "max_ms": 8.340583, "p90_ms": 8.276939, "p99_ms": 8.334219, "stdev_ms": 0.057659, "cv_pct": 0.701459,
+        "samples_ms": [8.196130, 8.186260, 8.340583, 8.234510, 8.178698, 8.224490, 8.178021]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_neon_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv16384",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 16384, "S_cap": 16384, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 1076910080.000000,
+        "total_ops": 2144884736.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 134225920.000000,
+        "kv_bytes_ideal": 134225920.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 434726912.000000,
+        "min_bytes_ideal": 401352704.000000
+      },
+      "memory": {"phys_footprint_mb": 3678.253113, "peak_rss_mb": 3866.921875},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 5.262580, "mean_ms": 5.374712, "min_ms": 5.128191, "max_ms": 6.010771, "p90_ms": 5.726065, "p99_ms": 5.982300, "stdev_ms": 0.308259, "cv_pct": 5.735355,
+        "samples_ms": [5.206170, 5.215434, 5.263580, 5.128191, 6.010771, 5.536260, 5.262580]
+      }
+    }
+  ]
+}

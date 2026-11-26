@@ -19,7 +19,7 @@ MODEL_TARGETS := images models bench bench-llama-cpp bench-litert-lm \
 
 .DEFAULT_GOAL := help
 .PHONY: help base test kernel-probes kernel-bench kernel-dashboard kernel-test \
-        layer-bench layer-test model-test $(MODEL_TARGETS)
+        layer-bench layer-dashboard layer-test model-test $(MODEL_TARGETS)
 
 help:
 	@echo "AI Edge Bench (Kernel -> Layer -> Model) - MACHINE=$(MACHINE)"
@@ -35,6 +35,7 @@ help:
 	@echo
 	@echo "  Level 2 — Layer Tier (layer/):"
 	@echo "    make layer-bench                run compound subgraph suites (Tensor API & runtimes)"
+	@echo "    make layer-dashboard            update layer/dashboards/index.html, data.json & README.md"
 	@echo "    make layer-test                 run layer subgraph tests"
 	@echo
 	@echo "  Level 3 — Model Tier (model/):"
@@ -68,6 +69,9 @@ kernel-test:
 
 layer-bench:
 	$(MAKE) -C layer MACHINE=$(MACHINE) bench
+
+layer-dashboard:
+	$(MAKE) -C layer dashboard
 
 layer-test:
 	$(MAKE) -C layer MACHINE=$(MACHINE) test

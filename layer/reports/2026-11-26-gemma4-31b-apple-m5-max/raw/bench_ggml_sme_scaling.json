@@ -1,0 +1,413 @@
+{
+  "harness": "bench_ggml_layers",
+  "mode": "bench",
+  "llama_cpp_commit": "e0a9118fe9ed9229b715f4bd83fd9767963659c6",
+  "results": [
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 0, "S_cap": 0, "threads": 1,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 710280216576.000000,
+        "fp32_ops": 264241152.000000,
+        "total_ops": 710544457728.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 239167488.000000,
+        "min_bytes_ideal": 217491456.000000
+      },
+      "memory": {"phys_footprint_mb": 3370.206009, "peak_rss_mb": 3373.218750},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 796.704458, "mean_ms": 796.560089, "min_ms": 794.980708, "max_ms": 797.640000, "p90_ms": 797.457275, "p99_ms": 797.621728, "stdev_ms": 1.024273, "cv_pct": 0.128587,
+        "samples_ms": [794.980708, 796.704458, 797.640000, 795.341208, 796.637250, 797.335458, 797.281542]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 0, "S_cap": 0, "threads": 12,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 710280216576.000000,
+        "fp32_ops": 264241152.000000,
+        "total_ops": 710544457728.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 239167488.000000,
+        "min_bytes_ideal": 217491456.000000
+      },
+      "memory": {"phys_footprint_mb": 3392.549759, "peak_rss_mb": 3395.859375},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 226.459458, "mean_ms": 226.801232, "min_ms": 224.618251, "max_ms": 230.127625, "p90_ms": 228.441825, "p99_ms": 229.959045, "stdev_ms": 1.680046, "cv_pct": 0.740757,
+        "samples_ms": [226.095417, 230.127625, 226.628042, 226.361875, 226.459458, 224.618251, 227.317958]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "decode_1",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 1,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 693633024.000000,
+        "fp32_ops": 258048.000000,
+        "total_ops": 693891072.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 195170304.000000,
+        "min_bytes_ideal": 173494272.000000
+      },
+      "memory": {"phys_footprint_mb": 3182.721497, "peak_rss_mb": 3395.859375},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.208927, "mean_ms": 2.209091, "min_ms": 2.201191, "max_ms": 2.216319, "p90_ms": 2.215871, "p99_ms": 2.216275, "stdev_ms": 0.006220, "cv_pct": 0.281551,
+        "samples_ms": [2.215573, 2.213371, 2.208927, 2.201191, 2.202149, 2.206108, 2.216319]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "decode_1",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 12,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 693633024.000000,
+        "fp32_ops": 258048.000000,
+        "total_ops": 693891072.000000,
+        "weight_params": 346816512.000000,
+        "weight_bytes_format": 195127296.000000,
+        "weight_bytes_ideal": 173451264.000000,
+        "kv_bytes_format": 0.000000,
+        "kv_bytes_ideal": 0.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 195170304.000000,
+        "min_bytes_ideal": 173494272.000000
+      },
+      "memory": {"phys_footprint_mb": 3182.721497, "peak_rss_mb": 3395.859375},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.013215, "mean_ms": 1.034423, "min_ms": 1.002198, "max_ms": 1.171236, "p90_ms": 1.081499, "p99_ms": 1.162262, "stdev_ms": 0.060726, "cv_pct": 5.870485,
+        "samples_ms": [1.171236, 1.013215, 1.002198, 1.021674, 1.012580, 1.003333, 1.016723]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 1,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 980863156224.000000,
+        "fp32_ops": 17790222336.000000,
+        "total_ops": 998653378560.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 33554432.000000,
+        "kv_bytes_ideal": 33554432.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 347084800.000000,
+        "min_bytes_ideal": 317151232.000000
+      },
+      "memory": {"phys_footprint_mb": 3626.253044, "peak_rss_mb": 3629.265625},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 1295.821375, "mean_ms": 1295.092577, "min_ms": 1292.189166, "max_ms": 1297.238833, "p90_ms": 1296.973008, "p99_ms": 1297.212251, "stdev_ms": 2.138217, "cv_pct": 0.165102,
+        "samples_ms": [1296.737875, 1297.238833, 1295.821375, 1294.604001, 1296.795792, 1292.261000, 1292.189166]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 12,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 980863156224.000000,
+        "fp32_ops": 17790222336.000000,
+        "total_ops": 998653378560.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 33554432.000000,
+        "kv_bytes_ideal": 33554432.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 347084800.000000,
+        "min_bytes_ideal": 317151232.000000
+      },
+      "memory": {"phys_footprint_mb": 3626.284294, "peak_rss_mb": 3629.578125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 341.186791, "mean_ms": 341.191690, "min_ms": 338.389292, "max_ms": 343.158792, "p90_ms": 342.468892, "p99_ms": 343.089802, "stdev_ms": 1.465681, "cv_pct": 0.429577,
+        "samples_ms": [341.186791, 343.158792, 342.008959, 338.389292, 341.123290, 341.732126, 340.742583]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 1,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 34215936.000000,
+        "total_ops": 992090112.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 286326784.000000,
+        "min_bytes_ideal": 256393216.000000
+      },
+      "memory": {"phys_footprint_mb": 3382.471634, "peak_rss_mb": 3629.578125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 4.113319, "mean_ms": 4.127088, "min_ms": 4.103840, "max_ms": 4.167257, "p90_ms": 4.161855, "p99_ms": 4.166717, "stdev_ms": 0.025802, "cv_pct": 0.625186,
+        "samples_ms": [4.167257, 4.158253, 4.129472, 4.113319, 4.109212, 4.103840, 4.108264]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 12,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.000000,
+        "fp32_ops": 34215936.000000,
+        "total_ops": 992090112.000000,
+        "weight_params": 478937088.000000,
+        "weight_bytes_format": 269490176.000000,
+        "weight_bytes_ideal": 239556608.000000,
+        "kv_bytes_format": 16793600.000000,
+        "kv_bytes_ideal": 16793600.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 286326784.000000,
+        "min_bytes_ideal": 256393216.000000
+      },
+      "memory": {"phys_footprint_mb": 3382.471634, "peak_rss_mb": 3629.578125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.551014, "mean_ms": 1.542227, "min_ms": 1.481997, "max_ms": 1.569115, "p90_ms": 1.563121, "p99_ms": 1.568515, "stdev_ms": 0.029410, "cv_pct": 1.906998,
+        "samples_ms": [1.481997, 1.559125, 1.551014, 1.558524, 1.547219, 1.569115, 1.528594]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 1,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1093606047744.000000,
+        "fp32_ops": 35037200384.000000,
+        "total_ops": 1128643248128.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 16777216.000000,
+        "kv_bytes_ideal": 16777216.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 361275392.000000,
+        "min_bytes_ideal": 327901184.000000
+      },
+      "memory": {"phys_footprint_mb": 3717.471863, "peak_rss_mb": 3720.453125},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 1617.091083, "mean_ms": 1616.826690, "min_ms": 1613.316917, "max_ms": 1618.052541, "p90_ms": 1617.961566, "p99_ms": 1618.043444, "stdev_ms": 1.630660, "cv_pct": 0.100856,
+        "samples_ms": [1617.900916, 1616.668792, 1617.091083, 1617.749625, 1617.006958, 1618.052541, 1613.316917]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "prefill_1024",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1024, "S_kv": 1024, "S_cap": 4096, "threads": 12,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1093606047744.000000,
+        "fp32_ops": 35037200384.000000,
+        "total_ops": 1128643248128.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 16777216.000000,
+        "kv_bytes_ideal": 16777216.000000,
+        "io_bytes": 44040192.000000,
+        "min_bytes_format": 361275392.000000,
+        "min_bytes_ideal": 327901184.000000
+      },
+      "memory": {"phys_footprint_mb": 3717.471863, "peak_rss_mb": 3720.781250},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 1,
+        "median_ms": 405.050917, "mean_ms": 406.326851, "min_ms": 401.760167, "max_ms": 412.571000, "p90_ms": 411.427524, "p99_ms": 412.456652, "stdev_ms": 3.874770, "cv_pct": 0.953609,
+        "samples_ms": [401.760167, 403.933958, 404.344167, 405.050917, 405.962542, 412.571000, 410.665208]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 1,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 67819520.000000,
+        "total_ops": 1135794176.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 8396800.000000,
+        "kv_bytes_ideal": 8396800.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 308897792.000000,
+        "min_bytes_ideal": 275523584.000000
+      },
+      "memory": {"phys_footprint_mb": 3441.643532, "peak_rss_mb": 3720.781250},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 5.034156, "mean_ms": 5.046465, "min_ms": 5.002670, "max_ms": 5.120472, "p90_ms": 5.109830, "p99_ms": 5.119408, "stdev_ms": 0.047178, "cv_pct": 0.934863,
+        "samples_ms": [5.120472, 5.102736, 5.044934, 5.034156, 5.010670, 5.009618, 5.002670]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv1024",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 1024, "S_cap": 4096, "threads": 12,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 67819520.000000,
+        "total_ops": 1135794176.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 8396800.000000,
+        "kv_bytes_ideal": 8396800.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 308897792.000000,
+        "min_bytes_ideal": 275523584.000000
+      },
+      "memory": {"phys_footprint_mb": 3441.643532, "peak_rss_mb": 3720.781250},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 1.838503, "mean_ms": 1.868161, "min_ms": 1.808618, "max_ms": 2.043629, "p90_ms": 1.947158, "p99_ms": 2.033981, "stdev_ms": 0.081971, "cv_pct": 4.387777,
+        "samples_ms": [1.809677, 2.043629, 1.863715, 1.808618, 1.882844, 1.830139, 1.838503]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv4096",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 4096, "S_cap": 8192, "threads": 1,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 269637632.000000,
+        "total_ops": 1337612288.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 33562624.000000,
+        "kv_bytes_ideal": 33562624.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 334063616.000000,
+        "min_bytes_ideal": 300689408.000000
+      },
+      "memory": {"phys_footprint_mb": 3497.784203, "peak_rss_mb": 3720.781250},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 6,
+        "median_ms": 9.991389, "mean_ms": 10.047312, "min_ms": 9.965403, "max_ms": 10.381896, "p90_ms": 10.172296, "p99_ms": 10.360936, "stdev_ms": 0.149000, "cv_pct": 1.482984,
+        "samples_ms": [10.032563, 10.381896, 9.991389, 9.992993, 9.976278, 9.990660, 9.965403]
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "decode_kv4096",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 4096, "S_cap": 8192, "threads": 12,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.000000,
+        "fp32_ops": 269637632.000000,
+        "total_ops": 1337612288.000000,
+        "weight_params": 533987328.000000,
+        "weight_bytes_format": 300457984.000000,
+        "weight_bytes_ideal": 267083776.000000,
+        "kv_bytes_format": 33562624.000000,
+        "kv_bytes_ideal": 33562624.000000,
+        "io_bytes": 43008.000000,
+        "min_bytes_format": 334063616.000000,
+        "min_bytes_ideal": 300689408.000000
+      },
+      "memory": {"phys_footprint_mb": 3497.799828, "peak_rss_mb": 3720.781250},
+      "timing": {
+        "num_trials": 7, "iters_per_trial": 12,
+        "median_ms": 2.649906, "mean_ms": 2.657446, "min_ms": 2.587191, "max_ms": 2.714094, "p90_ms": 2.704760, "p99_ms": 2.713160, "stdev_ms": 0.042242, "cv_pct": 1.589555,
+        "samples_ms": [2.587191, 2.698538, 2.714094, 2.646479, 2.649906, 2.634854, 2.671059]
+      }
+    }
+  ]
+}

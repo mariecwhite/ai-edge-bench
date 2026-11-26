@@ -1,0 +1,297 @@
+{
+  "harness": "bench_ggml_layers",
+  "mode": "verify",
+  "llama_cpp_commit": "e0a9118fe9ed9229b715f4bd83fd9767963659c6",
+  "results": [
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 2113929216.000000,
+        "fp32_ops": 9424512.000000,
+        "total_ops": 2123353728.000000,
+        "weight_params": 132120576.000000,
+        "weight_bytes_format": 74362880.000000,
+        "weight_bytes_ideal": 66105344.000000,
+        "kv_bytes_format": 655360.000000,
+        "kv_bytes_ideal": 655360.000000,
+        "io_bytes": 344064.000000,
+        "min_bytes_format": 75362304.000000,
+        "min_bytes_ideal": 67104768.000000
+      },
+      "memory": {"phys_footprint_mb": 3332.174713, "peak_rss_mb": 3335.687500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99987635, "rel_l2_err": 0.01572603, "sqnr_db": 36.0676, "max_abs_err": 0.099556, "kl_div": 0.00015803, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98016630, "rel_l2_err": 0.19921542, "sqnr_db": 14.0135, "max_abs_err": 1.168402, "kl_div": 0.02462531, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "local_swa_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 264241152.00000000,
+        "fp32_ops": 2347008.00000000,
+        "total_ops": 266588160.00000000,
+        "weight_params": 132120576.00000000,
+        "weight_bytes_format": 74362880.00000000,
+        "weight_bytes_ideal": 66105344.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 75470848.00000000,
+        "min_bytes_ideal": 67213312.00000000
+      },
+      "memory": {"phys_footprint_mb": 3332.17471313, "peak_rss_mb": 3335.68750000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99981253, "rel_l2_err": 0.01936302, "sqnr_db": 34.2605, "max_abs_err": 0.091305, "kl_div": 0.00024094, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97832156, "rel_l2_err": 0.20802909, "sqnr_db": 13.6375, "max_abs_err": 1.141655, "kl_div": 0.02647476, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 2994733056.00000000,
+        "fp32_ops": 17288832.00000000,
+        "total_ops": 3012021888.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 327680.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 106002432.00000000,
+        "min_bytes_ideal": 94304256.00000000
+      },
+      "memory": {"phys_footprint_mb": 4112.12841034, "peak_rss_mb": 4115.28125000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99970044, "rel_l2_err": 0.02447795, "sqnr_db": 32.2245, "max_abs_err": 0.203858, "kl_div": 0.00036937, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.97008547, "rel_l2_err": 0.24462105, "sqnr_db": 12.2301, "max_abs_err": 1.549750, "kl_div": 0.03781557, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "global_full_attn",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 374341632.00000000,
+        "fp32_ops": 4493312.00000000,
+        "total_ops": 378834944.00000000,
+        "weight_params": 187170816.00000000,
+        "weight_bytes_format": 105330688.00000000,
+        "weight_bytes_ideal": 93632512.00000000,
+        "kv_bytes_format": 532480.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 105906176.00000000,
+        "min_bytes_ideal": 94208000.00000000
+      },
+      "memory": {"phys_footprint_mb": 4111.30028534, "peak_rss_mb": 4115.28125000},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99984912, "rel_l2_err": 0.01737610, "sqnr_db": 35.2010, "max_abs_err": 0.067380, "kl_div": 0.00018550, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.99091329, "rel_l2_err": 0.13477589, "sqnr_db": 17.4078, "max_abs_err": 0.540548, "kl_div": 0.01130426, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_prefill_8",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 8, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 5549064192.00000000,
+        "fp32_ops": 2064384.00000000,
+        "total_ops": 5551128576.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 195471360.00000000,
+        "min_bytes_ideal": 173795328.00000000
+      },
+      "memory": {"phys_footprint_mb": 5607.48886108, "peak_rss_mb": 5609.92187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99994807, "rel_l2_err": 0.01019176, "sqnr_db": 39.8350, "max_abs_err": 0.054592, "kl_div": 0.00006532, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.99220904, "rel_l2_err": 0.12482499, "sqnr_db": 18.0740, "max_abs_err": 0.658709, "kl_div": 0.00975948, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "geglu_mlp",
+      "regime_id": "verify_decode_1",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 0, "S_cap": 0, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 693633024.00000000,
+        "fp32_ops": 258048.00000000,
+        "total_ops": 693891072.00000000,
+        "weight_params": 346816512.00000000,
+        "weight_bytes_format": 195127296.00000000,
+        "weight_bytes_ideal": 173451264.00000000,
+        "kv_bytes_format": 0.00000000,
+        "kv_bytes_ideal": 0.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 195170304.00000000,
+        "min_bytes_ideal": 173494272.00000000
+      },
+      "memory": {"phys_footprint_mb": 5606.06698608, "peak_rss_mb": 5609.92187500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99994739, "rel_l2_err": 0.01025807, "sqnr_db": 39.7787, "max_abs_err": 0.051281, "kl_div": 0.00006545, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.99248010, "rel_l2_err": 0.12275903, "sqnr_db": 18.2189, "max_abs_err": 0.507872, "kl_div": 0.00933072, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 7662993408.00000000,
+        "fp32_ops": 11488896.00000000,
+        "total_ops": 7674482304.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 655360.00000000,
+        "kv_bytes_ideal": 655360.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 270489600.00000000,
+        "min_bytes_ideal": 240556032.00000000
+      },
+      "memory": {"phys_footprint_mb": 5824.06712341, "peak_rss_mb": 5826.48437500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99978414, "rel_l2_err": 0.02077772, "sqnr_db": 33.6480, "max_abs_err": 0.160546, "kl_div": 0.00047248, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96681621, "rel_l2_err": 0.25771828, "sqnr_db": 11.7771, "max_abs_err": 1.984298, "kl_div": 0.07310623, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_local_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 957874176.00000000,
+        "fp32_ops": 2605056.00000000,
+        "total_ops": 960479232.00000000,
+        "weight_params": 478937088.00000000,
+        "weight_bytes_format": 269490176.00000000,
+        "weight_bytes_ideal": 239556608.00000000,
+        "kv_bytes_format": 1064960.00000000,
+        "kv_bytes_ideal": 1064960.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 270598144.00000000,
+        "min_bytes_ideal": 240664576.00000000
+      },
+      "memory": {"phys_footprint_mb": 5822.97337341, "peak_rss_mb": 5826.48437500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99970491, "rel_l2_err": 0.02429185, "sqnr_db": 32.2908, "max_abs_err": 0.142499, "kl_div": 0.00069230, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.96398554, "rel_l2_err": 0.26881125, "sqnr_db": 11.4111, "max_abs_err": 1.606427, "kl_div": 0.08438890, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_prefill_8_kv32",
+      "mode": "prefill",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 8, "S_kv": 32, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 8543797248.00000000,
+        "fp32_ops": 19353216.00000000,
+        "total_ops": 8563150464.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 327680.00000000,
+        "kv_bytes_ideal": 327680.00000000,
+        "io_bytes": 344064.00000000,
+        "min_bytes_format": 301129728.00000000,
+        "min_bytes_ideal": 267755520.00000000
+      },
+      "memory": {"phys_footprint_mb": 5883.25466919, "peak_rss_mb": 5885.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99953125, "rel_l2_err": 0.03061799, "sqnr_db": 30.2805, "max_abs_err": 0.340115, "kl_div": 0.00105221, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.95274105, "rel_l2_err": 0.30741089, "sqnr_db": 10.2456, "max_abs_err": 2.433440, "kl_div": 0.10972532, "nan_inf_count": 0, "passed": false},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    },
+    {
+      "backend_id": "ggml_cpu_sme_fa",
+      "subgraph_id": "full_global_block",
+      "regime_id": "verify_decode_1_kv64",
+      "mode": "decode",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "T": 1, "S_kv": 64, "S_cap": 128, "threads": 18,
+      "ok": true,
+      "roofline_inputs": {
+        "int4_ops": 1067974656.00000000,
+        "fp32_ops": 4751360.00000000,
+        "total_ops": 1072726016.00000000,
+        "weight_params": 533987328.00000000,
+        "weight_bytes_format": 300457984.00000000,
+        "weight_bytes_ideal": 267083776.00000000,
+        "kv_bytes_format": 532480.00000000,
+        "kv_bytes_ideal": 532480.00000000,
+        "io_bytes": 43008.00000000,
+        "min_bytes_format": 301033472.00000000,
+        "min_bytes_ideal": 267659264.00000000
+      },
+      "memory": {"phys_footprint_mb": 5881.64529419, "peak_rss_mb": 5885.60937500},
+      "verify": {
+        "level_a_dequant_fp64": {"cosine_sim": 0.99975313, "rel_l2_err": 0.02222612, "sqnr_db": 33.0627, "max_abs_err": 0.116431, "kl_div": 0.00054103, "nan_inf_count": 0, "passed": true},
+        "level_b_unquant_fp64": {"cosine_sim": 0.98298862, "rel_l2_err": 0.18437638, "sqnr_db": 14.6859, "max_abs_err": 1.087941, "kl_div": 0.04030827, "nan_inf_count": 0, "passed": true},
+        "deterministic": true, "max_repro_diff": 0.00000000e+00
+      }
+    }
+  ]
+}

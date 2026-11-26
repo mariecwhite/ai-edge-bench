@@ -2,6 +2,10 @@
 
 Suite configurations in this directory define the subgraph shapes, concurrency settings (thread counts, GPU streams/command buffers), and precision tracks evaluated at the Layer tier.
 
+## Available Suites
+
+- [`gemma4-31b-cpu-apple-m5-max.json`](gemma4-31b-cpu-apple-m5-max.json) — Gemma 4 31B (`google/gemma-4-31B-it`) 5-subgraph Level 2 suite on Apple M5 Max CPU (18 cores: 6 Super + 12 Performance) across 4 runtimes / 11 backend configurations (`litert_xnn_*`, `litert_ynn_*`, `direct_ynn_capi_*`, `ggml_cpu_*`).
+
 ## Suite Structure
 
 Each suite JSON specifies:

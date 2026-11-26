@@ -1,0 +1,249 @@
+{
+  "name": "gemma4-31b-cpu-apple-m5-max",
+  "tier": "layer",
+  "description": "Level 2 compound subgraph benchmarks for Gemma 4 31B (google/gemma-4-31B-it) on Apple M5 Max CPU (18 physical cores: 6 Super + 12 Performance, 36 GB LPDDR5X Unified Memory). Evaluates all 5 core text decoder subgraphs (Local SWA Attention, Global Full Attention with K=V & proportional RoPE, GeGLU MLP, Full Local Transformer Block, Full Global Transformer Block) across LiteRT XNNPACK, LiteRT YNNPACK (decomposed & fused odml.sdpa_transposed, hybrid vs. pure blockwise-32 INT4), Direct YNNPACK C API, and llama.cpp/ggml CPU (Flash Attention, KleidiAI NEON/i8mm vs. SME2).",
+  "model": "google/gemma-4-31B-it",
+  "hardware": {
+    "machine": "apple-m5-max",
+    "microarchitecture": "Apple M5 Max",
+    "arch": "arm64",
+    "total_cores": 18,
+    "super_cores": 6,
+    "performance_cores": 12,
+    "unified_memory_gb": 36,
+    "ceilings_path": "kernel/reports/2026-11-25-gemma4-31b-apple-m5-max/ceilings_apple_m5_max.json",
+    "model_report_path": "model/reports/2026-11-26-gemma4-31b-cpu-apple-m5-max-apple-m5-max/data.json"
+  },
+  "architecture": {
+    "num_layers": 60,
+    "num_local_layers": 50,
+    "num_global_layers": 10,
+    "hidden_size": 5376,
+    "intermediate_size": 21504,
+    "rms_norm_eps": 1e-6,
+    "attention_scale": 1.0,
+    "local_swa": {
+      "num_attention_heads": 32,
+      "num_key_value_heads": 16,
+      "head_dim": 256,
+      "sliding_window": 1024,
+      "rope_theta": 10000.0,
+      "partial_rotary_factor": 1.0,
+      "attention_k_eq_v": false
+    },
+    "global_full": {
+      "num_attention_heads": 32,
+      "num_key_value_heads": 4,
+      "head_dim": 512,
+      "rope_theta": 1000000.0,
+      "partial_rotary_factor": 0.25,
+      "attention_k_eq_v": true
+    }
+  },
+  "methodology": {
+    "clock": "CLOCK_MONOTONIC_RAW",
+    "qos": "QOS_CLASS_USER_INTERACTIVE",
+    "trials": 7,
+    "warmup_iters": 2,
+    "min_trial_window_ms": 60.0,
+    "decode_slc_flush_mb": 96,
+    "threads_full_matrix": [6, 18],
+    "threads_scaling_subset": [1, 6, 12, 18]
+  },
+  "quality_gate": {
+    "level_a_dequant_fp64": {
+      "min_cosine_sim": 0.9990,
+      "max_rel_l2_err": 0.045,
+      "min_sqnr_db": 27.0,
+      "max_kl_div": 0.005,
+      "max_nan_inf": 0
+    },
+    "level_b_unquant_fp64": {
+      "min_cosine_sim": 0.930,
+      "max_rel_l2_err": 0.38,
+      "min_sqnr_db": 8.5,
+      "max_kl_div": 0.09,
+      "max_nan_inf": 0,
+      "note": "Chained INT4 projections across full_local_block / full_global_block (6-7 sequential 4-bit linear ops + softmax) naturally accumulate higher end-to-end quantization noise for per-channel QC4W (~6.6-9.8 dB) vs. blockwise-32 QB4W/Q4_0 (~9.4-18.2 dB); Level A dequantized-weight FP64 parity is the strict runtime/fusion correctness gate."
+    }
+  },
+  "subgraphs": [
+    {
+      "id": "local_swa_attn",
+      "title": "Local Sliding-Window Attention (H=32, KV=16, D=256, W=1024)",
+      "layer_count_in_model": 50,
+      "regimes": [
+        {"id": "prefill_128", "mode": "prefill", "T": 128, "S_kv": 128, "S_cap": 4096},
+        {"id": "prefill_1024", "mode": "prefill", "T": 1024, "S_kv": 1024, "S_cap": 4096},
+        {"id": "decode_kv64", "mode": "decode", "T": 1, "S_kv": 64, "S_cap": 4096},
+        {"id": "decode_kv256", "mode": "decode", "T": 1, "S_kv": 256, "S_cap": 4096},
+        {"id": "decode_kv1024", "mode": "decode", "T": 1, "S_kv": 1024, "S_cap": 4096},
+        {"id": "decode_kv1024_cap8192", "mode": "decode", "T": 1, "S_kv": 1024, "S_cap": 8192}
+      ]
+    },
+    {
+      "id": "global_full_attn",
+      "title": "Global Full Attention (H=32, KV=4, D=512, K=V, 0.25x RoPE)",
+      "layer_count_in_model": 10,
+      "regimes": [
+        {"id": "prefill_128", "mode": "prefill", "T": 128, "S_kv": 128, "S_cap": 4096},
+        {"id": "prefill_1024", "mode": "prefill", "T": 1024, "S_kv": 1024, "S_cap": 4096},
+        {"id": "prefill_1024_ctx4096", "mode": "prefill", "T": 1024, "S_kv": 4096, "S_cap": 8192},
+        {"id": "decode_kv64", "mode": "decode", "T": 1, "S_kv": 64, "S_cap": 4096},
+        {"id": "decode_kv1024", "mode": "decode", "T": 1, "S_kv": 1024, "S_cap": 4096},
+        {"id": "decode_kv4096", "mode": "decode", "T": 1, "S_kv": 4096, "S_cap": 8192},
+        {"id": "decode_kv8192", "mode": "decode", "T": 1, "S_kv": 8192, "S_cap": 16384},
+        {"id": "decode_kv16384", "mode": "decode", "T": 1, "S_kv": 16384, "S_cap": 16384}
+      ]
+    },
+    {
+      "id": "geglu_mlp",
+      "title": "GeGLU Feed-Forward Network (5376 -> 21504 -> 5376)",
+      "layer_count_in_model": 60,
+      "regimes": [
+        {"id": "prefill_128", "mode": "prefill", "T": 128, "S_kv": 0, "S_cap": 0},
+        {"id": "prefill_1024", "mode": "prefill", "T": 1024, "S_kv": 0, "S_cap": 0},
+        {"id": "decode_1", "mode": "decode", "T": 1, "S_kv": 0, "S_cap": 0}
+      ]
+    },
+    {
+      "id": "full_local_block",
+      "title": "Full Local Transformer Block (Local SWA + GeGLU MLP)",
+      "layer_count_in_model": 50,
+      "regimes": [
+        {"id": "prefill_128", "mode": "prefill", "T": 128, "S_kv": 128, "S_cap": 4096},
+        {"id": "prefill_1024", "mode": "prefill", "T": 1024, "S_kv": 1024, "S_cap": 4096},
+        {"id": "decode_kv64", "mode": "decode", "T": 1, "S_kv": 64, "S_cap": 4096},
+        {"id": "decode_kv1024", "mode": "decode", "T": 1, "S_kv": 1024, "S_cap": 4096},
+        {"id": "decode_kv1024_cap8192", "mode": "decode", "T": 1, "S_kv": 1024, "S_cap": 8192}
+      ]
+    },
+    {
+      "id": "full_global_block",
+      "title": "Full Global Transformer Block (Global K=V Attn + GeGLU MLP)",
+      "layer_count_in_model": 10,
+      "regimes": [
+        {"id": "prefill_128", "mode": "prefill", "T": 128, "S_kv": 128, "S_cap": 4096},
+        {"id": "prefill_1024", "mode": "prefill", "T": 1024, "S_kv": 1024, "S_cap": 4096},
+        {"id": "prefill_1024_ctx4096", "mode": "prefill", "T": 1024, "S_kv": 4096, "S_cap": 8192},
+        {"id": "decode_kv64", "mode": "decode", "T": 1, "S_kv": 64, "S_cap": 4096},
+        {"id": "decode_kv1024", "mode": "decode", "T": 1, "S_kv": 1024, "S_cap": 4096},
+        {"id": "decode_kv4096", "mode": "decode", "T": 1, "S_kv": 4096, "S_cap": 8192},
+        {"id": "decode_kv8192", "mode": "decode", "T": 1, "S_kv": 8192, "S_cap": 16384},
+        {"id": "decode_kv16384", "mode": "decode", "T": 1, "S_kv": 16384, "S_cap": 16384}
+      ]
+    }
+  ],
+  "backends": [
+    {
+      "id": "litert_xnn_qc4w",
+      "label": "LiteRT XNNPACK (QC4W)",
+      "framework": "LiteRT",
+      "delegate": "XNNPACK",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "attn_path": "decomposed",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "litert_xnn_qb4w32",
+      "label": "LiteRT XNNPACK (QB4W-32)",
+      "framework": "LiteRT",
+      "delegate": "XNNPACK",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "attn_path": "decomposed",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "litert_ynn_qc4w_decomposed",
+      "label": "LiteRT YNNPACK (QC4W, Decomposed)",
+      "framework": "LiteRT",
+      "delegate": "YNNPACK",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "attn_path": "decomposed",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "litert_ynn_qc4w_sdpa",
+      "label": "LiteRT YNNPACK (QC4W, Fused SDPA)",
+      "framework": "LiteRT",
+      "delegate": "YNNPACK",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "attn_path": "odml.sdpa_transposed",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "litert_ynn_qb4w32_hybrid_sdpa",
+      "label": "LiteRT YNNPACK Hybrid (QB4W-32, Fused SDPA)",
+      "framework": "LiteRT",
+      "delegate": "YNNPACK+XNNPACK",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "attn_path": "odml.sdpa_transposed",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "litert_ynn_qb4w32_pure_sdpa",
+      "label": "LiteRT YNNPACK Pure (QB4W-32, Fused SDPA)",
+      "framework": "LiteRT",
+      "delegate": "YNNPACK (enable_blockwise=true)",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "attn_path": "odml.sdpa_transposed",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "direct_ynn_capi_qc4w",
+      "label": "Direct YNNPACK C API (QC4W)",
+      "framework": "YNNPACK",
+      "delegate": "Direct C API + Slinky",
+      "weight_quant": "qc4w",
+      "kv_dtype": "fp32",
+      "attn_path": "direct_sliced",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "direct_ynn_capi_qb4w32",
+      "label": "Direct YNNPACK C API (QB4W-32)",
+      "framework": "YNNPACK",
+      "delegate": "Direct C API + Slinky",
+      "weight_quant": "qb4w32",
+      "kv_dtype": "fp32",
+      "attn_path": "direct_sliced",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "sme2_fp32_fmopa"
+    },
+    {
+      "id": "ggml_cpu_neon_fa",
+      "label": "llama.cpp / ggml CPU (Q4_0, NEON/i8mm + FA)",
+      "framework": "llama.cpp",
+      "delegate": "ggml-cpu (GGML_KLEIDIAI_SME=0)",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "attn_path": "ggml_flash_attn_ext",
+      "compute_isa_prefill": "neon_i8mm_smmla",
+      "compute_isa_attn": "neon_fp32_fmla"
+    },
+    {
+      "id": "ggml_cpu_sme_fa",
+      "label": "llama.cpp / ggml CPU (Q4_0, KleidiAI SME2 + FA)",
+      "framework": "llama.cpp",
+      "delegate": "ggml-cpu (GGML_KLEIDIAI_SME=1)",
+      "weight_quant": "q4_0",
+      "kv_dtype": "fp16",
+      "attn_path": "ggml_flash_attn_ext",
+      "compute_isa_prefill": "sme2_int8_smopa",
+      "compute_isa_attn": "neon_fp32_fmla"
+    }
+  ]
+}
